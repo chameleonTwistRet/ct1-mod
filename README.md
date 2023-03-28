@@ -24,4 +24,15 @@ Version 2 is being built such that it will attach to our [Decompilation project]
 
 # Installation for Developers
 
-[TODO]
+1. Setup the [Decompilation project](https://github.com/chameleonTwistRet/chameleonTwistv1.0-JP)
+    TODO: Add instructions for this
+
+2. From the root of the decomp run `./configure --mod`
+
+3. `mkdir src/mod`
+
+4. `git clone https://github.com/chameleonTwistRet/ct1-JP-SpeedrunMod.git src/mod/.`
+
+5. run `ninja -t clean && ./configure --mod && ninja`
+
+Now whenever you make changes to the mod, you can run `./configure --mod && ninja` to rebuild the mod.
