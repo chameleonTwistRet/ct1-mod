@@ -1,40 +1,4 @@
-#include "common.h"
-
-extern s32 gameModeCurrent;
-extern s32 D_800F06E8;
-extern OSMesgQueue D_801192E8;
-extern char D_8010DB20[];
-extern Addr* mod_ROM_START;
-extern Addr* mod_VRAM;
-extern Addr* mod_ROM_END;
-extern Addr* mod_ROM_START;
-void mod_main_per_frame(void);
-void mod_boot_func(void);
-
-void convertAsciiToText(void* buffer, char* source) {
-    u16* buf = (u16*)buffer;
-    s32 strlength = strlen(source);
-    s32 i;
-
-    for (i = 0; i < strlength; i++) {
-        if ( (source[i] >= '0' && source[i] <= '9') ||
-            (source[i] >= 'A' && source[i] <= 'Z')) { //is 0 - 9 or A - Z
-            buf[i] = source[i] + 0xA380; //0x30 = 0 in ascii, 0xA3B0 = 0 in chameleon text
-        } else if ( (source[i] > '0' && source[i] <= '9') ||
-            (source[i] >= 'a' && source[i] <= 'z')) { //is 0 - 9 or A - Z
-            buf[i] = source[i] + 0xA360; //0x30 = 0 in ascii, 0xA3B0 = 0 in chameleon text
-        } else if(source[i] == '-') {
-            buf[i] = 0xA1DD; // '-' in chameleon text
-        } else if (source[i] == '.') {
-            buf[i] = 0xA1A5; // '.' in chameleon text
-        } else if (source[i] == ':') {
-            buf[i] = 0xA1A7; // ':' in chameleon text
-        } else if (source[i] == ' ') {
-            buf[i] = 0xA1A1; // ' ' in chameleon text
-        }
-    }
-    buf[i] = 0; //terminate buffer
-}
+#include "mod_main.h"
 
 void func(char* string) {
     PrintTextWrapper(100.0f, 10.0f, 0.0f, 1.0f, string, 1);
@@ -43,6 +7,7 @@ void func(char* string) {
 s32 loadEnemiesBool = 1;
 
 char testing[] = "ＯＫ"; 
+char textBfr[0x100] = {'\0'};
 
 void hookCode(s32* patchAddr, void* jumpLocation, s32* instructionBuffer) {
     jumpLocation = (void*)(u32)((((u32)jumpLocation & 0x00FFFFFF) >> 2) | 0x08000000);
@@ -69,15 +34,22 @@ void mod_boot_func(void) {
     hookCode((s32*)0x8002D660, &loadEnemyObjectsHook, instructionBuffer);
 }
 
+
+/*
+ * mod_main_per_frame: where to add code that runs every frame
+ */
 void mod_main_per_frame(void) {
-    //per frame function
-    PrintTextWrapper(64.0f, 32.0f, 0.0f, 1.0f, testing, 1);
+    
+    PrintTextWrapper(64.0f, 32.0f, 0.0f, 1.0f, textBfr, 1);
 }
 
 //Thread 3 osStartThread function
 //name is hardcoded in configure script. if name is changed, change it there too
 void mod_main_func(void) {
     // func_8002D080(); //is already ran in MainLoop.s patch
+    
+    convertAsciiToText(textBfr, "T E S T");
+    //strncpy_custom(textBfr, "ＡＢ", strlength_custom("ＡＢ"));
     
     if (D_800F06E8 != -1) {
         gameModeCurrent = D_800F06E8;
