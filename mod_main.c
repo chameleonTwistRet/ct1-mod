@@ -48,7 +48,7 @@ void mod_main_per_frame(void) {
 void mod_main_func(void) {
     // func_8002D080(); //is already ran in MainLoop.s patch
     
-    convertAsciiToText(textBfr, "T E S T");
+    //convertAsciiToText(textBfr, "T E S T");
     //strncpy_custom(textBfr, "ＡＢ", strlength_custom("ＡＢ"));
     
     if (D_800F06E8 != -1) {
