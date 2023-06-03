@@ -51,19 +51,19 @@ void mod_main_func(void) {
     //convertAsciiToText(textBfr, "T E S T");
     //strncpy_custom(textBfr, "ＡＢ", strlength_custom("ＡＢ"));
     
-    if (D_800F06E8 != -1) {
-        gameModeCurrent = D_800F06E8;
+    if (sGameModeStart != -1) {
+        gameModeCurrent = sGameModeStart;
     }
     
-    D_800FFEB8 = 0;
+    gGameModeState = 0;
     osRecvMesg(&D_801192E8, 0, 1);
-    func_800A847C(&D_80200C00.flags0[0]);
+    SaveData_LoadRecords(&gGameRecords.flags[0]);
     
-    if (func_800A7F70() != D_80200C00.flags0[0]) {
-        func_800A8944();
+    if (SaveData_RecordChecksum() != gGameRecords.flags[0]) {
+        SaveData_ClearRecords();
     }
 
-    D_800FF5FC = D_80200C00.flags0[1] & 1;
+    gIsStero = gGameRecords.flags[1] & 1; //gIsStero = gGameRecords.flags0[1] & 1;
     osRecvMesg(&D_801192E8, 0, 1);
     mod_boot_func();
     //step current game mode
@@ -71,10 +71,10 @@ void mod_main_func(void) {
     mod_main_per_frame();
     switch(gameModeCurrent) {
         case GAME_MODE_OVERWORLD:
-            func_8008FF84();
+            Porocess_Mode0();
             goto loop;
         case GAME_MODE_JUNGLE_LAND_MENU:
-            func_80097910();
+            Process_StageSelect();
             goto loop;
         case GAME_MODE_SAVE_MENU:
             FileWork();
@@ -98,19 +98,19 @@ void mod_main_func(void) {
             func_800A2BDC();
             goto loop;
         case GAME_MODE_BATTLE_MENU:
-            func_800A0810();
+            Process_BattleMenu();
             goto loop;
         case GAME_MODE_OPTIONS_MENU:
             func_800A4320();
             goto loop;
         case GAME_MODE_GAME_OVER:
-            func_800A4EC8();
+            Process_GameOver();
             goto loop;
         case GAME_MODE_SUPPLY_SYSTEM_LOGO:
-            func_800A5570();
+            Process_JSSLogo();
             goto loop;
         case GAME_MODE_PRE_CREDITS:
-            func_8009553C();
+            Process_PreCredits();
             goto loop;
         case GAME_MODE_NEW_GAME_MENU:
             func_800A1D38();
@@ -122,16 +122,16 @@ void mod_main_func(void) {
             func_800A07E0();
             goto loop;
         case GAME_MODE_RANKING:
-            func_8005564C();
+            Process_Ranking();
             goto loop;
         case 17:
             func_800557F8();
             goto loop;
         case GAME_MODE_BOOT:
-            func_80055994();
+            Process_Boot();
             goto loop;
         case GAME_MODE_SUNSOFT_LOGO:
-            func_80055AA0();
+            Process_SunsoftLogo();
             goto loop;
         case GAME_MODE_UNK_15:
             DummiedPrintf(D_8010DB20, gameModeCurrent);
