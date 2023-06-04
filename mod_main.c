@@ -4,7 +4,7 @@ void func(char* string) {
     PrintTextWrapper(100.0f, 10.0f, 0.0f, 1.0f, string, 1);
 }
 
-s32 loadEnemiesBool = 1;
+s32 loadEnemiesBool = 0;
 
 char testing[] = "ＯＫ"; 
 char textBfr[0x100] = {'\0'};
@@ -27,10 +27,11 @@ s32 newFunc(void) {
 
 void loadEnemyObjectsHook(void);
 void newPrintf(void);
+void crash_screen_init(void);
 
 void mod_boot_func(void) {
     s32 instructionBuffer[2];
-
+    crash_screen_init();
     hookCode((s32*)0x8002D660, &loadEnemyObjectsHook, instructionBuffer);
 }
 
