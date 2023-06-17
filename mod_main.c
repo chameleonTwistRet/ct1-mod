@@ -1,19 +1,19 @@
 #include "mod_main.h"
 
-void func(char* string) {
-    PrintTextWrapper(100.0f, 10.0f, 0.0f, 1.0f, string, 1);
-}
+//in assets/ you'll find an example of replacing an image
 
-s32 loadEnemiesBool = 0;
+//func_8002D644_patch.s shows an example of adding .s files and using them with a hook
+//this specific .s file allows toggling the spawning of enemies as an example
 
-char testing[] = "ＯＫ"; 
-char textBfr[0x100] = {'\0'};
+void loadEnemyObjectsHook(void);
+void newPrintf(void);
+void crash_screen_init(void);
 
-void hookCode(s32* patchAddr, void* jumpLocation, s32* instructionBuffer) {
+s32 loadEnemiesBool = 0; //used by `func_8002D644_patch.s`
+
+void hookCode(s32* patchAddr, void* jumpLocation) {
     jumpLocation = (void*)(u32)((((u32)jumpLocation & 0x00FFFFFF) >> 2) | 0x08000000);
-    instructionBuffer[0] = patchAddr[0];
     patchAddr[0] = (s32)jumpLocation; //write j instruction
-    instructionBuffer[1] = patchAddr[1];
     patchAddr[1] = 0; //write nop
 }
 
@@ -21,36 +21,24 @@ void patchInstruction(void* patchAddr, s32 patchInstruction) {
     *(s32*)patchAddr = patchInstruction;
 }
 
-s32 newFunc(void) {
-    return 1;
-}
-
-void loadEnemyObjectsHook(void);
-void newPrintf(void);
-void crash_screen_init(void);
-
+//mod_boot_func: runs a single time on boot before main game loop starts
 void mod_boot_func(void) {
     s32 instructionBuffer[2];
     crash_screen_init();
-    hookCode((s32*)0x8002D660, &loadEnemyObjectsHook, instructionBuffer);
+    //hookCode((s32*)0x8002D660, &loadEnemyObjectsHook); //example of hooking code
 }
 
 
-/*
- * mod_main_per_frame: where to add code that runs every frame
- */
+//mod_main_per_frame: where to add code that runs every frame before main game loop
 void mod_main_per_frame(void) {
-    
-    PrintTextWrapper(64.0f, 32.0f, 0.0f, 1.0f, textBfr, 1);
+    //
 }
 
 //Thread 3 osStartThread function
+//this is a decomped version of `MainLoop.s`. It has a call to `mod_main_per_frame` before each gamemode step
 //name is hardcoded in configure script. if name is changed, change it there too
 void mod_main_func(void) {
     // func_8002D080(); //is already ran in MainLoop.s patch
-    
-    //convertAsciiToText(textBfr, "T E S T");
-    //strncpy_custom(textBfr, "ＡＢ", strlength_custom("ＡＢ"));
     
     if (sGameModeStart != -1) {
         gameModeCurrent = sGameModeStart;

@@ -4,10 +4,6 @@
 #include "common.h"
 #include "text.h"
 
-extern s32 gameModeCurrent;
-extern s32 sGameModeStart;
-extern OSMesgQueue D_801192E8;
-extern char D_8010DB20[];
 extern Addr* mod_ROM_START;
 extern Addr* mod_VRAM;
 extern Addr* mod_ROM_END;
