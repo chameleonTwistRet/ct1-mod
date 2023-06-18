@@ -23,15 +23,31 @@ void patchInstruction(void* patchAddr, s32 patchInstruction) {
     *(s32*)patchAddr = patchInstruction;
 }
 
-char *path = "ultrasm64/save.bin";
-FIL sdsavefile;
+
+
+#define ALIGN4(val) (((val) + 0x3) & ~0x3)
+FATFS FatFs;
+
+FRESULT initFatFs(void) {
+	//Mount SD Card
+	return f_mount(&FatFs, "", 0);
+}
+
+char *path = "ct1State.bin"; //example file for SD card writing
+FIL sdsavefile = {0};
+
 //mod_boot_func: runs a single time on boot before main game loop starts
 void mod_boot_func(void) {
+    UINT filebytesread;
+    char testString[] = "Testing f_write() call\n";
     FRESULT fileres;
     s32 instructionBuffer[2];
     crash_screen_init();
     cart_init();
+    initFatFs();
     fileres = f_open(&sdsavefile, path, FA_OPEN_ALWAYS | FA_WRITE | FA_READ);
+    f_write(&sdsavefile, testString, ALIGN4(sizeof(testString)), &filebytesread);
+    f_close(&sdsavefile);
     //hookCode((s32*)0x8002D660, &loadEnemyObjectsHook); //example of hooking code
 }
 
