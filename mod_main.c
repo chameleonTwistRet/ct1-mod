@@ -8,6 +8,7 @@
 void loadEnemyObjectsHook(void);
 void newPrintf(void);
 void crash_screen_init(void);
+void cart_init(void);
 
 s32 loadEnemiesBool = 0; //used by `func_8002D644_patch.s`
 
@@ -25,6 +26,7 @@ void patchInstruction(void* patchAddr, s32 patchInstruction) {
 void mod_boot_func(void) {
     s32 instructionBuffer[2];
     crash_screen_init();
+    cart_init();
     //hookCode((s32*)0x8002D660, &loadEnemyObjectsHook); //example of hooking code
 }
 
