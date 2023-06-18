@@ -1,5 +1,7 @@
 #include "mod_main.h"
-
+#include "lib/cart.h"
+#include "lib/ff.h"
+#include "lib/ffconf.h"
 //in assets/ you'll find an example of replacing an image
 
 //func_8002D644_patch.s shows an example of adding .s files and using them with a hook
@@ -8,7 +10,6 @@
 void loadEnemyObjectsHook(void);
 void newPrintf(void);
 void crash_screen_init(void);
-void cart_init(void);
 
 s32 loadEnemiesBool = 0; //used by `func_8002D644_patch.s`
 
@@ -22,11 +23,15 @@ void patchInstruction(void* patchAddr, s32 patchInstruction) {
     *(s32*)patchAddr = patchInstruction;
 }
 
+char *path = "ultrasm64/save.bin";
+FIL sdsavefile;
 //mod_boot_func: runs a single time on boot before main game loop starts
 void mod_boot_func(void) {
+    FRESULT fileres;
     s32 instructionBuffer[2];
     crash_screen_init();
     cart_init();
+    fileres = f_open(&sdsavefile, path, FA_OPEN_ALWAYS | FA_WRITE | FA_READ);
     //hookCode((s32*)0x8002D660, &loadEnemyObjectsHook); //example of hooking code
 }
 
