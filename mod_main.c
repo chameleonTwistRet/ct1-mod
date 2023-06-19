@@ -2,39 +2,34 @@
 #include "lib/cart.h"
 #include "lib/ff.h"
 #include "lib/ffconf.h"
+
+char pracTwistVersionString[] = "Practwist v0.1";
+
+#define USE_SD_CARD FALSE //set to false to build without sd card funcs
+
 //in assets/ you'll find an example of replacing an image
 
-//func_8002D644_patch.s shows an example of adding .s files and using them with a hook
-//this specific .s file allows toggling the spawning of enemies as an example
+s32 loadEnemiesBool = 0; //used by `func_8002D644_patch.s`
+volatile s32 saveOrLoadStateMode = 0;
+volatile s32 savestateCurrentSlot = 0;
+s32 savestate1Size = 0;
+s32 savestate2Size = 0;
+volatile s32 isSaveOrLoadActive = 0;
+s32 stateCooldown = 0;
+s32 gameBootTimer = 30;
+
+FATFS FatFs;
+char *path = "ct1State.bin"; //example file for SD card writing
+FIL sdsavefile = {0};
 
 void loadEnemyObjectsHook(void);
-void newPrintf(void);
 void crash_screen_init(void);
-
-s32 loadEnemiesBool = 0; //used by `func_8002D644_patch.s`
-
-void hookCode(s32* patchAddr, void* jumpLocation) {
-    jumpLocation = (void*)(u32)((((u32)jumpLocation & 0x00FFFFFF) >> 2) | 0x08000000);
-    patchAddr[0] = (s32)jumpLocation; //write j instruction
-    patchAddr[1] = 0; //write nop
-}
-
-void patchInstruction(void* patchAddr, s32 patchInstruction) {
-    *(s32*)patchAddr = patchInstruction;
-}
-
-
-
-#define ALIGN4(val) (((val) + 0x3) & ~0x3)
-FATFS FatFs;
+void checkInputsForSavestates(void);
 
 FRESULT initFatFs(void) {
 	//Mount SD Card
 	return f_mount(&FatFs, "", 0);
 }
-
-char *path = "ct1State.bin"; //example file for SD card writing
-FIL sdsavefile = {0};
 
 //mod_boot_func: runs a single time on boot before main game loop starts
 void mod_boot_func(void) {
@@ -43,18 +38,36 @@ void mod_boot_func(void) {
     FRESULT fileres;
     s32 instructionBuffer[2];
     crash_screen_init();
-    cart_init();
-    initFatFs();
-    fileres = f_open(&sdsavefile, path, FA_OPEN_ALWAYS | FA_WRITE | FA_READ);
-    f_write(&sdsavefile, testString, ALIGN4(sizeof(testString)), &filebytesread);
-    f_close(&sdsavefile);
+    gameBootTimer = 30;
+
+    #if USE_SD_CARD == TRUE
+        //initialize SD card from everdrive, create test file, close
+        cart_init();
+        initFatFs();
+        fileres = f_open(&sdsavefile, path, FA_OPEN_ALWAYS | FA_WRITE | FA_READ);
+        f_write(&sdsavefile, testString, ALIGN4(sizeof(testString)), &filebytesread);
+        f_close(&sdsavefile);
+    #endif
+
     //hookCode((s32*)0x8002D660, &loadEnemyObjectsHook); //example of hooking code
 }
 
-
 //mod_main_per_frame: where to add code that runs every frame before main game loop
 void mod_main_per_frame(void) {
-    //
+    if (gameBootTimer != 0) {
+        gameBootTimer--;
+        return;
+    }
+
+    if (stateCooldown == 0 && gameBootTimer == 0) {
+        checkInputsForSavestates();
+    }
+
+    if (stateCooldown > 0) {
+        stateCooldown--;
+    }
+    //if a savestate is being saved/loaded, stall thread
+    while (isSaveOrLoadActive != 0) {}
 }
 
 //Thread 3 osStartThread function

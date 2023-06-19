@@ -230,6 +230,8 @@ void crash_screen_print_fpcsr(u32 value) {
     }
 }
 
+extern char pracTwistVersionString[];
+
 void crash_screen_draw(OSThread* faultedThread) {
     s16 causeIndex;
     __OSThreadContext* ctx;
@@ -289,6 +291,8 @@ void crash_screen_draw(OSThread* faultedThread) {
     crash_screen_print_fpr(120, 210, 26, &ctx->fp26.f.f_even);
     crash_screen_print_fpr(210, 210, 28, &ctx->fp28.f.f_even);
     crash_screen_print_fpr(30, 220, 30, &ctx->fp30.f.f_even);
+
+    crash_screen_printf(210, 220, pracTwistVersionString);
 
     crash_screen_sleep(500);
 
