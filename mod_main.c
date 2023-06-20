@@ -65,7 +65,7 @@ void mod_boot_func(void) {
     _bzero(&textBuffer, sizeof(textBuffer)); // clear text
     convertAsciiToText(&textBuffer, "test text");
 
-    //hookCode((s32*)0x8002D660, &loadEnemyObjectsHook); //example of hooking code
+    hookCode((s32*)0x8002D660, &loadEnemyObjectsHook); //example of hooking code
 }
 
 extern s32 isMenuActive;
@@ -108,6 +108,63 @@ void printCustomDebugText(void) {
     textPrint(13.0f, 194.0f, 0.5f, &convertedMessageBuffer, 1);
 }
 
+extern u32 nextZone;
+u8 timesvaulted = 0;
+
+s32 caveSkipPractice(void) {
+    f32 caveAngleDiff;
+    f32 caveAngleDiffAbs;
+    f32 caveZDiff;
+    f32 caveZDiffAbs;
+
+    char messageBuffer[20];
+    char convertedMessageBuffer[sizeof(messageBuffer) * 2];
+
+    if ((gameModeCurrent == GAME_MODE_OVERWORLD) && (gCurrentStage == 0) && (nextZone == 0) && (toggles[TOGGLE_CAVE_SKIP_PRACTICE] == 1)) {
+        // Printout Location
+        f32 xPos = 20.0f;
+        f32 yPos = 35.0f;
+        f32 scale = 0.5f;
+        s32 style = 3;
+
+        // Data Needed
+        if (gTongues[0].vaultTime == 1) {
+            timesvaulted++;
+        }
+
+        if (timesvaulted > 0) {
+            caveAngleDiff = (gPlayerActors[0].yAngle - 90.0f);
+            caveAngleDiffAbs = ((caveAngleDiff < 0) ? -caveAngleDiff : caveAngleDiff);
+            if (caveAngleDiffAbs < 5.0f) {
+                colorTextWrapper(textGreenColor);
+            }
+            else {
+                colorTextWrapper(textRedColor);
+            }
+            _bzero(&messageBuffer, sizeof(messageBuffer)); //clear buffer
+            _sprintf(messageBuffer, "ANGLE OFF BY: %.4f\n", caveAngleDiffAbs);
+		    _bzero(&convertedMessageBuffer, sizeof(convertedMessageBuffer));
+		    convertAsciiToText(&convertedMessageBuffer, (char*)&messageBuffer);
+		    PrintText(xPos, yPos, 0, scale, 0, 0, convertedMessageBuffer, style);
+
+            caveZDiff = (2925.0f - gPlayerActors[0].pos.z);
+            caveZDiffAbs = ((caveZDiff < 0) ? -caveZDiff : caveZDiff);
+
+            if ((gPlayerActors[0].pos.z < 2930.0f) && (gPlayerActors[0].pos.z > 2920.0f)) {
+                colorTextWrapper(textGreenColor);
+            }
+            else {
+                colorTextWrapper(textRedColor);
+            }
+            _sprintf(messageBuffer, "Z OFF BY: %.4f\n", caveZDiffAbs);
+			_bzero(&convertedMessageBuffer, sizeof(convertedMessageBuffer)); //clear buffer
+			convertAsciiToText(&convertedMessageBuffer, (char*)&messageBuffer);
+			PrintText(xPos, (yPos += 10.0f), 0, scale, 0, 0, convertedMessageBuffer, style);
+        }
+    }
+    return 1;
+}
+
 //mod_main_per_frame: where to add code that runs every frame before main game loop
 void mod_main_per_frame(void) {
     s32 index = 0;
@@ -117,11 +174,10 @@ void mod_main_per_frame(void) {
         sDebugInt = 0;
     }
 
-    updateCustomInputTracking();
+    if (toggles[TOGGLE_INFINITE_HEALTH] == 1) {gPlayerActors[0].hp = 0x0A;}
 
-    if (stateCooldown == 0 ) {
-        checkInputsForSavestates();
-    }
+    caveSkipPractice();
+    updateCustomInputTracking();
 
     if (stateCooldown > 0) {
         stateCooldown--;
@@ -131,6 +187,7 @@ void mod_main_per_frame(void) {
         pageMainDisplay(currPageNo, currOptionNo);
         updateMenuInput();
     }
+
     if ((D_80175650[0].pad.button & R_TRIG) && (currentlyPressedButtons & CONT_UP)) {
         sDebugInt ^= 1;
     } else if ((D_80175650[0].pad.button & R_TRIG) && (currentlyPressedButtons & CONT_DOWN)) {
@@ -138,11 +195,10 @@ void mod_main_per_frame(void) {
     } else if (currentlyPressedButtons & CONT_DOWN) {
         savestateCurrentSlot ^= 1; //flip from 0 to 1 or vice versa (2 saveslots)
     } else {
-        if (isMenuActive == 0) {
+        if (isMenuActive == 0 ) {
             checkInputsForSavestates();
         }
     }
-
 
     if (toggles[TOGGLE_HIDE_SAVESTATE_TEXT] == 1) {
             if (savestateCurrentSlot == 0) {

@@ -32,7 +32,7 @@ u8 toggles[] = {
     0,  // TOGGLE_INFINITE_HEALTH
     0,  // TOGGLE_CUSTOM_DEBUG_TEXT
     0,  // TOGGLE_CAVE_SKIP_PRACTICE
-    0, // TOGGLE_OBJECT_SPAWNS_OFF
+    0, // TOGGLE_ENEMY_SPAWNS_OFF
 };
 
 s32 toggleHideSavestateText(void) {
@@ -61,8 +61,8 @@ s32 toggleCaveSkipPractice(void) {
 }
 
 s32 toggleObjectSpawnsOff(void) {
-    toggles[TOGGLE_OBJECT_SPAWNS_OFF] ^= 1;
-    toggleSpawnsOff ^= 1;
+    toggles[TOGGLE_ENEMY_SPAWNS_OFF] ^= 1;
+    loadEnemiesBool ^= 1;
     return 1;
 }
 
@@ -139,7 +139,7 @@ menuPage page0 = {
         TOGGLE_HIDE_IGT,
         TOGGLE_CUSTOM_DEBUG_TEXT,
         TOGGLE_CAVE_SKIP_PRACTICE,
-        TOGGLE_OBJECT_SPAWNS_OFF
+        TOGGLE_ENEMY_SPAWNS_OFF
     }
 };
 
