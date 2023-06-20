@@ -1,3 +1,6 @@
+// Author: Ellie (Elisiah)
+// Text.h: Handle String Data for Chameleon Twist 
+
 #ifndef _TEXT_H_
 #define _TEXT_H_
 

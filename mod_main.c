@@ -5,6 +5,15 @@
 #include "sd_toggle.h"
 
 char pracTwistVersionString[] = "Practwist v0.1";
+char textBuffer[0x100] = {'\0'};    // Text buffer set to empty string
+
+// Patches work the same way as 81 and 80 GameShark Codes
+void s16patch(void* patchAddr, s16 patchInstruction) {
+    *(s16*)patchAddr = patchInstruction;
+}
+void s8patch(void* patchAddr, s8 patchInstruction) {
+    *(s8*)patchAddr = patchInstruction;
+}
 
 //in assets/ you'll find an example of replacing an image
 
@@ -48,6 +57,10 @@ void mod_boot_func(void) {
         f_close(&sdsavefile);
     #endif
 
+    // example of setting up text to print
+    _bzero(&textBuffer, sizeof(textBuffer)); // clear text
+    convertAsciiToText(&textBuffer, "test text");
+
     //hookCode((s32*)0x8002D660, &loadEnemyObjectsHook); //example of hooking code
 }
 
@@ -67,6 +80,11 @@ void mod_main_per_frame(void) {
     }
     //if a savestate is being saved/loaded, stall thread
     while (isSaveOrLoadActive != 0) {}
+
+    // example of printing in story mode, from text buffer
+    if (gameModeCurrent == GAME_MODE_OVERWORLD) {
+        PrintTextWrapper(64.0f, 32.0f, 0.0f, 1.0f, textBuffer, 1);
+    }
 }
 
 //Thread 3 osStartThread function

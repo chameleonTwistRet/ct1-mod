@@ -1,3 +1,6 @@
+// Author: Ellie (Elisiah)
+// Text.c: Handle String Data for Chameleon Twist 
+
 #include "text.h"
 
 // const char EUCJP[26] = {
@@ -51,5 +54,5 @@ void convertAsciiToText(void* buffer, char* source) {
             buf[i] = 0xA1A1; // ' ' in chameleon text
         }
     }
-    buf[i] = 0; //terminate buffer
+    buf[i] = '\0'; //terminate buffer
 }
