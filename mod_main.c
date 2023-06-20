@@ -38,10 +38,23 @@ FIL sdsavefile = {0};
 void loadEnemyObjectsHook(void);
 void crash_screen_init(void);
 void checkInputsForSavestates(void);
+void func_8004E784_Hook(contMain* arg0, s32 arg1, s32* arg2, contMain* arg3);
 
 FRESULT initFatFs(void) {
 	//Mount SD Card
 	return f_mount(&FatFs, "", 0);
+}
+
+InputRecording inputRecordingBuffer; //1200 frames
+u32 recordingInputIndex = 0;
+
+void checkIfRecordInputs(void) {
+    if (toggles[TOGGLE_RECORDING] == 0) {
+        return;
+    }
+
+    inputRecordingBuffer.recordingBuffer[recordingInputIndex++] = gContMain[0]; //copy player 1's inputs
+    inputRecordingBuffer.totalFrameCount = recordingInputIndex;
 }
 
 //mod_boot_func: runs a single time on boot before main game loop starts
@@ -56,16 +69,18 @@ void mod_boot_func(void) {
         //initialize SD card from everdrive, create test file, close
         cart_init();
         initFatFs();
-        fileres = f_open(&sdsavefile, path, FA_OPEN_ALWAYS | FA_WRITE | FA_READ);
-        f_write(&sdsavefile, testString, ALIGN4(sizeof(testString)), &filebytesread);
-        f_close(&sdsavefile);
+        // fileres = f_open(&sdsavefile, path, FA_OPEN_ALWAYS | FA_WRITE | FA_READ);
+        // f_write(&sdsavefile, testString, ALIGN4(sizeof(testString)), &filebytesread);
+        // f_close(&sdsavefile);
     #endif
 
     // example of setting up text to print
     _bzero(&textBuffer, sizeof(textBuffer)); // clear text
     convertAsciiToText(&textBuffer, "test text");
 
-    hookCode((s32*)0x8002D660, &loadEnemyObjectsHook); //example of hooking code
+    hookCode((s32*)0x8002D660, &loadEnemyObjectsHook); //toggle enemies spawning/not spawning
+    hookCode((s32*)0x8004E784, &func_8004E784_Hook); //toggle enemies spawning/not spawning
+    
 }
 
 extern s32 isMenuActive;
@@ -165,6 +180,61 @@ s32 caveSkipPractice(void) {
     return 1;
 }
 
+void func_8004E784_Hook(contMain* arg0, s32 arg1, s32* arg2, contMain* arg3) {
+    contMain* var_s0;
+    contMain* var_s1;
+    s32 i;
+
+    if (toggles[TOGGLE_PLAYBACK] == 1) {
+        if (recordingInputIndex > inputRecordingBuffer.totalFrameCount) {
+            toggles[TOGGLE_PLAYBACK] ^= 1; //turn recording off as it has reached the end
+            return;
+        }
+        gContMain[0] = inputRecordingBuffer.recordingBuffer[recordingInputIndex];
+        arg0[0] = inputRecordingBuffer.recordingBuffer[recordingInputIndex];
+        recordingInputIndex++;
+        return;
+    }
+
+    osRecvMesg(&gEepromMsgQ, NULL, 1);
+    osContGetReadData(&D_80175650[0]);
+
+    // for each controller
+    for (i = 0; i < arg1; i++) {
+        if ((arg2 == NULL) || (arg2[i] == 0)) {
+            if (D_80175668[i] == -1) {
+                Controller_Zero(&gContMain[i]);
+                continue;
+            }
+            gContMain[i].buttons0 = D_80175650[D_80175668[i]].pad.button;
+            gContMain[i].stickx = D_80175650[D_80175668[i]].pad.stick_x;
+            gContMain[i].sticky = D_80175650[D_80175668[i]].pad.stick_y;
+        } else {
+            gContMain[i].buttons0 = arg3[i].buttons0;
+            gContMain[i].stickx = arg3[i].stickx;
+            gContMain[i].sticky = arg3[i].sticky;
+        }
+
+        gContMain[i].stickAngle = CalculateAngleOfVector((f32) gContMain[i].stickx, (f32) gContMain[i].sticky);
+        gContMain[i].buttons1 = (gContMain[i].buttons0 ^ D_80175678[i]) & gContMain[i].buttons0;
+        gContMain[i].buttons2 = (gContMain[i].buttons0 ^ D_801756C0[i]) & gContMain[i].buttons0;
+        D_801756C0[i] = gContMain[i].buttons0;
+        if ((gContMain[i].stickx >= -6) && (gContMain[i].stickx < 7)) {
+            gContMain[i].stickx = 0;
+        }
+        
+        if ((gContMain[i].sticky >= -6) && (gContMain[i].sticky < 7)) {
+            gContMain[i].sticky = 0;
+        }
+
+        if (toggles[TOGGLE_RECORDING] == 1 && i == 0) {
+            inputRecordingBuffer.recordingBuffer[0] = gContMain[0];
+        }
+
+        arg0[i] = gContMain[i];
+    }
+}
+
 //mod_main_per_frame: where to add code that runs every frame before main game loop
 void mod_main_per_frame(void) {
     s32 index = 0;
@@ -176,6 +246,7 @@ void mod_main_per_frame(void) {
 
     if (toggles[TOGGLE_INFINITE_HEALTH] == 1) {gPlayerActors[0].hp = 0x0A;}
 
+    checkIfRecordInputs();
     caveSkipPractice();
     updateCustomInputTracking();
 

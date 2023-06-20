@@ -11,11 +11,10 @@ s32 menuDisplay(void);
 s32 menuProcFunc(void);
 s32 teleportToStageBoss(void);
 void colorTextWrapper(s32* color);
-void StartRecording(void);
-void PlaybackRecording(void);
 extern s32 recordingMode;
 extern volatile s32 isSaveOrLoadActive;
 extern s32 savestateRecordingSize;
+
 typedef struct DemoContPad {
     OSContPad pad;
 } DemoContPad;
@@ -33,7 +32,8 @@ extern s32 textRedColor[];
 
 enum Pages {
     PAGE_MAIN = 0,
-    PAGE_JL = 1
+    PAGE_JL = 1,
+    PAGE_RECORDING = 2
 };
 
 enum Toggles {
@@ -43,8 +43,15 @@ enum Toggles {
     TOGGLE_INFINITE_HEALTH,
     TOGGLE_CUSTOM_DEBUG_TEXT,
     TOGGLE_CAVE_SKIP_PRACTICE,
-    TOGGLE_ENEMY_SPAWNS_OFF
+    TOGGLE_ENEMY_SPAWNS_OFF,
+    TOGGLE_RECORDING,
+    TOGGLE_PLAYBACK
 };
+
+typedef struct InputRecording {
+    u32 totalFrameCount;
+    contMain recordingBuffer[1200];
+} InputRecording;
 
 typedef struct unkIsChange {
     /* 0x00 */ char unk_00[8];

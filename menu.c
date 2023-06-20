@@ -1,12 +1,20 @@
 #include "common.h"
 #include "include/menu.h"
-#include "mod_main.h"
 #include "xstdio.h"
-#include "include/menu.h"
+#include "mod_main.h"
+#include "lib/cart.h"
+#include "lib/ff.h"
+#include "lib/ffconf.h"
+#include "sd_toggle.h"
 
 s8 toggleSpawnsOff = 0;  // 0 = on, 1 = off | Objects / Enemies Spawning
 extern void* crash_screen_copy_to_buf(void* dest, const char* src, u32 size);
 void textPrint(f32 xPos, f32 yPos, f32 scale, void *text, s32 num);
+int __osPiDeviceBusy(void);
+s32 compress_lz4_ct_default(const u8* srcData, int srcSize, u8* bufferAddr);
+void decompress_lz4_ct_default(int srcSize, int savestateCompressedSize, u8* compressBuffer);
+extern s32 isMenuActive;
+extern CustomThread gCustomThread;
 
 void _sprintf(void* destination, void* fmt, ...) {
     va_list args;
@@ -33,6 +41,8 @@ u8 toggles[] = {
     0,  // TOGGLE_CUSTOM_DEBUG_TEXT
     0,  // TOGGLE_CAVE_SKIP_PRACTICE
     0, // TOGGLE_ENEMY_SPAWNS_OFF
+    0, // TOGGLE_RECORDING
+    0, // TOGGLE_PLAYBACK
 };
 
 s32 toggleHideSavestateText(void) {
@@ -100,6 +110,148 @@ typedef struct menuPage {
     /* 0x50 */ u8 flags[FUNCS_PER_PAGE];
 } menuPage;
 
+extern u32 recordingInputIndex;
+s32 savestateRecordingSize = 0;
+
+void savestateMainStartRecording(void) {
+    u32 saveMask;
+    //wait on rsp
+    while (__osSpDeviceBusy() == 1) {}
+
+    //wait on rdp
+    while ( __osDpDeviceBusy() == 1) {}
+
+    //wait on SI
+    while (__osSiDeviceBusy() == 1) {}
+
+    //wait on PI
+    while (__osPiDeviceBusy() == 1) {}
+
+    //invalidate caches
+    osInvalICache((void*)0x80000000, 0x2000);
+	osInvalDCache((void*)0x80000000, 0x2000);
+
+    saveMask = __osDisableInt();
+
+    savestateRecordingSize = compress_lz4_ct_default((void*)ramStartAddr, ramEndAddr - ramStartAddr, ramAddrSavestateRecording);
+    
+    __osRestoreInt(saveMask);
+    isSaveOrLoadActive = 0; //allow thread to continue
+}
+
+void loadstateRecordingMain(void) {
+    u32 saveMask;
+    //wait on rsp
+    while (__osSpDeviceBusy() == 1) {}
+
+    //wait on rdp
+    while ( __osDpDeviceBusy() == 1) {}
+
+    //wait on SI
+    while (__osSiDeviceBusy() == 1) {}
+
+    //wait on PI
+    while (__osPiDeviceBusy() == 1) {}
+
+    //invalidate caches
+    osInvalICache((void*)0x80000000, 0x2000);
+	osInvalDCache((void*)0x80000000, 0x2000);
+    saveMask = __osDisableInt();
+
+    decompress_lz4_ct_default(ramEndAddr - ramStartAddr, savestateRecordingSize, ramAddrSavestateRecording);
+
+    __osRestoreInt(saveMask);
+    isSaveOrLoadActive = 0; //allow thread 3 to continue
+}
+
+extern InputRecording inputRecordingBuffer;
+extern u32 recordingInputIndex;
+
+s32 StartRecording(void) {
+    isMenuActive = 0;
+    toggles[TOGGLE_RECORDING] ^= 1;
+    toggles[TOGGLE_PLAYBACK] = 0; //turn playback off
+    recordingInputIndex = 0;
+        
+    isSaveOrLoadActive = 1;
+    osCreateThread(&gCustomThread.thread, 255, (void*)savestateMainStartRecording, NULL,
+            gCustomThread.stack + sizeof(gCustomThread.stack), 255);
+    osStartThread(&gCustomThread.thread);
+    stateCooldown = 5;
+
+    while (isSaveOrLoadActive != 0) {}
+
+    return 1;
+}
+
+extern FATFS FatFs;
+extern char *path; //"ct1State.bin"; //example file for SD card writing
+extern FIL sdsavefile;
+
+
+s32 ExportRecording(void) {
+    UINT filebytesread;
+    void* test = (void*)&inputRecordingBuffer;
+    const void* recordingData = (const void*)test;
+    FRESULT fileres;
+
+    fileres = f_open(&sdsavefile, path, FA_OPEN_ALWAYS | FA_WRITE);
+    f_write(&sdsavefile, recordingData, ALIGN4(sizeof(inputRecordingBuffer)), &filebytesread);
+    f_close(&sdsavefile);
+
+    return 1;
+}
+
+s32 ImportRecording(void) {
+    UINT filebytesread;
+    void* test = (void*)&inputRecordingBuffer;
+    const void* recordingData = (const void*)test;
+    FRESULT fileres;
+
+    fileres = f_open(&sdsavefile, path, FA_OPEN_ALWAYS | FA_READ);
+    f_read(&sdsavefile, recordingData, ALIGN4(sizeof(inputRecordingBuffer)), &filebytesread);
+    f_close(&sdsavefile);
+    return 1;
+}
+
+s32 PlayRecording(void) {
+    isMenuActive = 0;
+    toggles[TOGGLE_PLAYBACK] ^= 1;
+    toggles[TOGGLE_RECORDING] = 0; //turn recording off
+    recordingInputIndex = 0;
+    isSaveOrLoadActive = 1;
+    osCreateThread(&gCustomThread.thread, 255, (void*)loadstateRecordingMain, NULL,
+            gCustomThread.stack + sizeof(gCustomThread.stack), 255);
+    osStartThread(&gCustomThread.thread);
+    stateCooldown = 5;
+
+    while (isSaveOrLoadActive != 0) {}
+    return 1;
+}
+
+menuPage page2 = {
+    4, //optionCount
+    PAGE_RECORDING, //pageIndex
+    { //options
+        "Recording",
+        "Export Recording",
+        "Import Recording",
+        "Play Recording"
+    },
+    { //menuProc
+        &StartRecording,
+        &ExportRecording,
+        &ImportRecording,
+        &PlayRecording
+    },
+    { //flags
+        TOGGLE_RECORDING,
+        NO_TOGGLE,
+        NO_TOGGLE,
+        TOGGLE_PLAYBACK
+    }
+};
+
 menuPage page1 = {
     2, //optionCount
     PAGE_MAIN, //pageIndex
@@ -145,7 +297,8 @@ menuPage page0 = {
 
 menuPage* pageList[] = {
     &page0,
-    &page1
+    &page1,
+    &page2,
 };
 
 //testing func ptr
