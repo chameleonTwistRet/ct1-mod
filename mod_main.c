@@ -2,10 +2,9 @@
 #include "lib/cart.h"
 #include "lib/ff.h"
 #include "lib/ffconf.h"
+#include "sd_toggle.h"
 
 char pracTwistVersionString[] = "Practwist v0.1";
-
-#define USE_SD_CARD FALSE //set to false to build without sd card funcs
 
 //in assets/ you'll find an example of replacing an image
 
