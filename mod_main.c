@@ -3,6 +3,7 @@
 #include "lib/ff.h"
 #include "lib/ffconf.h"
 #include "sd_toggle.h"
+#include "include/menu.h"
 
 char pracTwistVersionString[] = "Practwist v0.1";
 char textBuffer[0x100] = {'\0'};    // Text buffer set to empty string
@@ -28,7 +29,8 @@ s32 savestate1Size = 0;
 s32 savestate2Size = 0;
 volatile s32 isSaveOrLoadActive = 0;
 s32 stateCooldown = 0;
-
+s32 currentlyPressedButtons = 0;
+s32 previouslyPressedButtons = 0;
 FATFS FatFs;
 char *path = "ct1State.bin"; //example file for SD card writing
 FIL sdsavefile = {0};
@@ -66,10 +68,56 @@ void mod_boot_func(void) {
     //hookCode((s32*)0x8002D660, &loadEnemyObjectsHook); //example of hooking code
 }
 
+extern s32 isMenuActive;
+extern s32 currPageNo;
+extern s32 currOptionNo;
+void updateMenuInput(void);
+void updateCustomInputTracking(void);
+void func_80089BA0(void);
+
+void printCustomDebugText(void) {
+    char messageBuffer[20];
+    char convertedMessageBuffer[sizeof(messageBuffer) * 2];
+
+    colorTextWrapper(textGreenMatColor);
+    _bzero(messageBuffer, sizeof(messageBuffer)); //clear buffer
+    _sprintf(messageBuffer, "SPD: %.2f", gPlayerActors[0].forwardVel);
+    _bzero(convertedMessageBuffer, sizeof(convertedMessageBuffer)); //clear buffer
+    convertAsciiToText(&convertedMessageBuffer, (char*)&messageBuffer);
+    textPrint(13.0f, 158.0f, 0.5f, &convertedMessageBuffer, 1);
+
+    colorTextWrapper(textCyanColor);
+    _bzero(messageBuffer, sizeof(messageBuffer)); //clear buffer
+    _sprintf(messageBuffer, "ANG: %.2f", gPlayerActors[0].yAngle);
+    _bzero(convertedMessageBuffer, sizeof(convertedMessageBuffer)); //clear buffer
+    convertAsciiToText(&convertedMessageBuffer, (char*)&messageBuffer);
+    textPrint(13.0f, 170.0f, 0.5f, &convertedMessageBuffer, 1);
+
+    colorTextWrapper(textWhiteColor);
+    _bzero(messageBuffer, sizeof(messageBuffer)); //clear buffer
+    _sprintf(messageBuffer, "X: %.2f", gPlayerActors[0].pos.x);
+    _bzero(convertedMessageBuffer, sizeof(convertedMessageBuffer)); //clear buffer
+    convertAsciiToText(&convertedMessageBuffer, (char*)&messageBuffer);
+    textPrint(13.0f, 182.0f, 0.5f, &convertedMessageBuffer, 1);
+
+    colorTextWrapper(textWhiteColor);
+    _bzero(messageBuffer, sizeof(messageBuffer)); //clear buffer
+    _sprintf(messageBuffer, "Z: %.2f", gPlayerActors[0].pos.z);
+    _bzero(convertedMessageBuffer, sizeof(convertedMessageBuffer)); //clear buffer
+    convertAsciiToText(&convertedMessageBuffer, (char*)&messageBuffer);
+    textPrint(13.0f, 194.0f, 0.5f, &convertedMessageBuffer, 1);
+}
+
 //mod_main_per_frame: where to add code that runs every frame before main game loop
 void mod_main_per_frame(void) {
     s32 index = 0;
     char textBuffer[8];
+
+    if (sDebugInt == -1) {
+        sDebugInt = 0;
+    }
+
+    updateCustomInputTracking();
 
     if (stateCooldown == 0 ) {
         checkInputsForSavestates();
@@ -79,17 +127,48 @@ void mod_main_per_frame(void) {
         stateCooldown--;
     }
 
-    
-    if (savestateCurrentSlot == 0) {
-        textBuffer[index++] =  0xA3;
-        textBuffer[index++] = 0xB1; //prints 1
+    if (isMenuActive == 1) {
+        pageMainDisplay(currPageNo, currOptionNo);
+        updateMenuInput();
+    }
+    if ((D_80175650[0].pad.button & R_TRIG) && (currentlyPressedButtons & CONT_UP)) {
+        sDebugInt ^= 1;
+    } else if ((D_80175650[0].pad.button & R_TRIG) && (currentlyPressedButtons & CONT_DOWN)) {
+        isMenuActive ^= 1;
+    } else if (currentlyPressedButtons & CONT_DOWN) {
+        savestateCurrentSlot ^= 1; //flip from 0 to 1 or vice versa (2 saveslots)
     } else {
-        textBuffer[index++] =  0xA3;
-        textBuffer[index++] = 0xB2; //prints 2         
+        if (isMenuActive == 0) {
+            checkInputsForSavestates();
+        }
     }
 
-    textBuffer[index++] = 0;
-    textPrint(13.0f, 208.0f, 0.65f, &textBuffer, 3);
+
+    if (toggles[TOGGLE_HIDE_SAVESTATE_TEXT] == 1) {
+            if (savestateCurrentSlot == 0) {
+            textBuffer[index++] =  0xA3;
+            textBuffer[index++] = 0xB1; //prints 1
+        } else {
+            textBuffer[index++] =  0xA3;
+            textBuffer[index++] = 0xB2; //prints 2         
+        }
+
+        textBuffer[index++] = 0;
+
+        textPrint(13.0f, 208.0f, 0.65f, &textBuffer, 3);
+    }
+
+    if (toggles[TOGGLE_HIDE_IGT] == 1) {
+        if (gameModeCurrent == GAME_MODE_OVERWORLD){
+            if (gIsPaused == 0) {
+                func_80089BA0();
+            }
+        }
+    }
+
+    if (toggles[TOGGLE_CUSTOM_DEBUG_TEXT] == 1) {
+        printCustomDebugText();
+    }
 
     //if a savestate is being saved/loaded, stall thread
     while (isSaveOrLoadActive != 0) {}
