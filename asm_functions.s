@@ -13,20 +13,6 @@ exit:
 JR $ra
 nop
 
-glabel getStatusRegister
-MFC0 $v0, $12
-NOP
-NOP
-jr $ra
-NOP
-
-glabel setStatusRegister
-MTC0 $a0, $12
-NOP
-NOP
-jr $ra
-NOP
-
 glabel __osDpDeviceBusy
 LUI $t6, 0xA410
 LW $a0, 0x000C ($t6)

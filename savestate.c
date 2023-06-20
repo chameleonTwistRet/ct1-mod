@@ -25,7 +25,6 @@ int __osPiDeviceBusy(void) {
 
 void loadstateMain(void) {
     u32 saveMask;
-    s32 register status = getStatusRegister();
     //wait on rsp
     while (__osSpDeviceBusy() == 1) {}
 
@@ -42,6 +41,7 @@ void loadstateMain(void) {
     osInvalICache((void*)0x80000000, 0x2000);
 	osInvalDCache((void*)0x80000000, 0x2000);
     saveMask = __osDisableInt();
+
     switch (savestateCurrentSlot) {
         case 0: //dpad left
             if (savestate1Size != 0 && savestate1Size != -1) {
@@ -55,15 +55,12 @@ void loadstateMain(void) {
             break;
     }
 
-    setStatusRegister(status);
     __osRestoreInt(saveMask);
     isSaveOrLoadActive = 0; //allow thread 3 to continue
 }
     
 void savestateMain(void) {
     u32 saveMask;
-    //push status
-    s32 register status = getStatusRegister();
     //wait on rsp
     while (__osSpDeviceBusy() == 1) {}
 
@@ -81,6 +78,7 @@ void savestateMain(void) {
 	osInvalDCache((void*)0x80000000, 0x2000);
 
     saveMask = __osDisableInt();
+
     switch (savestateCurrentSlot) {
         case 0:
             savestate1Size = compress_lz4_ct_default((void*)ramStartAddr, ramEndAddr - ramStartAddr, ramAddrSavestateDataSlot1);
@@ -90,7 +88,7 @@ void savestateMain(void) {
             savestate2Size = compress_lz4_ct_default((void*)ramStartAddr, ramEndAddr - ramStartAddr, ramAddrSavestateDataSlot2);
         break;
     }
-    setStatusRegister(status);
+    
     __osRestoreInt(saveMask);
     isSaveOrLoadActive = 0; //allow thread 3 to continue
 }

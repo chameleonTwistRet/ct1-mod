@@ -15,16 +15,19 @@ void s8patch(void* patchAddr, s8 patchInstruction) {
     *(s8*)patchAddr = patchInstruction;
 }
 
+void textPrint(f32 xPos, f32 yPos, f32 scale, void *text, s32 num) {
+    PrintText(xPos, yPos, 0, scale, 0, 0, text, num);
+}
+
 //in assets/ you'll find an example of replacing an image
 
-s32 loadEnemiesBool = 0; //used by `func_8002D644_patch.s`
+s32 loadEnemiesBool = 0; //used by `asm_functions.s`
 volatile s32 saveOrLoadStateMode = 0;
 volatile s32 savestateCurrentSlot = 0;
 s32 savestate1Size = 0;
 s32 savestate2Size = 0;
 volatile s32 isSaveOrLoadActive = 0;
 s32 stateCooldown = 0;
-s32 gameBootTimer = 30;
 
 FATFS FatFs;
 char *path = "ct1State.bin"; //example file for SD card writing
@@ -46,7 +49,6 @@ void mod_boot_func(void) {
     FRESULT fileres;
     s32 instructionBuffer[2];
     crash_screen_init();
-    gameBootTimer = 30;
 
     #if USE_SD_CARD == TRUE
         //initialize SD card from everdrive, create test file, close
@@ -66,25 +68,31 @@ void mod_boot_func(void) {
 
 //mod_main_per_frame: where to add code that runs every frame before main game loop
 void mod_main_per_frame(void) {
-    if (gameBootTimer != 0) {
-        gameBootTimer--;
-        return;
-    }
+    s32 index = 0;
+    char textBuffer[8];
 
-    if (stateCooldown == 0 && gameBootTimer == 0) {
+    if (stateCooldown == 0 ) {
         checkInputsForSavestates();
     }
 
     if (stateCooldown > 0) {
         stateCooldown--;
     }
+
+    
+    if (savestateCurrentSlot == 0) {
+        textBuffer[index++] =  0xA3;
+        textBuffer[index++] = 0xB1; //prints 1
+    } else {
+        textBuffer[index++] =  0xA3;
+        textBuffer[index++] = 0xB2; //prints 2         
+    }
+
+    textBuffer[index++] = 0;
+    textPrint(13.0f, 208.0f, 0.65f, &textBuffer, 3);
+
     //if a savestate is being saved/loaded, stall thread
     while (isSaveOrLoadActive != 0) {}
-
-    // example of printing in story mode, from text buffer
-    if (gameModeCurrent == GAME_MODE_OVERWORLD) {
-        PrintTextWrapper(64.0f, 32.0f, 0.0f, 1.0f, textBuffer, 1);
-    }
 }
 
 //Thread 3 osStartThread function
