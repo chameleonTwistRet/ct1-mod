@@ -235,10 +235,16 @@ void func_8004E784_Hook(contMain* arg0, s32 arg1, s32* arg2, contMain* arg3) {
     }
 }
 
+extern s32 gLevelAccessBitfeild;
+extern s32 gLevelClearBitfeild;
+
 //mod_main_per_frame: where to add code that runs every frame before main game loop
 void mod_main_per_frame(void) {
     s32 index = 0;
     char textBuffer[8];
+
+    gLevelAccessBitfeild = 0xFF;
+    gLevelClearBitfeild = 0xFF;
 
     if (sDebugInt == -1) {
         sDebugInt = 0;
