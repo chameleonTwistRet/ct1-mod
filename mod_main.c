@@ -276,6 +276,7 @@ extern u8 gLevelClearBitfeild;
 void mod_main_per_frame(void) {
     s32 index = 0;
     char textBuffer[8];
+    char convertedVersionBuffer[sizeof(pracTwistVersionString) * 2];
 
     gLevelAccessBitfeild = 0xFF;
     gLevelClearBitfeild = 0xFF;
@@ -324,6 +325,12 @@ void mod_main_per_frame(void) {
 
     if (toggles[TOGGLE_CUSTOM_DEBUG_TEXT] == 1) {
         printCustomDebugText();
+    }
+
+    if (gameModeCurrent == GAME_MODE_SUPPLY_SYSTEM_LOGO) {
+        colorTextWrapper(textGreenMatColor);
+        convertAsciiToText(&convertedVersionBuffer, (char*)&pracTwistVersionString);
+        textPrint(15.0f, 220.0f, 0.5f, &convertedVersionBuffer, 3);
     }
 
     //if a savestate is being saved/loaded, stall thread
