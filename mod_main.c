@@ -241,6 +241,15 @@ void func_8004E784_Hook(contMain* arg0, s32 arg1, s32* arg2, contMain* arg3) {
 
         if (i == 0) {
             updateCustomInputTracking();
+            if (isMenuActive == 1) {
+                updateMenuInput();
+                gContMain[0].buttons0 &= ~A_BUTTON;
+                gContMain[0].buttons0 &= ~B_BUTTON;
+                gContMain[0].buttons1 &= ~A_BUTTON;
+                gContMain[0].buttons1 &= ~B_BUTTON;
+                gContMain[0].buttons2 &= ~A_BUTTON;
+                gContMain[0].buttons2 &= ~B_BUTTON;
+            }
             if ((gContMain[0].buttons0 & R_TRIG) && (currentlyPressedButtons & CONT_UP)) {
                 sDebugInt ^= 1;
             } else if ((gContMain[0].buttons0 & R_TRIG) && (currentlyPressedButtons & CONT_DOWN)) {
@@ -254,15 +263,7 @@ void func_8004E784_Hook(contMain* arg0, s32 arg1, s32* arg2, contMain* arg3) {
                 }
             }
 
-            if (isMenuActive == 1) {
-                updateMenuInput();
-                gContMain[0].buttons0 &= ~A_BUTTON;
-                gContMain[0].buttons0 &= ~B_BUTTON;
-                gContMain[0].buttons1 &= ~A_BUTTON;
-                gContMain[0].buttons1 &= ~B_BUTTON;
-                gContMain[0].buttons2 &= ~A_BUTTON;
-                gContMain[0].buttons2 &= ~B_BUTTON;
-            }
+
         }
 
         arg0[i] = gContMain[i];
