@@ -21,7 +21,7 @@ void textPrint(f32 xPos, f32 yPos, f32 scale, void *text, s32 num) {
 }
 
 //in assets/ you'll find an example of replacing an image
-
+s32 recordingErrorMessageStick = 0;
 s32 loadEnemiesBool = 0; //used by `asm_functions.s`
 volatile s32 saveOrLoadStateMode = 0;
 volatile s32 savestateCurrentSlot = 0;
@@ -79,7 +79,10 @@ void mod_boot_func(void) {
     convertAsciiToText(&textBuffer, "test text");
 
     hookCode((s32*)0x8002D660, &loadEnemyObjectsHook); //toggle enemies spawning/not spawning
-    hookCode((s32*)0x8004E784, &func_8004E784_Hook); //toggle enemies spawning/not spawning
+    hookCode((s32*)0x8004E784, &func_8004E784_Hook); //hook controller reading of overworld gamemode
+
+    patchInstruction((void*)0x800A1030, 0x10000002); //add black chameleon to story patch 1
+    patchInstruction((void*)0x800A1084, 0x10000004); //add black chameleon to story patch 2
     
 }
 
@@ -185,22 +188,24 @@ void func_8004E784_Hook(contMain* arg0, s32 arg1, s32* arg2, contMain* arg3) {
     contMain* var_s1;
     s32 i;
 
-    if (toggles[TOGGLE_PLAYBACK] == 1) {
-        if (recordingInputIndex > inputRecordingBuffer.totalFrameCount) {
-            toggles[TOGGLE_PLAYBACK] ^= 1; //turn recording off as it has reached the end
-            return;
-        }
-        gContMain[0] = inputRecordingBuffer.recordingBuffer[recordingInputIndex];
-        arg0[0] = inputRecordingBuffer.recordingBuffer[recordingInputIndex];
-        recordingInputIndex++;
-        return;
-    }
-
     osRecvMesg(&gEepromMsgQ, NULL, 1);
     osContGetReadData(&D_80175650[0]);
 
+    i = 0;
+
+    // if (toggles[TOGGLE_PLAYBACK] == 1) {
+    //     if (recordingInputIndex > inputRecordingBuffer.totalFrameCount) {
+    //         toggles[TOGGLE_PLAYBACK] ^= 1; //turn recording off as it has reached the end
+    //     } else {
+    //         gContMain[0] = inputRecordingBuffer.recordingBuffer[recordingInputIndex];
+    //         arg0[0] = inputRecordingBuffer.recordingBuffer[recordingInputIndex];
+    //         recordingInputIndex++;
+    //         i = 1; //skip player 0
+    //     }
+    // }
+
     // for each controller
-    for (i = 0; i < arg1; i++) {
+    for (i; i < arg1; i++) {
         if ((arg2 == NULL) || (arg2[i] == 0)) {
             if (D_80175668[i] == -1) {
                 Controller_Zero(&gContMain[i]);
@@ -229,6 +234,35 @@ void func_8004E784_Hook(contMain* arg0, s32 arg1, s32* arg2, contMain* arg3) {
 
         if (toggles[TOGGLE_RECORDING] == 1 && i == 0) {
             inputRecordingBuffer.recordingBuffer[0] = gContMain[0];
+            if ((s32)gContMain[0].stickAngle == 0xFFFFFFFF) {
+                recordingErrorMessageStick = 1;
+            }
+        }
+
+        if (i == 0) {
+            updateCustomInputTracking();
+            if ((gContMain[0].buttons0 & R_TRIG) && (currentlyPressedButtons & CONT_UP)) {
+                sDebugInt ^= 1;
+            } else if ((gContMain[0].buttons0 & R_TRIG) && (currentlyPressedButtons & CONT_DOWN)) {
+                isMenuActive ^= 1;
+            } else if (currentlyPressedButtons & CONT_DOWN) {
+                savestateCurrentSlot ^= 1; //flip from 0 to 1 or vice versa (2 saveslots)
+            } else {
+                if (isMenuActive == 0 ) {
+                    checkInputsForSavestates();
+                    while (isSaveOrLoadActive != 0) {}
+                }
+            }
+
+            if (isMenuActive == 1) {
+                updateMenuInput();
+                gContMain[0].buttons0 &= ~A_BUTTON;
+                gContMain[0].buttons0 &= ~B_BUTTON;
+                gContMain[0].buttons1 &= ~A_BUTTON;
+                gContMain[0].buttons1 &= ~B_BUTTON;
+                gContMain[0].buttons2 &= ~A_BUTTON;
+                gContMain[0].buttons2 &= ~B_BUTTON;
+            }
         }
 
         arg0[i] = gContMain[i];
@@ -245,6 +279,7 @@ void mod_main_per_frame(void) {
 
     gLevelAccessBitfeild = 0xFF;
     gLevelClearBitfeild = 0xFF;
+    gGameRecords.flags[1] = 0x04; //give white
 
     if (sDebugInt == -1) {
         sDebugInt = 0;
@@ -254,7 +289,7 @@ void mod_main_per_frame(void) {
 
     checkIfRecordInputs();
     caveSkipPractice();
-    updateCustomInputTracking();
+    //updateCustomInputTracking();
 
     if (stateCooldown > 0) {
         stateCooldown--;
@@ -262,19 +297,7 @@ void mod_main_per_frame(void) {
 
     if (isMenuActive == 1) {
         pageMainDisplay(currPageNo, currOptionNo);
-        updateMenuInput();
-    }
-
-    if ((D_80175650[0].pad.button & R_TRIG) && (currentlyPressedButtons & CONT_UP)) {
-        sDebugInt ^= 1;
-    } else if ((D_80175650[0].pad.button & R_TRIG) && (currentlyPressedButtons & CONT_DOWN)) {
-        isMenuActive ^= 1;
-    } else if (currentlyPressedButtons & CONT_DOWN) {
-        savestateCurrentSlot ^= 1; //flip from 0 to 1 or vice versa (2 saveslots)
-    } else {
-        if (isMenuActive == 0 ) {
-            checkInputsForSavestates();
-        }
+        //updateMenuInput();
     }
 
     if (toggles[TOGGLE_HIDE_SAVESTATE_TEXT] == 1) {
@@ -377,7 +400,7 @@ void mod_main_func(void) {
         case GAME_MODE_NEW_GAME_MENU:
             func_800A1D38();
             goto loop;
-        case GAME_MODE_JUNGLE_LAND:
+        case GAME_MODE_LEVEL_INTRO:
             func_800A6DD8();
             goto loop;
         case GAME_MODE_STAGE_SELECT:

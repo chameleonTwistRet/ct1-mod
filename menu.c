@@ -114,53 +114,53 @@ extern u32 recordingInputIndex;
 s32 savestateRecordingSize = 0;
 
 void savestateMainStartRecording(void) {
-    u32 saveMask;
-    //wait on rsp
-    while (__osSpDeviceBusy() == 1) {}
+    // u32 saveMask;
+    // //wait on rsp
+    // while (__osSpDeviceBusy() == 1) {}
 
-    //wait on rdp
-    while ( __osDpDeviceBusy() == 1) {}
+    // //wait on rdp
+    // while ( __osDpDeviceBusy() == 1) {}
 
-    //wait on SI
-    while (__osSiDeviceBusy() == 1) {}
+    // //wait on SI
+    // while (__osSiDeviceBusy() == 1) {}
 
-    //wait on PI
-    while (__osPiDeviceBusy() == 1) {}
+    // //wait on PI
+    // while (__osPiDeviceBusy() == 1) {}
 
-    //invalidate caches
-    osInvalICache((void*)0x80000000, 0x2000);
-	osInvalDCache((void*)0x80000000, 0x2000);
+    // //invalidate caches
+    // osInvalICache((void*)0x80000000, 0x2000);
+	// osInvalDCache((void*)0x80000000, 0x2000);
 
-    saveMask = __osDisableInt();
+    // saveMask = __osDisableInt();
 
-    savestateRecordingSize = compress_lz4_ct_default((void*)ramStartAddr, ramEndAddr - ramStartAddr, ramAddrSavestateRecording);
+    // savestateRecordingSize = compress_lz4_ct_default((void*)ramStartAddr, ramEndAddr - ramStartAddr, ramAddrSavestateRecording);
     
-    __osRestoreInt(saveMask);
+    // __osRestoreInt(saveMask);
     isSaveOrLoadActive = 0; //allow thread to continue
 }
 
 void loadstateRecordingMain(void) {
-    u32 saveMask;
-    //wait on rsp
-    while (__osSpDeviceBusy() == 1) {}
+    // u32 saveMask;
+    // //wait on rsp
+    // while (__osSpDeviceBusy() == 1) {}
 
-    //wait on rdp
-    while ( __osDpDeviceBusy() == 1) {}
+    // //wait on rdp
+    // while ( __osDpDeviceBusy() == 1) {}
 
-    //wait on SI
-    while (__osSiDeviceBusy() == 1) {}
+    // //wait on SI
+    // while (__osSiDeviceBusy() == 1) {}
 
-    //wait on PI
-    while (__osPiDeviceBusy() == 1) {}
+    // //wait on PI
+    // while (__osPiDeviceBusy() == 1) {}
 
-    //invalidate caches
-    osInvalICache((void*)0x80000000, 0x2000);
-	osInvalDCache((void*)0x80000000, 0x2000);
-    saveMask = __osDisableInt();
+    // //invalidate caches
+    // osInvalICache((void*)0x80000000, 0x2000);
+	// osInvalDCache((void*)0x80000000, 0x2000);
+    // saveMask = __osDisableInt();
 
-    decompress_lz4_ct_default(ramEndAddr - ramStartAddr, savestateRecordingSize, ramAddrSavestateRecording);
+    // decompress_lz4_ct_default(ramEndAddr - ramStartAddr, savestateRecordingSize, ramAddrSavestateRecording);
 
-    __osRestoreInt(saveMask);
+    // __osRestoreInt(saveMask);
     isSaveOrLoadActive = 0; //allow thread 3 to continue
 }
 
@@ -298,7 +298,7 @@ menuPage page0 = {
 menuPage* pageList[] = {
     &page0,
     &page1,
-    &page2,
+    //&page2,
 };
 
 //testing func ptr
@@ -371,12 +371,16 @@ void updateMenuInput(void) {
         if (currOptionNo > 0) {
             currOptionNo--;
             //playSound(0x2A, (void*)0x80168DA8, 0);
+        } else {
+            currOptionNo = pageList[currPageNo]->optionCount - 1; //wrap menu
         }
     }
     else if (currentlyPressedButtons & CONT_DOWN) {
         if (currOptionNo < pageList[currPageNo]->optionCount - 1) {
             currOptionNo++;
             //playSound(0x2A, (void*)0x80168DA8, 0);
+        } else {
+            currOptionNo = 0; //wrap menu
         }
     }
     else if (currentlyPressedButtons & CONT_LEFT) {

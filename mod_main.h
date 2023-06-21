@@ -44,7 +44,8 @@ void patchInstruction(void* patchAddr, s32 patchInstruction);
 #define GB *(1U<<30)
 #define ramAddrSavestateDataSlot1 (void*)0x804C0000
 #define ramAddrSavestateDataSlot2 (void*)0x805D0000
-#define ramAddrSavestateRecording (void*)0x806E0000
+#define savestateBackup (void*)0x806E0000
+//#define ramAddrSavestateRecording (void*)0x806E0000
 
 typedef struct CustomThread {
     /* 0x000 */ OSThread thread;
