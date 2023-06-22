@@ -10,6 +10,11 @@
 
 extern void* crash_screen_copy_to_buf(void* dest, const char* src, u32 size);
 
+/* Formats a string and writes it to the destination buffer.
+ * @param destination The destination buffer.
+ * @param fmt The format string.
+ * @param ... The arguments to format the string.
+ */
 void _sprintf(void* destination, void* fmt, ...) {
     va_list args;
     va_start(args, fmt);
@@ -17,6 +22,11 @@ void _sprintf(void* destination, void* fmt, ...) {
     va_end(args);
 }
 
+/* Formats a string and appends it to the end of the destination buffer.
+* @param destination The destination buffer.
+* @param fmt The format string.
+* @param ... The arguments to format the string.
+*/
 void _sprintfcat(void* destination, void* fmt, ...) {
     s32 existing_length;
     char* cat_destination;
@@ -29,6 +39,11 @@ void _sprintfcat(void* destination, void* fmt, ...) {
     va_end(args);
 }
 
+/*
+ * Appends the string pointed to by src, including the terminating null byte ('\0'), to the buffer pointed to by dest.
+ * @param dest The destination buffer.
+ * @param src The source string.
+ */
 char* strcat(char* dest, const char* src) {
     char* ptr = dest + strlen(dest);
     while (*src != '\0') {
@@ -38,6 +53,12 @@ char* strcat(char* dest, const char* src) {
     return dest;
 }
 
+/*
+ * Copies the string pointed to by src, including the terminating null byte ('\0'), to the buffer pointed to by dest.
+ * @param dest The destination buffer.
+ * @param src The source string.
+ * @param n The number of bytes to copy.
+ */
 char* strncpy_custom(char* dest, const char* src, s32 n) {
     s32 i;
     for (i = 0; i < n && src[i] != '\0'; i++) {
@@ -49,6 +70,10 @@ char* strncpy_custom(char* dest, const char* src, s32 n) {
     return dest;
 }
 
+/*
+ * Returns the length of the string pointed to by str.
+ * @param str The string.
+ */
 s32 strlength_custom(const char* str) {
     s32 len = 0;
     while (*str++ != '\0') {
@@ -62,6 +87,11 @@ void sprintf_custom(char* buffer, char c) {
     buffer[1] = '\0';
 }
 
+/*
+* Converts an ASCII string to a EUC-JP string.
+* @param buffer The destination buffer.
+* @param source The source string.
+*/
 void convertAsciiToText(void* buffer, char* source) {
     u16* buf = (u16*)buffer;
     s32 strlength = strlength_custom(source);
