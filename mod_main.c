@@ -5,7 +5,14 @@
 #include "sd_toggle.h"
 
 char pracTwistVersionString[] = "Practwist v0.1";
-char textBuffer[0x100] = {'\0'};    // Text buffer set to empty string
+char printTextBuffer[0x100] = {'\0'};    // Text buffer set to empty string
+char printTextBuffer2[0x100] = {'\0'};   // Text buffer set to empty string
+char stringBuffer[0x100] = {'\0'};       // String buffer set to empty for string manipulation
+
+// wrapper for printing text
+void textPrint(f32 xPos, f32 yPos, f32 scale, void *text, s32 num) {
+    PrintText(xPos, yPos, 0, scale, 0, 0, text, num);
+}
 
 // Patches work the same way as 81 and 80 GameShark Codes
 void s16patch(void* patchAddr, s16 patchInstruction) {
@@ -15,8 +22,29 @@ void s8patch(void* patchAddr, s8 patchInstruction) {
     *(s8*)patchAddr = patchInstruction;
 }
 
-void textPrint(f32 xPos, f32 yPos, f32 scale, void *text, s32 num) {
-    PrintText(xPos, yPos, 0, scale, 0, 0, text, num);
+s16 s16Read(void* readAddr) {
+    return *(s16*)readAddr;
+}
+s8 s8Read(void* readAddr) {
+    return *(s8*)readAddr;
+}
+
+// Print Values from Address (these will be in a new file soon)
+void s8print(void* addr) {
+    s8 value = s8Read((void*)addr);
+    _bzero(&stringBuffer, sizeof(stringBuffer));
+    _bzero(&printTextBuffer2, sizeof(printTextBuffer2));
+    _sprintf(&stringBuffer, "%X: %d", addr, value);
+    convertAsciiToText(&printTextBuffer2, stringBuffer);
+    textPrint(13.0f, 30.0f, 1.0f, &printTextBuffer2, 1);
+}
+void s16print(void* addr) {
+    s16 value = s16Read((void*)addr);
+    _bzero(&stringBuffer, sizeof(stringBuffer));
+    _bzero(&printTextBuffer2, sizeof(printTextBuffer2));
+    _sprintf(&stringBuffer, "%X: %d", addr, value);
+    convertAsciiToText(&printTextBuffer2, stringBuffer);
+    textPrint(13.0f, 30.0f, 1.0f, &printTextBuffer2, 1);
 }
 
 //in assets/ you'll find an example of replacing an image
@@ -60,8 +88,11 @@ void mod_boot_func(void) {
     #endif
 
     // example of setting up text to print
-    _bzero(&textBuffer, sizeof(textBuffer)); // clear text
-    convertAsciiToText(&textBuffer, "test text");
+    _bzero(&printTextBuffer2, sizeof(printTextBuffer2)); // clear text
+    _bzero(&stringBuffer, sizeof(stringBuffer)); // clear string buffer
+    strcat(&stringBuffer, "test");
+    _sprintfcat(&stringBuffer, " %d", 1);
+    convertAsciiToText(&printTextBuffer2, stringBuffer);
 
     //hookCode((s32*)0x8002D660, &loadEnemyObjectsHook); //example of hooking code
 }
@@ -69,7 +100,10 @@ void mod_boot_func(void) {
 //mod_main_per_frame: where to add code that runs every frame before main game loop
 void mod_main_per_frame(void) {
     s32 index = 0;
-    char textBuffer[8];
+    char printTextBuffer[8];
+ 
+    //example of printing text
+    PrintText(13.0f, 30.0f, 0, 1.0f, 0, 0, &printTextBuffer2, 1);
 
     if (stateCooldown == 0 ) {
         checkInputsForSavestates();
@@ -81,15 +115,15 @@ void mod_main_per_frame(void) {
 
     
     if (savestateCurrentSlot == 0) {
-        textBuffer[index++] =  0xA3;
-        textBuffer[index++] = 0xB1; //prints 1
+        printTextBuffer[index++] =  0xA3;
+        printTextBuffer[index++] = 0xB1; //prints 1
     } else {
-        textBuffer[index++] =  0xA3;
-        textBuffer[index++] = 0xB2; //prints 2         
+        printTextBuffer[index++] =  0xA3;
+        printTextBuffer[index++] = 0xB2; //prints 2         
     }
 
-    textBuffer[index++] = 0;
-    textPrint(13.0f, 208.0f, 0.65f, &textBuffer, 3);
+    printTextBuffer[index++] = 0;
+    textPrint(13.0f, 208.0f, 0.65f, &printTextBuffer, 3);
 
     //if a savestate is being saved/loaded, stall thread
     while (isSaveOrLoadActive != 0) {}

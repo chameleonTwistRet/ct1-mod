@@ -8,6 +8,36 @@
 //     'Ｒ', 'Ｓ', 'Ｔ', 'Ｕ', 'Ｖ', 'Ｗ', 'Ｘ', 'Ｙ', 'Ｚ'
 // };
 
+extern void* crash_screen_copy_to_buf(void* dest, const char* src, u32 size);
+
+void _sprintf(void* destination, void* fmt, ...) {
+    va_list args;
+    va_start(args, fmt);
+    _Printf((void*)crash_screen_copy_to_buf, destination, fmt, args);
+    va_end(args);
+}
+
+void _sprintfcat(void* destination, void* fmt, ...) {
+    s32 existing_length;
+    char* cat_destination;
+
+    va_list args;
+    va_start(args, fmt);
+    existing_length = strlen((char*)destination);
+    cat_destination = (char*)destination + existing_length;                 // set to the end of the existing string
+    _Printf((void*)crash_screen_copy_to_buf, cat_destination, fmt, args);
+    va_end(args);
+}
+
+char* strcat(char* dest, const char* src) {
+    char* ptr = dest + strlen(dest);
+    while (*src != '\0') {
+        *ptr++ = *src++;
+    }
+    *ptr = '\0';
+    return dest;
+}
+
 char* strncpy_custom(char* dest, const char* src, s32 n) {
     s32 i;
     for (i = 0; i < n && src[i] != '\0'; i++) {
