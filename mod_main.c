@@ -103,7 +103,7 @@ void mod_main_per_frame(void) {
     char printTextBuffer[8];
  
     //example of printing text
-    PrintText(13.0f, 30.0f, 0, 1.0f, 0, 0, &printTextBuffer2, 1);
+    textPrint(13.0f, 30.0f, 1.0f, &printTextBuffer2, 1);
 
     if (stateCooldown == 0 ) {
         checkInputsForSavestates();

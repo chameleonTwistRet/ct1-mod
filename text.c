@@ -95,24 +95,74 @@ void sprintf_custom(char* buffer, char c) {
 void convertAsciiToText(void* buffer, char* source) {
     u16* buf = (u16*)buffer;
     s32 strlength = strlength_custom(source);
-    s32 i;
+    s32 i = 0;
+    s32 j = 0;
 
-    for (i = 0; i < strlength; i++) {
-        if ( (source[i] >= '0' && source[i] <= '9') ||
+    while (i < strlength) {
+        // dual character codes
+        if (source[i] == '<' && source[i + 1] == '3') {
+            buf[j] = 0xA1F7; // 'heart'
+            i++;
+        } else if (source[i] == '/' && source[i + 1] == 'c') {
+            buf[j] = 0xA3E3; // '©'
+            i++;
+        } else if (source[i] == '/' && source[i + 1] == 'x') {
+            buf[j] = 0xA3F8; // 'x'
+            i++;
+        } else if (source[i] == '-' && source[i + 1] == '>') {
+            buf[j] = 0xA1C1; // '→'
+            i++;
+        }
+        
+        // single character codes
+        else if ( (source[i] >= '0' && source[i] <= '9') ||
             (source[i] >= 'A' && source[i] <= 'Z')) { //is 0 - 9 or A - Z
-            buf[i] = source[i] + 0xA380; //0x30 = 0 in ascii, 0xA3B0 = 0 in chameleon text
+            buf[j] = source[i] + 0xA380; //0x30 = 0 in ascii, 0xA3B0 = 0
         } else if ( (source[i] > '0' && source[i] <= '9') ||
             (source[i] >= 'a' && source[i] <= 'z')) { //is 0 - 9 or A - Z
-            buf[i] = source[i] + 0xA360; //0x30 = 0 in ascii, 0xA3B0 = 0 in chameleon text
-        } else if(source[i] == '-') {
-            buf[i] = 0xA1DD; // '-' in chameleon text
-        } else if (source[i] == '.') {
-            buf[i] = 0xA1A5; // '.' in chameleon text
-        } else if (source[i] == ':') {
-            buf[i] = 0xA1A7; // ':' in chameleon text
-        } else if (source[i] == ' ') {
-            buf[i] = 0xA1A1; // ' ' in chameleon text
+            buf[j] = source[i] + 0xA360; //0x30 = 0 in ascii, 0xA3B0 = 0
+        } else {
+            switch (source[i]) {
+                case ' ':
+                    buf[j] = 0xA1A1;
+                    break;
+                case ':' :
+                    buf[j] = 0xA1A7;
+                    break;
+                case '?':
+                    buf[j] = 0xA1A9;
+                    break;
+                case '!':
+                    buf[j] = 0xA1AA;
+                    break;
+                case '/':
+                    buf[j] = 0xA1BF;
+                    break;
+                case '\'':
+                    buf[j] = 0xA1C7;
+                    break;
+                case '"':
+                    buf[j] = 0xA1C9;
+                    break;
+                case '(':
+                    buf[j] = 0xA1CA;
+                    break;
+                case ')':
+                    buf[j] = 0xA1CB;
+                    break;
+                case '+':
+                    buf[j] = 0xA1DC;
+                    break;
+                case '-':
+                    buf[j] = 0xA1DD;
+                    break;
+                default:
+                    break;
+            }
         }
+
+        i++;
+        j++;
     }
-    buf[i] = '\0'; //terminate buffer
+    buf[j] = '\0'; //terminate buffer
 }
