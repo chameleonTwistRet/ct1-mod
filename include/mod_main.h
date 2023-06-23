@@ -16,6 +16,7 @@ extern int setStatusRegister(s32); //returns status reg
 void updateMenuInput(void);
 void updateCustomInputTracking(void);
 void checkInputsForSavestates(void);
+void optimized_memcpy(void* destination, const void* source, u32 num_bytes);
 extern s32 loadEnemiesBool; //used by `func_8002D644_patch.s`
 extern volatile s32 saveOrLoadStateMode;
 extern volatile s32 savestateCurrentSlot;

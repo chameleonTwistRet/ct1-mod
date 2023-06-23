@@ -7,7 +7,7 @@
 
 char pracTwistVersionString[] = "Practwist v0.1";
 char textBuffer[0x100] = {'\0'};    // Text buffer set to empty string
-
+void gVideoThreadProcessHook(void);
 // Patches work the same way as 81 and 80 GameShark Codes
 void s16patch(void* patchAddr, s16 patchInstruction) {
     *(s16*)patchAddr = patchInstruction;
@@ -82,7 +82,7 @@ void mod_boot_func(void) {
     hookCode((s32*)0x8002D660, &loadEnemyObjectsHook); //toggle enemies spawning/not spawning
     hookCode((s32*)0x8004E784, &func_8004E784_Hook); //hook controller reading of overworld gamemode
     hookCode((s32*)0x800C0CDC, &func_800C0CDC_Hook); //hook load boss function
-
+    hookCode((s32*)0x80084C08, &gVideoThreadProcessHook); //hook video process to pause on loadstate
     //
 
     patchInstruction((void*)0x800A1030, 0x10000002); //add black chameleon to story patch 1
@@ -90,15 +90,39 @@ void mod_boot_func(void) {
     
 }
 
-f32 clampTo45Degrees(f32 angle) {
-    if (angle > 45.0) {
-        return clampTo45Degrees(45.0);
-    } else if (angle < -45.0) {
-        return clampTo45Degrees(-45.0);
-    } else {
-        return angle;
+f32 fabsf(f32 x) {
+    if (x < 0.0f) {
+        return -x;
     }
+    return x;
 }
+
+f32 clampTo45Degrees(f32 theta) {
+    if (fabsf(theta) > 45.0f) {
+        s32 thetaInt = theta;
+
+        if (thetaInt >= 0) {
+            thetaInt = -(thetaInt / 45 * 45) + thetaInt;
+        } else {
+            thetaInt = -thetaInt;
+            thetaInt = (thetaInt / 45 * 45) - thetaInt;
+        }
+
+        return thetaInt;
+    }
+
+    do {
+        if (theta < 0.0f) {
+            theta += 45.0f;
+        }
+        if (theta >= 45.0f) {
+            theta -= 45.0f;
+        }
+    } while (!(theta >= 0.0f) || !(theta < 45.0f));
+
+    return theta;
+}
+
 
 extern s32 isMenuActive;
 extern s32 currPageNo;
@@ -145,13 +169,13 @@ void printCustomDebugText(void) {
     case 2:
         freeCamAngle = gCamera[0].f1.x;
         clampedAngle = clampTo45Degrees(freeCamAngle);
-        if (clampedAngle > 6.15f && clampedAngle < 8.79f) { //check exact ranges
+        if (clampedAngle > 6.17f && clampedAngle < 8.56f) { //check exact ranges
             colorTextWrapper(textGreenMatColor);
         } else {
             colorTextWrapper(textWhiteColor);
         }
         _bzero(messageBuffer, sizeof(messageBuffer)); //clear buffer
-        _sprintf(messageBuffer, "Z: %.2f", gPlayerActors[0].pos.z);
+        _sprintf(messageBuffer, "CAM: %.2f", freeCamAngle);
         _bzero(convertedMessageBuffer, sizeof(convertedMessageBuffer)); //clear buffer
         convertAsciiToText(&convertedMessageBuffer, (char*)&messageBuffer);
         textPrint(13.0f, 194.0f, 0.5f, &convertedMessageBuffer, 1);
@@ -274,7 +298,7 @@ void mod_main_per_frame(void) {
         }
     }
 
-    if (toggles[TOGGLE_CUSTOM_DEBUG_TEXT] == 1) {
+    if (toggles[TOGGLE_CUSTOM_DEBUG_TEXT] != 0) {
         printCustomDebugText();
     }
 

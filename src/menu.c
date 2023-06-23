@@ -1,11 +1,11 @@
 #include "common.h"
-#include "include/menu.h"
+#include "../include/menu.h"
 #include "xstdio.h"
-#include "include/mod_main.h"
-#include "lib/cart.h"
-#include "lib/ff.h"
-#include "lib/ffconf.h"
-#include "include/sd_toggle.h"
+#include "../include/mod_main.h"
+#include "../lib/cart.h"
+#include "../lib/ff.h"
+#include "../lib/ffconf.h"
+#include "../include/sd_toggle.h"
 
 s8 toggleSpawnsOff = 0;  // 0 = on, 1 = off | Objects / Enemies Spawning
 extern void* crash_screen_copy_to_buf(void* dest, const char* src, u32 size);
@@ -436,7 +436,7 @@ void pageMainDisplay(s32 currPageNo, s32 currOptionNo) {
         _bzero(&menuOptionBuffer, sizeof(menuOptionBuffer));
         _bzero(&menuOptionBufferConverted, sizeof(menuOptionBufferConverted));
 
-        if (toggles[currPage->flags[i]] == 1) {
+        if (toggles[currPage->flags[i]] >= 1) {
             colorTextWrapper(textGreenMatColor);
             _sprintf(menuOptionBuffer, "ON");
         } else if (toggles[currPage->flags[i]] == 0) {

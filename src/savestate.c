@@ -1,5 +1,5 @@
 #include "common.h"
-#include "include/mod_main.h"
+#include "../include/mod_main.h"
 #include "xstdio.h"
 
 CustomThread gCustomThread;
@@ -104,13 +104,13 @@ void savestateMain(void) {
                     savestate1Size = compress_lz4_ct_default((void*)ramStartAddr, ramEndAddr - ramStartAddr, ramAddrSavestateDataSlot1);
                 } else {
                     //savestate 1 isn't initialized but savestate 2 is, therefore backup state 2
-                    memcpy(savestateBackup, ramAddrSavestateDataSlot2, savestate2Size);
+                    optimized_memcpy(savestateBackup, ramAddrSavestateDataSlot2, savestate2Size);
                     saveStateBackupSize = savestate2Size;
                     savestate1Size = compress_lz4_ct_default((void*)ramStartAddr, ramEndAddr - ramStartAddr, ramAddrSavestateDataSlot1);
                 }
             } else {
                 //savestate 1 is already created, therefore backup state 1
-                memcpy(savestateBackup, ramAddrSavestateDataSlot1, savestate1Size);
+                optimized_memcpy(savestateBackup, ramAddrSavestateDataSlot1, savestate1Size);
                 saveStateBackupSize = savestate1Size;
                 savestate1Size = compress_lz4_ct_default((void*)ramStartAddr, ramEndAddr - ramStartAddr, ramAddrSavestateDataSlot1);                
             }
@@ -123,13 +123,13 @@ void savestateMain(void) {
                     savestate2Size = compress_lz4_ct_default((void*)ramStartAddr, ramEndAddr - ramStartAddr, ramAddrSavestateDataSlot2);
                 } else {
                     //savestate 2 isn't initialized but savestate 2 is, therefore backup state 1
-                    memcpy(savestateBackup, ramAddrSavestateDataSlot1, savestate1Size);
+                    optimized_memcpy(savestateBackup, ramAddrSavestateDataSlot1, savestate1Size);
                     saveStateBackupSize = savestate1Size;
                     savestate2Size = compress_lz4_ct_default((void*)ramStartAddr, ramEndAddr - ramStartAddr, ramAddrSavestateDataSlot2);
                 }
             } else {
                 //savestate 2 is already created, therefore backup state 2
-                memcpy(savestateBackup, ramAddrSavestateDataSlot2, savestate2Size);
+                optimized_memcpy(savestateBackup, ramAddrSavestateDataSlot2, savestate2Size);
                 saveStateBackupSize = savestate2Size;
                 savestate2Size = compress_lz4_ct_default((void*)ramStartAddr, ramEndAddr - ramStartAddr, ramAddrSavestateDataSlot2);                
             }
