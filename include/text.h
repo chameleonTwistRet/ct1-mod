@@ -5,10 +5,15 @@
 #define _TEXT_H_
 
 #include "mod_main.h"
+#include "xstdio.h"
 
 char* strncpy_custom(char* dest, const char* src, s32 n);
+char* strcat(char* dest, const char* src);
+void _sprintf(void* destination, void* fmt, ...);
+void _sprintfcat(void* destination, void* fmt, ...);
 s32 strlength_custom(const char* str);
 void sprintf_custom(char* buffer, char c);
 void convertAsciiToText(void* buffer, char* source);
+
 
 #endif

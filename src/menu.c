@@ -17,13 +17,6 @@ extern s32 isMenuActive;
 extern CustomThread gCustomThread;
 void func_800C2A00(void);
 
-void _sprintf(void* destination, void* fmt, ...) {
-    va_list args;
-    va_start(args, fmt);
-    _Printf((void*)crash_screen_copy_to_buf, destination, fmt, args);
-    va_end(args);
-}
-
 #define X_COORD_PER_LETTER 4.5
 // shift x value per print per length of string (8px per letter) then print ON/OFF
 
