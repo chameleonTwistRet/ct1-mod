@@ -1,8 +1,8 @@
-#include "mod_main.h"
+#include "include/mod_main.h"
+#include "include/sd_toggle.h"
 #include "lib/cart.h"
 #include "lib/ff.h"
 #include "lib/ffconf.h"
-#include "sd_toggle.h"
 
 char pracTwistVersionString[] = "Practwist v0.1";
 char printTextBuffer[0x100] = {'\0'};    // Text buffer set to empty string
