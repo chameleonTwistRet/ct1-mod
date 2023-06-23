@@ -1,6 +1,7 @@
 #include "common.h"
 #include "../include/mod_main.h"
 #include "xstdio.h"
+#include "../include/menu.h"
 
 CustomThread gCustomThread;
 
@@ -149,20 +150,20 @@ void checkInputsForSavestates(void) {
         gameModeCurrent != GAME_MODE_TITLE_SCREEN && gameModeCurrent != GAME_MODE_LEVEL_INTRO_MENU &&
         gIsPaused == 0)
     {
-        if (gContMain[0].buttons0 & CONT_LEFT) {
+        if (D_80175650[0].button & CONT_LEFT) {
             isSaveOrLoadActive = 1;
             Controller_Zero(&gContMain[0]);
             osCreateThread(&gCustomThread.thread, 255, (void*)savestateMain, NULL,
                     gCustomThread.stack + sizeof(gCustomThread.stack), 255);
             osStartThread(&gCustomThread.thread);
             stateCooldown = 5;
-        } else if (gContMain[0].buttons0 & CONT_RIGHT) {
+        } else if (D_80175650[0].button & CONT_RIGHT) {
             isSaveOrLoadActive = 1;
             osCreateThread(&gCustomThread.thread, 255, (void*)loadstateMain, NULL,
                     gCustomThread.stack + sizeof(gCustomThread.stack), 255);
             osStartThread(&gCustomThread.thread);
             stateCooldown = 5;   
-        } else if (gContMain[0].buttons0 & CONT_UP) {
+        } else if (D_80175650[0].button & CONT_UP) {
             if (saveStateBackupSize != 0) {
                 isSaveOrLoadActive = 1;
                 osCreateThread(&gCustomThread.thread, 255, (void*)loadstateMainBackup, NULL,

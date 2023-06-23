@@ -31,7 +31,6 @@ void updateCustomInputTracking(void);
 extern s32 recordingMode;
 extern volatile s32 isSaveOrLoadActive;
 extern s32 savestateRecordingSize;
-extern OSContPad D_80175650[];
 extern s32 currentlyPressedButtons;
 extern s32 previouslyPressedButtons;
 extern u8 toggles[];
@@ -42,7 +41,7 @@ extern s32 textGreenColor[];
 extern s32 textGreenMatColor[];
 extern s32 textWhiteColor[];
 extern s32 textRedColor[];
-
+extern OSContPad D_80175650[MAXCONTROLLERS];
 enum Pages {
     PAGE_MAIN = 0,
     PAGE_JL = 1,

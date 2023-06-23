@@ -436,7 +436,6 @@ void pageMainDisplay(s32 currPageNo, s32 currOptionNo) {
             colorTextWrapper(textRedColor);
             _sprintf(menuOptionBuffer, "OFF");
         } else {
-            //is 2, dont print on/off
             continue;
         }
 

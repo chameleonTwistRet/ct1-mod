@@ -5,7 +5,7 @@
 #include "include/sd_toggle.h"
 #include "include/menu.h"
 
-char pracTwistVersionString[] = "Practwist v0.1";
+char pracTwistVersionString[] = "Practwist v1.1.1";
 char textBuffer[0x100] = {'\0'};    // Text buffer set to empty string
 void gVideoThreadProcessHook(void);
 void videoproc_Hook(s32);
