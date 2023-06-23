@@ -1,5 +1,5 @@
 #include "common.h"
-#include "mod_main.h"
+#include "include/mod_main.h"
 #include "xstdio.h"
 
 CustomThread gCustomThread;
@@ -146,7 +146,7 @@ void checkInputsForSavestates(void) {
     }
 
     if (gameModeCurrent != GAME_MODE_STAGE_SELECT && gameModeCurrent != GAME_MODE_NEW_GAME_MENU &&
-        gameModeCurrent != GAME_MODE_TITLE_SCREEN && gameModeCurrent != GAME_MODE_JUNGLE_LAND_MENU &&
+        gameModeCurrent != GAME_MODE_TITLE_SCREEN && gameModeCurrent != GAME_MODE_LEVEL_INTRO_MENU &&
         gIsPaused == 0)
     {
         if (gContMain[0].buttons0 & CONT_LEFT) {

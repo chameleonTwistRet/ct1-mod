@@ -1,7 +1,7 @@
 // Author: Ellie (Elisiah)
 // Text.c: Handle String Data for Chameleon Twist 
 
-#include "text.h"
+#include "include/text.h"
 
 // const char EUCJP[26] = {
 //     'Ａ', 'Ｂ', 'Ｃ', 'Ｄ', 'Ｅ', 'Ｆ', 'Ｇ', 'Ｈ', 'Ｉ', 'Ｊ', 'Ｋ', 'Ｌ', 'Ｍ', 'Ｎ', 'Ｏ', 'Ｐ', 'Ｑ',

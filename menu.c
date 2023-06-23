@@ -1,11 +1,11 @@
 #include "common.h"
 #include "include/menu.h"
 #include "xstdio.h"
-#include "mod_main.h"
+#include "include/mod_main.h"
 #include "lib/cart.h"
 #include "lib/ff.h"
 #include "lib/ffconf.h"
-#include "sd_toggle.h"
+#include "include/sd_toggle.h"
 
 s8 toggleSpawnsOff = 0;  // 0 = on, 1 = off | Objects / Enemies Spawning
 extern void* crash_screen_copy_to_buf(void* dest, const char* src, u32 size);
@@ -15,6 +15,7 @@ s32 compress_lz4_ct_default(const u8* srcData, int srcSize, u8* bufferAddr);
 void decompress_lz4_ct_default(int srcSize, int savestateCompressedSize, u8* compressBuffer);
 extern s32 isMenuActive;
 extern CustomThread gCustomThread;
+void func_800C2A00(void);
 
 void _sprintf(void* destination, void* fmt, ...) {
     va_list args;
@@ -61,7 +62,11 @@ s32 toggleInfiniteHealth(void) {
 }
 
 s32 toggleCustomDebugText(void) {
-    toggles[TOGGLE_CUSTOM_DEBUG_TEXT] ^= 1;
+    //8016AA9C
+    toggles[TOGGLE_CUSTOM_DEBUG_TEXT]++;
+    if (toggles[TOGGLE_CUSTOM_DEBUG_TEXT] >= 3) {
+        toggles[TOGGLE_CUSTOM_DEBUG_TEXT] = 0;
+    }
     return 1;
 }
 
@@ -164,9 +169,6 @@ void loadstateRecordingMain(void) {
     isSaveOrLoadActive = 0; //allow thread 3 to continue
 }
 
-extern InputRecording inputRecordingBuffer;
-extern u32 recordingInputIndex;
-
 s32 StartRecording(void) {
     isMenuActive = 0;
     toggles[TOGGLE_RECORDING] ^= 1;
@@ -209,7 +211,7 @@ s32 ImportRecording(void) {
     FRESULT fileres;
 
     fileres = f_open(&sdsavefile, path, FA_OPEN_ALWAYS | FA_READ);
-    f_read(&sdsavefile, recordingData, ALIGN4(sizeof(inputRecordingBuffer)), &filebytesread);
+    f_read(&sdsavefile, (void*)recordingData, ALIGN4(sizeof(inputRecordingBuffer)), &filebytesread);
     f_close(&sdsavefile);
     return 1;
 }

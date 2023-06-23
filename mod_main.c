@@ -1,8 +1,8 @@
-#include "mod_main.h"
+#include "include/mod_main.h"
 #include "lib/cart.h"
 #include "lib/ff.h"
 #include "lib/ffconf.h"
-#include "sd_toggle.h"
+#include "include/sd_toggle.h"
 #include "include/menu.h"
 
 char pracTwistVersionString[] = "Practwist v0.1";
@@ -37,7 +37,6 @@ FIL sdsavefile = {0};
 
 void loadEnemyObjectsHook(void);
 void crash_screen_init(void);
-void checkInputsForSavestates(void);
 void func_8004E784_Hook(contMain* arg0, s32 arg1, s32* arg2, contMain* arg3);
 
 FRESULT initFatFs(void) {
@@ -56,6 +55,8 @@ void checkIfRecordInputs(void) {
     inputRecordingBuffer.recordingBuffer[recordingInputIndex++] = gContMain[0]; //copy player 1's inputs
     inputRecordingBuffer.totalFrameCount = recordingInputIndex;
 }
+
+
 
 //mod_boot_func: runs a single time on boot before main game loop starts
 void mod_boot_func(void) {
@@ -80,50 +81,85 @@ void mod_boot_func(void) {
 
     hookCode((s32*)0x8002D660, &loadEnemyObjectsHook); //toggle enemies spawning/not spawning
     hookCode((s32*)0x8004E784, &func_8004E784_Hook); //hook controller reading of overworld gamemode
+    hookCode((s32*)0x800C0CDC, &func_800C0CDC_Hook); //hook load boss function
+
+    //
 
     patchInstruction((void*)0x800A1030, 0x10000002); //add black chameleon to story patch 1
     patchInstruction((void*)0x800A1084, 0x10000004); //add black chameleon to story patch 2
     
 }
 
+f32 clampTo45Degrees(f32 angle) {
+    if (angle > 45.0) {
+        return clampTo45Degrees(45.0);
+    } else if (angle < -45.0) {
+        return clampTo45Degrees(-45.0);
+    } else {
+        return angle;
+    }
+}
+
 extern s32 isMenuActive;
 extern s32 currPageNo;
 extern s32 currOptionNo;
-void updateMenuInput(void);
-void updateCustomInputTracking(void);
 void func_80089BA0(void);
 
 void printCustomDebugText(void) {
     char messageBuffer[20];
     char convertedMessageBuffer[sizeof(messageBuffer) * 2];
+    f32 freeCamAngle = 0.0f;
+    f32 clampedAngle = 0.0f;
+    s32 textColor;
 
-    colorTextWrapper(textGreenMatColor);
-    _bzero(messageBuffer, sizeof(messageBuffer)); //clear buffer
-    _sprintf(messageBuffer, "SPD: %.2f", gPlayerActors[0].forwardVel);
-    _bzero(convertedMessageBuffer, sizeof(convertedMessageBuffer)); //clear buffer
-    convertAsciiToText(&convertedMessageBuffer, (char*)&messageBuffer);
-    textPrint(13.0f, 158.0f, 0.5f, &convertedMessageBuffer, 1);
+    switch (toggles[TOGGLE_CUSTOM_DEBUG_TEXT]) {
+    case 1:
+        colorTextWrapper(textGreenMatColor);
+        _bzero(messageBuffer, sizeof(messageBuffer)); //clear buffer
+        _sprintf(messageBuffer, "SPD: %.2f", gPlayerActors[0].forwardVel);
+        _bzero(convertedMessageBuffer, sizeof(convertedMessageBuffer)); //clear buffer
+        convertAsciiToText(&convertedMessageBuffer, (char*)&messageBuffer);
+        textPrint(13.0f, 158.0f, 0.5f, &convertedMessageBuffer, 1);
 
-    colorTextWrapper(textCyanColor);
-    _bzero(messageBuffer, sizeof(messageBuffer)); //clear buffer
-    _sprintf(messageBuffer, "ANG: %.2f", gPlayerActors[0].yAngle);
-    _bzero(convertedMessageBuffer, sizeof(convertedMessageBuffer)); //clear buffer
-    convertAsciiToText(&convertedMessageBuffer, (char*)&messageBuffer);
-    textPrint(13.0f, 170.0f, 0.5f, &convertedMessageBuffer, 1);
+        colorTextWrapper(textCyanColor);
+        _bzero(messageBuffer, sizeof(messageBuffer)); //clear buffer
+        _sprintf(messageBuffer, "ANG: %.2f", gPlayerActors[0].yAngle);
+        _bzero(convertedMessageBuffer, sizeof(convertedMessageBuffer)); //clear buffer
+        convertAsciiToText(&convertedMessageBuffer, (char*)&messageBuffer);
+        textPrint(13.0f, 170.0f, 0.5f, &convertedMessageBuffer, 1);
 
-    colorTextWrapper(textWhiteColor);
-    _bzero(messageBuffer, sizeof(messageBuffer)); //clear buffer
-    _sprintf(messageBuffer, "X: %.2f", gPlayerActors[0].pos.x);
-    _bzero(convertedMessageBuffer, sizeof(convertedMessageBuffer)); //clear buffer
-    convertAsciiToText(&convertedMessageBuffer, (char*)&messageBuffer);
-    textPrint(13.0f, 182.0f, 0.5f, &convertedMessageBuffer, 1);
+        colorTextWrapper(textWhiteColor);
+        _bzero(messageBuffer, sizeof(messageBuffer)); //clear buffer
+        _sprintf(messageBuffer, "X: %.2f", gPlayerActors[0].pos.x);
+        _bzero(convertedMessageBuffer, sizeof(convertedMessageBuffer)); //clear buffer
+        convertAsciiToText(&convertedMessageBuffer, (char*)&messageBuffer);
+        textPrint(13.0f, 182.0f, 0.5f, &convertedMessageBuffer, 1);
 
-    colorTextWrapper(textWhiteColor);
-    _bzero(messageBuffer, sizeof(messageBuffer)); //clear buffer
-    _sprintf(messageBuffer, "Z: %.2f", gPlayerActors[0].pos.z);
-    _bzero(convertedMessageBuffer, sizeof(convertedMessageBuffer)); //clear buffer
-    convertAsciiToText(&convertedMessageBuffer, (char*)&messageBuffer);
-    textPrint(13.0f, 194.0f, 0.5f, &convertedMessageBuffer, 1);
+        colorTextWrapper(textWhiteColor);
+        _bzero(messageBuffer, sizeof(messageBuffer)); //clear buffer
+        _sprintf(messageBuffer, "Z: %.2f", gPlayerActors[0].pos.z);
+        _bzero(convertedMessageBuffer, sizeof(convertedMessageBuffer)); //clear buffer
+        convertAsciiToText(&convertedMessageBuffer, (char*)&messageBuffer);
+        textPrint(13.0f, 194.0f, 0.5f, &convertedMessageBuffer, 1);
+        break;
+    case 2:
+        freeCamAngle = gCamera[0].f1.x;
+        clampedAngle = clampTo45Degrees(freeCamAngle);
+        if (clampedAngle > 6.15f && clampedAngle < 8.79f) { //check exact ranges
+            colorTextWrapper(textGreenMatColor);
+        } else {
+            colorTextWrapper(textWhiteColor);
+        }
+        _bzero(messageBuffer, sizeof(messageBuffer)); //clear buffer
+        _sprintf(messageBuffer, "Z: %.2f", gPlayerActors[0].pos.z);
+        _bzero(convertedMessageBuffer, sizeof(convertedMessageBuffer)); //clear buffer
+        convertAsciiToText(&convertedMessageBuffer, (char*)&messageBuffer);
+        textPrint(13.0f, 194.0f, 0.5f, &convertedMessageBuffer, 1);
+        break;
+
+    }
+
+
 }
 
 extern u32 nextZone;
@@ -183,92 +219,6 @@ s32 caveSkipPractice(void) {
     return 1;
 }
 
-void func_8004E784_Hook(contMain* arg0, s32 arg1, s32* arg2, contMain* arg3) {
-    contMain* var_s0;
-    contMain* var_s1;
-    s32 i;
-
-    osRecvMesg(&gEepromMsgQ, NULL, 1);
-    osContGetReadData(&D_80175650[0]);
-
-    i = 0;
-
-    // if (toggles[TOGGLE_PLAYBACK] == 1) {
-    //     if (recordingInputIndex > inputRecordingBuffer.totalFrameCount) {
-    //         toggles[TOGGLE_PLAYBACK] ^= 1; //turn recording off as it has reached the end
-    //     } else {
-    //         gContMain[0] = inputRecordingBuffer.recordingBuffer[recordingInputIndex];
-    //         arg0[0] = inputRecordingBuffer.recordingBuffer[recordingInputIndex];
-    //         recordingInputIndex++;
-    //         i = 1; //skip player 0
-    //     }
-    // }
-
-    // for each controller
-    for (i; i < arg1; i++) {
-        if ((arg2 == NULL) || (arg2[i] == 0)) {
-            if (D_80175668[i] == -1) {
-                Controller_Zero(&gContMain[i]);
-                continue;
-            }
-            gContMain[i].buttons0 = D_80175650[D_80175668[i]].pad.button;
-            gContMain[i].stickx = D_80175650[D_80175668[i]].pad.stick_x;
-            gContMain[i].sticky = D_80175650[D_80175668[i]].pad.stick_y;
-        } else {
-            gContMain[i].buttons0 = arg3[i].buttons0;
-            gContMain[i].stickx = arg3[i].stickx;
-            gContMain[i].sticky = arg3[i].sticky;
-        }
-
-        gContMain[i].stickAngle = CalculateAngleOfVector((f32) gContMain[i].stickx, (f32) gContMain[i].sticky);
-        gContMain[i].buttons1 = (gContMain[i].buttons0 ^ D_80175678[i]) & gContMain[i].buttons0;
-        gContMain[i].buttons2 = (gContMain[i].buttons0 ^ D_801756C0[i]) & gContMain[i].buttons0;
-        D_801756C0[i] = gContMain[i].buttons0;
-        if ((gContMain[i].stickx >= -6) && (gContMain[i].stickx < 7)) {
-            gContMain[i].stickx = 0;
-        }
-        
-        if ((gContMain[i].sticky >= -6) && (gContMain[i].sticky < 7)) {
-            gContMain[i].sticky = 0;
-        }
-
-        if (toggles[TOGGLE_RECORDING] == 1 && i == 0) {
-            inputRecordingBuffer.recordingBuffer[0] = gContMain[0];
-            if ((s32)gContMain[0].stickAngle == 0xFFFFFFFF) {
-                recordingErrorMessageStick = 1;
-            }
-        }
-
-        if (i == 0) {
-            updateCustomInputTracking();
-            if (isMenuActive == 1) {
-                updateMenuInput();
-                gContMain[0].buttons0 &= ~A_BUTTON;
-                gContMain[0].buttons0 &= ~B_BUTTON;
-                gContMain[0].buttons1 &= ~A_BUTTON;
-                gContMain[0].buttons1 &= ~B_BUTTON;
-                gContMain[0].buttons2 &= ~A_BUTTON;
-                gContMain[0].buttons2 &= ~B_BUTTON;
-            }
-            if ((gContMain[0].buttons0 & R_TRIG) && (currentlyPressedButtons & CONT_UP)) {
-                sDebugInt ^= 1;
-            } else if ((gContMain[0].buttons0 & R_TRIG) && (currentlyPressedButtons & CONT_DOWN)) {
-                isMenuActive ^= 1;
-            } else if (currentlyPressedButtons & CONT_DOWN) {
-                savestateCurrentSlot ^= 1; //flip from 0 to 1 or vice versa (2 saveslots)
-            } else {
-                if (isMenuActive == 0 ) {
-                    checkInputsForSavestates();
-                    while (isSaveOrLoadActive != 0) {}
-                }
-            }
-
-
-        }
-
-        arg0[i] = gContMain[i];
-    }
-}
 
 extern u8 gLevelAccessBitfeild;
 extern u8 gLevelClearBitfeild;
@@ -366,7 +316,7 @@ void mod_main_func(void) {
         case GAME_MODE_OVERWORLD:
             Porocess_Mode0();
             goto loop;
-        case GAME_MODE_JUNGLE_LAND_MENU:
+        case GAME_MODE_LEVEL_INTRO_MENU:
             Process_StageSelect();
             goto loop;
         case GAME_MODE_SAVE_MENU:

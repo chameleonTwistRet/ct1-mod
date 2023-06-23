@@ -10,10 +10,12 @@ extern Addr* mod_ROM_END;
 extern Addr* mod_ROM_START;
 void mod_main_per_frame(void);
 void mod_boot_func(void);
-
+void func_800C0760(s32 zone);
 extern int getStatusRegister(void); //returns status reg
 extern int setStatusRegister(s32); //returns status reg
-
+void updateMenuInput(void);
+void updateCustomInputTracking(void);
+void checkInputsForSavestates(void);
 extern s32 loadEnemiesBool; //used by `func_8002D644_patch.s`
 extern volatile s32 saveOrLoadStateMode;
 extern volatile s32 savestateCurrentSlot;
@@ -22,8 +24,8 @@ extern s32 savestate2Size;
 extern volatile s32 isSaveOrLoadActive;
 extern s32 stateCooldown;
 extern s32 gameBootTimer;
-
-
+extern Collision gZoneCollisions[];
+extern s32 isMenuActive;
 void osInvalICache(void*, s32);
 void osInvalDCache(void*, s32);
 int __osDpDeviceBusy(void);
@@ -34,7 +36,7 @@ extern int getStatusRegister(void); //returns status reg
 extern int setStatusRegister(s32); //returns status reg
 void hookCode(s32* patchAddr, void* jumpLocation);
 void patchInstruction(void* patchAddr, s32 patchInstruction);
-
+void func_800C0CDC_Hook(s32 arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 #define ALIGN4(val) (((val) + 0x3) & ~0x3)
 #define ARRAY_COUNT(arr) (s32)(sizeof(arr) / sizeof(arr[0]))
 #define ramStartAddr (u32)0x800EE1C0
