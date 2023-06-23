@@ -376,15 +376,12 @@ void updateMenuInput(void) {
         }
     }
     else if (currentlyPressedButtons & CONT_DOWN) {
-        if (gContMain[0].buttons0 & R_TRIG == 0) {
-            if (currOptionNo < pageList[currPageNo]->optionCount - 1) {
-                currOptionNo++;
-                //playSound(0x2A, (void*)0x80168DA8, 0);
-            } else {
-                currOptionNo = 0; //wrap menu
-            }
+        if (currOptionNo < pageList[currPageNo]->optionCount - 1) {
+            currOptionNo++;
+            //playSound(0x2A, (void*)0x80168DA8, 0);
+        } else {
+            currOptionNo = 0; //wrap menu
         }
-
     }
     else if (currentlyPressedButtons & CONT_LEFT) {
         if (currPageNo > 0) {
