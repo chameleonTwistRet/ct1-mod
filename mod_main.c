@@ -157,7 +157,7 @@ void mod_main_func(void) {
         case GAME_MODE_OVERWORLD:
             Porocess_Mode0();
             goto loop;
-        case GAME_MODE_JUNGLE_LAND_MENU:
+        case GAME_MODE_LEVEL_INTRO_MENU:
             Process_StageSelect();
             goto loop;
         case GAME_MODE_SAVE_MENU:
@@ -199,7 +199,7 @@ void mod_main_func(void) {
         case GAME_MODE_NEW_GAME_MENU:
             func_800A1D38();
             goto loop;
-        case GAME_MODE_JUNGLE_LAND:
+        case GAME_MODE_LEVEL_INTRO:
             func_800A6DD8();
             goto loop;
         case GAME_MODE_STAGE_SELECT:
