@@ -8,6 +8,7 @@
 char pracTwistVersionString[] = "Practwist v0.1";
 char textBuffer[0x100] = {'\0'};    // Text buffer set to empty string
 void gVideoThreadProcessHook(void);
+void videoproc_Hook(s32);
 // Patches work the same way as 81 and 80 GameShark Codes
 void s16patch(void* patchAddr, s16 patchInstruction) {
     *(s16*)patchAddr = patchInstruction;
@@ -82,7 +83,9 @@ void mod_boot_func(void) {
     hookCode((s32*)0x8002D660, &loadEnemyObjectsHook); //toggle enemies spawning/not spawning
     hookCode((s32*)0x8004E784, &func_8004E784_Hook); //hook controller reading of overworld gamemode
     hookCode((s32*)0x800C0CDC, &func_800C0CDC_Hook); //hook load boss function
-    hookCode((s32*)0x80084C08, &gVideoThreadProcessHook); //hook video process to pause on loadstate
+    //hookCode((s32*)0x80084C08, &gVideoThreadProcessHook); //hook video process to pause on loadstate
+    hookCode((s32*)0x80084b30, &videoproc_Hook); //hook video process to pause on loadstate
+    
     //
 
     patchInstruction((void*)0x800A1030, 0x10000002); //add black chameleon to story patch 1
@@ -306,6 +309,10 @@ void mod_main_per_frame(void) {
         colorTextWrapper(textGreenMatColor);
         convertAsciiToText(&convertedVersionBuffer, (char*)&pracTwistVersionString);
         textPrint(15.0f, 220.0f, 0.5f, &convertedVersionBuffer, 3);
+    }
+
+    if (isMenuActive == 0 ) {
+        checkInputsForSavestates();
     }
 
     //if a savestate is being saved/loaded, stall thread
