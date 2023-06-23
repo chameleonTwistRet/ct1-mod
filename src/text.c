@@ -156,6 +156,9 @@ void convertAsciiToText(void* buffer, char* source) {
                 case '-':
                     buf[j] = 0xA1DD;
                     break;
+                case '.':
+                    buf[j] = 0xA1A5;
+                    break;
                 default:
                     break;
             }
