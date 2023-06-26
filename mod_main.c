@@ -280,7 +280,7 @@ void mod_main_per_frame(void) {
     }
 
     if (toggles[TOGGLE_HIDE_SAVESTATE_TEXT] == 1) {
-            if (savestateCurrentSlot == 0) {
+        if (savestateCurrentSlot == 0) {
             textBuffer[index++] =  0xA3;
             textBuffer[index++] = 0xB1; //prints 1
         } else {

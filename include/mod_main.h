@@ -37,7 +37,7 @@ extern int getStatusRegister(void); //returns status reg
 extern int setStatusRegister(s32); //returns status reg
 void hookCode(s32* patchAddr, void* jumpLocation);
 void patchInstruction(void* patchAddr, s32 patchInstruction);
-void func_800C0CDC_Hook(s32 arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
+void func_800C0CDC_Hook(playerActor* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 #define ALIGN4(val) (((val) + 0x3) & ~0x3)
 #define ARRAY_COUNT(arr) (s32)(sizeof(arr) / sizeof(arr[0]))
 #define ramStartAddr (u32)0x800EE1C0

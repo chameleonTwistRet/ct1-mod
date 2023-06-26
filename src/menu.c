@@ -96,7 +96,10 @@ void enterBossRoom2(s32 unk) {
 
 s32 teleportToStageBoss(void) {
     // Teleports Player to Current World's Boss Stage
-    //enterBossRoom2(bossVar);
+    if (gameModeCurrent == GAME_MODE_OVERWORLD && gCurrentStage < 6) {
+        func_800C0CDC(&gPlayerActors[0], -1, 0, 0, 1);
+    }
+    
     return 1;
 }
 

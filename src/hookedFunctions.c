@@ -32,7 +32,7 @@ extern void* D_801B30A0;
 extern OSTimer D_801B3148;
 extern OSMesgQueue D_801B35A0;
 
-void func_800C0CDC_Hook(s32 arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4) {
+void func_800C0CDC_Hook(playerActor* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4) {
     if (gZoneCollisions[arg1].unk7C != 0) {
         gGameModeState = 3;
         switch (gCurrentStage) {                    /* switch 1 */
