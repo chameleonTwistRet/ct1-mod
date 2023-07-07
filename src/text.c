@@ -33,7 +33,7 @@ void _sprintfcat(void* destination, void* fmt, ...) {
 
     va_list args;
     va_start(args, fmt);
-    existing_length = strlen((char*)destination);
+    existing_length = strlen((u8*)destination);
     cat_destination = (char*)destination + existing_length;                 // set to the end of the existing string
     _Printf((void*)crash_screen_copy_to_buf, cat_destination, fmt, args);
     va_end(args);
@@ -45,7 +45,7 @@ void _sprintfcat(void* destination, void* fmt, ...) {
  * @param src The source string.
  */
 char* strcat(char* dest, const char* src) {
-    char* ptr = dest + strlen(dest);
+    char* ptr = dest + strlen((u8*)dest);
     while (*src != '\0') {
         *ptr++ = *src++;
     }
