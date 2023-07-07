@@ -57,7 +57,8 @@ void checkIfRecordInputs(void) {
     inputRecordingBuffer.totalFrameCount = recordingInputIndex;
 }
 
-
+void Debug_ChangeRoom_Hook(void);
+void Debug_ChangeRoom(void);
 
 //mod_boot_func: runs a single time on boot before main game loop starts
 void mod_boot_func(void) {
@@ -85,6 +86,7 @@ void mod_boot_func(void) {
     hookCode((s32*)0x800C0CDC, &func_800C0CDC_Hook); //hook load boss function
     //hookCode((s32*)0x80084C08, &gVideoThreadProcessHook); //hook video process to pause on loadstate
     hookCode((s32*)0x80084b30, &videoproc_Hook); //hook video process to pause on loadstate
+    hookCode((s32*)&Debug_ChangeRoom, &Debug_ChangeRoom_Hook);
     
     //
 

@@ -31,6 +31,290 @@ extern OSMesgQueue D_801192D0;
 extern void* D_801B30A0;
 extern OSTimer D_801B3148;
 extern OSMesgQueue D_801B35A0;
+extern s32 D_802478E0;
+
+typedef struct tempStructDebug {
+    char unk0[0x28];
+    f32 unk28;
+    f32 unk2C;
+    f32 unk30;
+    f32 unk34;
+    f32 unk38;
+    f32 unk3C;
+}tempStructDebug;
+
+extern s32 sDebugInt;
+// typedef struct unk80174880 {
+// /* 0x00 */ s32 unk_00[4];
+// /* 0x10 */ char unk_10[0x18];
+// /* 0x28 */ s32 unk_28[4];
+// /* 0x38 */ char unk_38[0x18];
+// /* 0x50 */ s32 unk_50[4];
+// /* 0x60 */ char unk_60[0x18];
+// /* 0x78 */ s32 unk_78;
+// /* 0x7C */ s32 unk_7C;
+// } unk80174880;
+
+extern unk80174880 D_80174880[];
+
+void Debug_ChangeRoom(void);                               /* extern */
+void Debug_ChangeView(void);                               /* extern */
+void Debug_MovePlayer(void);                               /* extern */
+s32 func_80080C28(f32, f32, f32, f32, f32, f32, s32, s32, s32, s32); /* extern */
+extern f32 D_800F070C;
+extern f32 D_800F0710;
+extern f32 D_800F0714;
+extern s32 D_800F0B40;
+extern char D_8010C7C4[];
+extern char D_8010C7CC[];
+extern char D_8010C7D4[];
+extern char D_8010C7E0[];
+extern char D_8010C7F0[];
+extern char D_8010C800[];
+extern char D_8010C80C[];
+extern char D_8010C81C[];
+extern char D_8010C824[];
+extern char D_8010C838[];
+extern char D_8010C850[];
+extern char D_8010C860[];
+extern char D_8010C870[];
+extern char D_8010C888[];
+extern char D_8010C89C[];
+extern f32 D_8010C8F4;
+extern f32 D_8010C8F8;
+
+extern s32 D_801748A8;
+extern s32 D_80174980;
+extern tempStructDebug D_801768A0;
+extern playerActor* D_80176B74;
+extern s32 D_802478E0;
+extern Collision gZoneCollisions[];
+extern s32 sDebugCodeSeqStep;
+
+void debugMain_Hook(void) {
+    volatile s32 sp64;
+    unk80174880* var_s0;
+    f32 temp_f0;
+    f32 temp_f0_2;
+    f32 temp_f14;
+    f32 temp_f16;
+    f32 temp_f18;
+    f32 temp_f20;
+    f32 temp_f20_2;
+    f32 temp_f22;
+    f32 temp_f2;
+    f32 temp_f2_2;
+    Collision* temp_v0;
+    s32 i;
+
+    if (sDebugInt >= 0) {
+        if ((D_80174980 == 2) || (D_80174980 == 3) || (D_80174980 == 4) || (D_80174980 == 5)) {
+            Debug_ZeroInt();
+        }
+        switch (gCurrentStage) {                    /* switch 1 */
+        case 1:                                     /* switch 1 */
+            D_800F070C = 0.0f;
+            D_800F0710 = 0.0f;
+            D_800F0714 = 0.0f;
+            break;
+        case 2:                                     /* switch 1 */
+            D_800F070C = 0.0f;
+            D_800F0710 = 0.0f;
+            D_800F0714 = 0.0f;
+            break;
+        case 4:                                     /* switch 1 */
+            D_800F070C = 0.0f;
+            D_800F0710 = 0.0f;
+            D_800F0714 = 0.0f;
+            break;
+        case 3:                                     /* switch 1 */
+            D_800F070C = 5000.0f;
+            D_800F0710 = -10000.0f;
+            D_800F0714 = 0.0f;
+            break;
+        case 6:                                     /* switch 1 */
+            D_800F070C = 0.0f;
+            D_800F0710 = 0.0f;
+            D_800F0714 = 0.0f;
+            break;
+        case 5:                                     /* switch 1 */
+            D_800F070C = 0.0f;
+            D_800F0710 = 0.0f;
+            D_800F0714 = 0.0f;
+            break;
+        case 0:                                     /* switch 1 */
+            D_800F070C = 0.0f;
+            D_800F0710 = 0.0f;
+            D_800F0714 = 0.0f;
+            break;
+        case 7:                                     /* switch 1 */
+            D_800F070C = 0.0f;
+            D_800F0710 = 0.0f;
+            D_800F0714 = 0.0f;
+            break;
+        case 8:                                     /* switch 1 */
+            D_800F070C = 0.0f;
+            D_800F0710 = 0.0f;
+            D_800F0714 = 0.0f;
+            break;
+        default:                                    /* switch 1 */
+            D_800F070C = 0.0f;
+            D_800F0710 = 0.0f;
+            D_800F0714 = 0.0f;
+            break;
+        }
+        
+        if ((gContMain->buttons0 & 0x20) && (sDebugInt == 1)) {
+            setPrimColor(0, 0, 0, 0x80);
+            printUISprite(0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 80.0f, 192.0f, 0.0f, 0);
+            setTextGradient(0xBF, 0xAU, 0, 0xFF, 0xC8, 0xC8, 0, 0xFF, 0xBF, 0xA, 0, 0xFF, 0xC8, 0xC8, 0, 0xFF);
+            switch (gCurrentStage) {                /* switch 2 */
+            case 1:                                 /* switch 2 */
+                PrintTextWrapper(32.0, 32.0, 0.0f, 1.0f, "ＡＮＴ", 1);
+                printNumber(32.0, 64.0, 0.0f, 1.0f, (f32) gCurrentZone, 2, 0);
+                break;
+            case 2:                                 /* switch 2 */
+                PrintTextWrapper(32.0, 32.0, 0.0f, 1.0f, "ＢＯＭ", 1);
+                printNumber(32.0f, 64.0, 0.0f, 1.0f, (f32) gCurrentZone, 2, 0);
+                break;
+            case 4:                                 /* switch 2 */
+                PrintTextWrapper(32.0, 32.0, 0.0f, 1.0f, "ＫＩＤＳ", 1);
+                printNumber(32.0, 64.0, 0.0f, 1.0f, (f32) gCurrentZone, 2, 0);
+                break;
+            case 3:                                 /* switch 2 */
+                PrintTextWrapper(32.0, 32.0f, 0.0f, 1.0f, "ＤＥＳＥＲＴ", 1);
+                printNumber(32.0, 64.0f, 0.0f, 1.0f, (f32) gCurrentZone, 2, 0);
+                break;
+            case 6:                                 /* switch 2 */
+                PrintTextWrapper(32.0, 32.0, 0.0f, 1.0f, "ＯＰＥＮＩＮＧ", 1);
+                printNumber(32.0f, 64.0f, 0.0f, 1.0f, (f32) gCurrentZone, 2, 0);
+                break;
+            case 5:                                 /* switch 2 */
+                PrintTextWrapper(32.0, 32.0f, 0.0f, 1.0f, "ＧＨＯＳＴ", 1);
+                printNumber(32.0, 64.0, 0.0f, 1.0f, (f32) gCurrentZone, 2, 0);
+                break;
+            case 0:                                 /* switch 2 */
+                PrintTextWrapper(32.0, 32.0, 0.0f, 1.0f, "ＪＵＮＧＬＥ", 1);
+                if (D_80236974 == 0) {
+                    printNumber(32.0f, 64.0f, 0.0f, 1.0f, (f32) (gCurrentZone + D_800F0B40), 2, 0);
+                } else {
+                    printNumber(32.0, 64.0f, 0.0f, 1.0f, (f32) gCurrentZone, 2, 0);
+                    D_800F0B40 = D_802478E0;
+                }
+                break;
+            case 7:                                 /* switch 2 */
+                PrintTextWrapper(32.0f, 32.0f, 0.0f, 1.0f, "ＶＳ", 1);
+                printNumber(32.0f, 64.0f, 0.0f, 1.0f, (f32) gCurrentZone, 2, 0);
+                break;
+            case 8:                                 /* switch 2 */
+                PrintTextWrapper(32.0f, 32.0f, 0.0f, 1.0f, "ＴＲＡＮＩＮＩＧ", 1);
+                printNumber(32.0f, 64.0f, 0.0f, 1.0f, (f32) gCurrentZone, 2, 0);
+                break;
+            case 9:                                 /* switch 2 */
+                PrintTextWrapper(32.0f, 32.0f, 0.0f, 1.0f, "ＪＵＮＧＬＥＢＯＳＳ", 1);
+                printNumber(32.0f, 64.0f, 0.0f, 1.0f, (f32) gCurrentZone, 2, 0);
+                break;
+            case 10:                                /* switch 2 */
+                PrintTextWrapper(32.0f, 32.0f, 0.0f, 1.0f, "ＡＮＴＢＯＳＳ", 1);
+                printNumber(32.0f, 64.0f, 0.0f, 1.0f, (f32) gCurrentZone, 2, 0);
+                break;
+            case 11:                                /* switch 2 */
+                PrintTextWrapper(32.0f, 32.0f, 0.0f, 1.0f, "ＢＯＭＢＯＳＳ", 1);
+                printNumber(32.0f, 64.0f, 0.0f, 1.0f, (f32) gCurrentZone, 2, 0);
+                break;
+            case 12:                                /* switch 2 */
+                PrintTextWrapper(32.0f, 32.0f, 0.0f, 1.0f, "ＤＥＳＥＲＴＢＯＳＳ", 1);
+                printNumber(32.0f, 64.0f, 0.0f, 1.0f, (f32) gCurrentZone, 2, 0);
+                break;
+            case 13:                                /* switch 2 */
+                PrintTextWrapper(32.0f, 32.0f, 0.0f, 1.0f, "ＫＩＤＳＢＯＳＳ", 1);
+                printNumber(32.0f, 64.0f, 0.0f, 1.0f, (f32) gCurrentZone, 2, 0);
+                break;
+            case 14:                                /* switch 2 */
+                PrintTextWrapper(32.0, 32.0, 0.0f, 1.0f, "ＧＨＯＳＴＢＯＳＳ", 1);
+                printNumber(32.0, 64.0f, 0.0f, 1.0f, (f32) gCurrentZone, 2, 0);
+                break;
+            }
+            printNumberWR(32.0, 96.0f, 0.0f, 0.5, D_80176B74->pos.x + D_800F070C, 6, 0);
+            printNumberWR(32.0, 112.0f, 0.0f, 0.5, D_80176B74->pos.y + D_800F0710, 6, 0);
+            printNumberWR(32.0, 128.0f, 0.0f, 0.5, D_80176B74->pos.z + D_800F0714, 6, 0);
+            temp_f0 = D_801768A0.unk34 - D_801768A0.unk28;
+            temp_f2 = D_801768A0.unk38 - D_801768A0.unk2C;
+            temp_f14 = D_801768A0.unk3C - D_801768A0.unk30;
+            printNumberWR(32.0, 160.0f, 0.0f, 0.5, __sqrtf(SQ(temp_f0) + SQ(temp_f2) + SQ(temp_f14)), 6, 0);
+            
+            for (i = 0, sp64 = 0x20; i < 10; i++) {
+                temp_f20 = (f32)sp64;
+                printNumberWR(200.0f, temp_f20, 0.0f, 0.5, D_80174880->unk_00[i], 4, 1);
+                printNumberWR(230.0f, temp_f20, 0.0f, 0.5, D_80174880->unk_28[i], 4, 1);
+                printNumberWR(260.0f, temp_f20, 0.0f, 0.5f, D_80174880->unk_50[i], 4, 1);  
+                sp64 += 0x0c;
+            }
+
+            printNumberWR(290.0f, 32.0, 0.0f, 0.5, D_80174880->unk_78, 4, 1);
+            printNumberWR(290.0f, 44.0f, 0.0f, 0.5, D_80174880->unk_7C, 4, 1);
+            temp_v0 = &gZoneCollisions[gCurrentZone];
+            temp_f0_2 = (temp_v0->rect_30.max.x - temp_v0->rect_30.min.x) / 2;
+            temp_f16 = (temp_v0->rect_30.max.y - temp_v0->rect_30.min.y) / 2;
+            temp_f20_2 = (temp_v0->rect_30.max.z - temp_v0->rect_30.min.z) / 2;
+            func_80080C28(temp_v0->rect_30.min.x + temp_f0_2,
+                temp_v0->rect_30.min.y + temp_f16, temp_v0->rect_30.min.z + temp_f20_2,
+                temp_f0_2, temp_f16, temp_f20_2, 0x64, 0x64, 0x64, 0x64);
+        }
+        if (sDebugInt == 0) {
+            if (func_80055E5C(U_JPAD) != 0) {
+                sDebugCodeSeqStep = 1;
+            }
+            if ((func_80055E5C(D_JPAD) != 0) && (sDebugCodeSeqStep > 0)) {
+                sDebugCodeSeqStep = 2;
+            }
+            if ((func_80055E5C(L_JPAD) != 0) && (sDebugCodeSeqStep >= 2)) {
+                sDebugCodeSeqStep = 3;
+            }
+            if ((func_80055E5C(R_JPAD) != 0) && (sDebugCodeSeqStep >= 3)) {
+                sDebugCodeSeqStep = 4;
+                sDebugInt = 1;
+            }
+        } else {
+            Debug_MovePlayer();
+            Debug_ChangeRoom();
+            Debug_NOOP();
+            Debug_ChangeView();
+        }
+    }    
+}
+
+void Debug_ChangeRoom_Hook(void) {
+    s32 shouldChangeRoom = FALSE;
+
+    //if c-left
+    if (func_80055E5C(2) != 0) {
+        shouldChangeRoom = TRUE;
+        gCurrentZone--;
+        if (!gCurrentZone){} //fake but function uses potentially uninitialized variable so...
+    }
+    //if c-right
+    if (func_80055E5C(1) != 0) {
+        shouldChangeRoom = TRUE;
+        gCurrentZone++;
+    }
+    //if less than 0, go to current room count max - 1
+    if (gCurrentZone < 0) {
+        gCurrentZone = D_802478E0 - 1;
+    }
+    //if greater than or equal to max, set to 0
+    if (gCurrentZone >= D_802478E0) {
+        gCurrentZone = 0;
+    }
+    if (shouldChangeRoom == TRUE) {
+        if (D_80236974 == 0) {
+            func_800C1458(gCurrentZone, shouldChangeRoom);
+            return;
+        }
+        func_800C29D8(gCurrentZone, shouldChangeRoom);
+    }
+}
+
 
 void func_800C0CDC_Hook(playerActor* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4) {
     if (gZoneCollisions[arg1].unk7C != 0) {
