@@ -241,7 +241,7 @@ void debugMain_Hook(void) {
             temp_f0 = D_801768A0.unk34 - D_801768A0.unk28;
             temp_f2 = D_801768A0.unk38 - D_801768A0.unk2C;
             temp_f14 = D_801768A0.unk3C - D_801768A0.unk30;
-            printNumberWR(32.0, 160.0f, 0.0f, 0.5, __sqrtf(SQ(temp_f0) + SQ(temp_f2) + SQ(temp_f14)), 6, 0);
+            //printNumberWR(32.0, 160.0f, 0.0f, 0.5, __sqrtf(SQ(temp_f0) + SQ(temp_f2) + SQ(temp_f14)), 6, 0);
             
             // for (i = 0, sp64 = 0x20; i < 10; i++) {
             //     temp_f20 = (f32)sp64;
@@ -251,8 +251,8 @@ void debugMain_Hook(void) {
             //     sp64 += 0x0c;
             // }
 
-            printNumberWR(290.0f, 32.0, 0.0f, 0.5, D_80174880->unk_78, 4, 1);
-            printNumberWR(290.0f, 44.0f, 0.0f, 0.5, D_80174880->unk_7C, 4, 1);
+            // printNumberWR(290.0f, 32.0, 0.0f, 0.5, D_80174880->unk_78, 4, 1);
+            // printNumberWR(290.0f, 44.0f, 0.0f, 0.5, D_80174880->unk_7C, 4, 1);
             temp_v0 = &gZoneCollisions[gCurrentZone];
             temp_f0_2 = (temp_v0->rect_30.max.x - temp_v0->rect_30.min.x) / 2;
             temp_f16 = (temp_v0->rect_30.max.y - temp_v0->rect_30.min.y) / 2;
