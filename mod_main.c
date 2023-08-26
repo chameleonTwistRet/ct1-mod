@@ -5,10 +5,14 @@
 #include "include/sd_toggle.h"
 #include "include/menu.h"
 
-char pracTwistVersionString[] = "Practwist v1.1.1";
+char pracTwistVersionString[] = "Practwist v1.1.2";
 char textBuffer[0x100] = {'\0'};    // Text buffer set to empty string
 void gVideoThreadProcessHook(void);
 void videoproc_Hook(s32);
+u32 xSeed2 = 174823885;
+u32 calls = 0;
+
+
 // Patches work the same way as 81 and 80 GameShark Codes
 void s16patch(void* patchAddr, s16 patchInstruction) {
     *(s16*)patchAddr = patchInstruction;
@@ -32,6 +36,8 @@ volatile s32 isSaveOrLoadActive = 0;
 s32 stateCooldown = 0;
 s32 currentlyPressedButtons = 0;
 s32 previouslyPressedButtons = 0;
+u32 callsBackup = 0;
+u32 xSeed2Backup = 0;
 FATFS FatFs;
 char *path = "ct1State.bin"; //example file for SD card writing
 FIL sdsavefile = {0};
@@ -61,6 +67,7 @@ void Debug_ChangeRoom_Hook(void);
 void Debug_ChangeRoom(void);
 void debugMain(void);
 void debugMain_Hook(void);
+int guRandom_Hook(void);
 
 //mod_boot_func: runs a single time on boot before main game loop starts
 void mod_boot_func(void) {
@@ -90,7 +97,7 @@ void mod_boot_func(void) {
     hookCode((s32*)0x80084b30, &videoproc_Hook); //hook video process to pause on loadstate
     hookCode((s32*)&Debug_ChangeRoom, &Debug_ChangeRoom_Hook);
     hookCode((s32*)&debugMain, &debugMain_Hook);
-    
+    hookCode((s32*)&guRandom, &guRandom_Hook);
     //
 
     patchInstruction((void*)0x800A1030, 0x10000002); //add black chameleon to story patch 1
@@ -189,9 +196,51 @@ void printCustomDebugText(void) {
         textPrint(13.0f, 194.0f, 0.5f, &convertedMessageBuffer, 1);
         break;
 
+    case 3:
+        //print call count
+        colorTextWrapper(textWhiteColor);
+        _bzero(messageBuffer, sizeof(messageBuffer)); //clear buffer
+        _sprintf(messageBuffer, "%d", calls);
+        _bzero(convertedMessageBuffer, sizeof(convertedMessageBuffer)); //clear buffer
+        convertAsciiToText(&convertedMessageBuffer, (char*)&messageBuffer);
+        textPrint(13.0f, 182.0f, 0.5f, &convertedMessageBuffer, 1);
+
+        //print guSeed
+        colorTextWrapper(textWhiteColor);
+        _bzero(messageBuffer, sizeof(messageBuffer)); //clear buffer
+        _sprintf(messageBuffer, "%08X", xSeed2);
+        _bzero(convertedMessageBuffer, sizeof(convertedMessageBuffer)); //clear buffer
+        convertAsciiToText(&convertedMessageBuffer, (char*)&messageBuffer);
+        textPrint(13.0f, 194.0f, 0.5f, &convertedMessageBuffer, 1);
+        break;
+    case 4:
+        //print quintella spin frames
+        if (*(s32*)0x8016AD80 >= 92) {
+            colorTextWrapper(textGreenMatColor);
+        } else {
+            colorTextWrapper(textWhiteColor);
+        }
+        _bzero(messageBuffer, sizeof(messageBuffer)); //clear buffer
+        _sprintf(messageBuffer, "%d", *(s32*)0x8016AD80);
+        _bzero(convertedMessageBuffer, sizeof(convertedMessageBuffer)); //clear buffer
+        convertAsciiToText(&convertedMessageBuffer, (char*)&messageBuffer);
+        textPrint(13.0f, 194.0f, 0.5f, &convertedMessageBuffer, 1);
     }
+}
 
+int guRandom_Hook(void)
+{
+    unsigned int x;
 
+    x = (xSeed2<<2) + 2;
+
+    x *= (x+1);
+    x = x >> 2;
+
+    xSeed2 = x;
+    calls++;
+
+    return( x );
 }
 
 extern u32 nextZone;

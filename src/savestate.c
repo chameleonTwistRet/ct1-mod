@@ -3,6 +3,11 @@
 #include "xstdio.h"
 #include "../include/menu.h"
 
+extern u32 xSeed2Backup;
+extern u32 callsBackup;
+extern u32 calls;
+extern u32 xSeed2;
+
 CustomThread gCustomThread;
 
 void decompress_lz4_ct_default(int srcSize, int savestateCompressedSize, u8* compressBuffer);
@@ -38,6 +43,8 @@ void loadstateMainBackup(void) {
     decompress_lz4_ct_default(ramEndAddr - ramStartAddr, saveStateBackupSize, savestateBackup);
 
     __osRestoreInt(saveMask);
+    xSeed2 = xSeed2Backup;
+    calls = callsBackup;
     isSaveOrLoadActive = 0; //allow thread 3 to continue
 }
 
@@ -65,12 +72,16 @@ void loadstateMain(void) {
             if (savestate1Size != 0 && savestate1Size != -1) {
                 decompress_lz4_ct_default(ramEndAddr - ramStartAddr, savestate1Size, ramAddrSavestateDataSlot1);
             }
-            break;
+            xSeed2 = xSeed2Backup;
+            calls = callsBackup;
+        break;
         case 1:
             if (savestate2Size != 0 && savestate2Size != -1) {
                 decompress_lz4_ct_default(ramEndAddr - ramStartAddr, savestate2Size, ramAddrSavestateDataSlot2);
             }
-            break;
+            xSeed2 = xSeed2Backup;
+            calls = callsBackup;
+        break;
     }
 
     __osRestoreInt(saveMask);
@@ -96,7 +107,6 @@ void savestateMain(void) {
 	osInvalDCache((void*)0x80000000, 0x2000);
 
     saveMask = __osDisableInt();
-
     switch (savestateCurrentSlot) {
         case 0:
             if (savestate1Size == 0) {
@@ -115,6 +125,8 @@ void savestateMain(void) {
                 saveStateBackupSize = savestate1Size;
                 savestate1Size = compress_lz4_ct_default((void*)ramStartAddr, ramEndAddr - ramStartAddr, ramAddrSavestateDataSlot1);                
             }
+            xSeed2Backup = xSeed2;
+            callsBackup = calls;
         break;
 
         case 1:
@@ -134,6 +146,8 @@ void savestateMain(void) {
                 saveStateBackupSize = savestate2Size;
                 savestate2Size = compress_lz4_ct_default((void*)ramStartAddr, ramEndAddr - ramStartAddr, ramAddrSavestateDataSlot2);                
             }
+            xSeed2Backup = xSeed2;
+            callsBackup = calls;
         break;
     }
     

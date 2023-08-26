@@ -30,7 +30,7 @@ typedef s32 (*menuProc) (void);
 u8 toggles[] = {
     2, // NO_TOGGLE
     1, // TOGGLE_HIDE_IGT
-    1, // TOGGLE_HIDE_SAVESTATE_TEXT
+    0, // TOGGLE_HIDE_SAVESTATE_TEXT
     0,  // TOGGLE_INFINITE_HEALTH
     0,  // TOGGLE_CUSTOM_DEBUG_TEXT
     0,  // TOGGLE_CAVE_SKIP_PRACTICE
@@ -57,7 +57,7 @@ s32 toggleInfiniteHealth(void) {
 s32 toggleCustomDebugText(void) {
     //8016AA9C
     toggles[TOGGLE_CUSTOM_DEBUG_TEXT]++;
-    if (toggles[TOGGLE_CUSTOM_DEBUG_TEXT] >= 3) {
+    if (toggles[TOGGLE_CUSTOM_DEBUG_TEXT] >= 5) {
         toggles[TOGGLE_CUSTOM_DEBUG_TEXT] = 0;
     }
     return 1;
