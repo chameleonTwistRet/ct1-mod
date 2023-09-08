@@ -3,11 +3,6 @@
 #include "xstdio.h"
 #include "../include/menu.h"
 
-extern u32 xSeed2Backup;
-extern u32 callsBackup;
-extern u32 calls;
-extern u32 xSeed2;
-
 CustomThread gCustomThread;
 
 void decompress_lz4_ct_default(int srcSize, int savestateCompressedSize, u8* compressBuffer);
@@ -43,8 +38,6 @@ void loadstateMainBackup(void) {
     decompress_lz4_ct_default(ramEndAddr - ramStartAddr, saveStateBackupSize, savestateBackup);
 
     __osRestoreInt(saveMask);
-    xSeed2 = xSeed2Backup;
-    calls = callsBackup;
     isSaveOrLoadActive = 0; //allow thread 3 to continue
 }
 
@@ -72,15 +65,11 @@ void loadstateMain(void) {
             if (savestate1Size != 0 && savestate1Size != -1) {
                 decompress_lz4_ct_default(ramEndAddr - ramStartAddr, savestate1Size, ramAddrSavestateDataSlot1);
             }
-            xSeed2 = xSeed2Backup;
-            calls = callsBackup;
         break;
         case 1:
             if (savestate2Size != 0 && savestate2Size != -1) {
                 decompress_lz4_ct_default(ramEndAddr - ramStartAddr, savestate2Size, ramAddrSavestateDataSlot2);
             }
-            xSeed2 = xSeed2Backup;
-            calls = callsBackup;
         break;
     }
 
@@ -125,8 +114,6 @@ void savestateMain(void) {
                 saveStateBackupSize = savestate1Size;
                 savestate1Size = compress_lz4_ct_default((void*)ramStartAddr, ramEndAddr - ramStartAddr, ramAddrSavestateDataSlot1);                
             }
-            xSeed2Backup = xSeed2;
-            callsBackup = calls;
         break;
 
         case 1:
@@ -135,7 +122,7 @@ void savestateMain(void) {
                     //both states blank, create state
                     savestate2Size = compress_lz4_ct_default((void*)ramStartAddr, ramEndAddr - ramStartAddr, ramAddrSavestateDataSlot2);
                 } else {
-                    //savestate 2 isn't initialized but savestate 2 is, therefore backup state 1
+                    //savestate 2 isn't initialized but savestate 1 is, therefore backup state 1
                     optimized_memcpy(savestateBackup, ramAddrSavestateDataSlot1, savestate1Size);
                     saveStateBackupSize = savestate1Size;
                     savestate2Size = compress_lz4_ct_default((void*)ramStartAddr, ramEndAddr - ramStartAddr, ramAddrSavestateDataSlot2);
@@ -146,8 +133,6 @@ void savestateMain(void) {
                 saveStateBackupSize = savestate2Size;
                 savestate2Size = compress_lz4_ct_default((void*)ramStartAddr, ramEndAddr - ramStartAddr, ramAddrSavestateDataSlot2);                
             }
-            xSeed2Backup = xSeed2;
-            callsBackup = calls;
         break;
     }
     

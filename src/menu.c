@@ -16,6 +16,7 @@ void decompress_lz4_ct_default(int srcSize, int savestateCompressedSize, u8* com
 extern s32 isMenuActive;
 extern CustomThread gCustomThread;
 void func_800C2A00(void);
+u32 guRandomRev(void);
 
 #define X_COORD_PER_LETTER 4.5
 // shift x value per print per length of string (8px per letter) then print ON/OFF
@@ -27,16 +28,24 @@ typedef s32 (*menuProc) (void);
 #define ARRAY_COUNT(arr) (s32)(sizeof(arr) / sizeof(arr[0]))
 #define ARRAY_COUNT_INDEX(arr) ARRAY_COUNT(arr) - 1
 
-u8 toggles[] = {
-    2, // NO_TOGGLE
-    1, // TOGGLE_HIDE_IGT
-    0, // TOGGLE_HIDE_SAVESTATE_TEXT
-    0,  // TOGGLE_INFINITE_HEALTH
-    0,  // TOGGLE_CUSTOM_DEBUG_TEXT
+s8 toggles[] = {
+    2,  // NO_TOGGLE
+    //page 0
+    1,  // TOGGLE_HIDE_SAVESTATE_TEXT
+    0,  // TOGGLE_HIDE_IGT
+    4,  // TOGGLE_CUSTOM_DEBUG_TEXT
     0,  // TOGGLE_CAVE_SKIP_PRACTICE
-    0, // TOGGLE_ENEMY_SPAWNS_OFF
-    0, // TOGGLE_RECORDING
-    0, // TOGGLE_PLAYBACK
+    0,  // TOGGLE_ENEMY_SPAWNS_OFF
+
+    //page 1
+    -1, // TOGGLE_LOAD_BOSS
+    0,  // TOGGLE_INFINITE_HEALTH
+    -1, // TOGGLE_ADV_RNG
+    -1, // TOGGLE_REV_RNG
+
+    //page 2
+    0,  // TOGGLE_RECORDING
+    0,  // TOGGLE_PLAYBACK
 };
 
 s32 toggleHideSavestateText(void) {
@@ -108,7 +117,7 @@ typedef struct menuPage {
     /* 0x0C */ s32 pageIndex;
     /* 0x10 */ char* options[FUNCS_PER_PAGE];
     /* 0x30 */ s32 (*menuProc[FUNCS_PER_PAGE]) (void);
-    /* 0x50 */ u8 flags[FUNCS_PER_PAGE];
+    /* 0x50 */ s8 flags[FUNCS_PER_PAGE];
 } menuPage;
 
 extern u32 recordingInputIndex;
@@ -250,20 +259,36 @@ menuPage page2 = {
     }
 };
 
+s32 advanceGuRNG(void) {
+    guRandom(); //advance rng once
+    return 0;
+}
+
+s32 revGuRNG(void) {
+    guRandomRev(); //advance rng backwards
+    return 0;
+}
+
 menuPage page1 = {
-    2, //optionCount
+    4, //optionCount
     PAGE_MAIN, //pageIndex
     { //options
         "Load Boss\n",
         "Infinite Health\n",
+        "Adv RNG\n",
+        "Rev RNG\n"
     },
     { //menuProc
         &teleportToStageBoss,
         &toggleInfiniteHealth,
+        &advanceGuRNG,
+        &revGuRNG
     },
     { //flags
-        NO_TOGGLE,
-        TOGGLE_INFINITE_HEALTH
+        -1,
+        TOGGLE_INFINITE_HEALTH,
+        -1,
+        -1
     }
 };
 

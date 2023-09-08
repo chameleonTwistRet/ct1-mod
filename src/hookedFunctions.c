@@ -440,7 +440,9 @@ void func_8004E784_Hook(contMain* arg0, s32 arg1, s32* arg2, contMain* arg3) {
             } else if ((gContMain[0].buttons0 & R_TRIG) && (currentlyPressedButtons & CONT_DOWN)) {
                 isMenuActive ^= 1;
             } else if (currentlyPressedButtons & CONT_DOWN) {
-                savestateCurrentSlot ^= 1; //flip from 0 to 1 or vice versa (2 saveslots)
+                if (!(isMenuActive)) {
+                    savestateCurrentSlot ^= 1; //flip from 0 to 1 or vice versa (2 saveslots)
+                }
             }
         }
 

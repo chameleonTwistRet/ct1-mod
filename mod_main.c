@@ -36,8 +36,6 @@ volatile s32 isSaveOrLoadActive = 0;
 s32 stateCooldown = 0;
 s32 currentlyPressedButtons = 0;
 s32 previouslyPressedButtons = 0;
-u32 callsBackup = 0;
-u32 xSeed2Backup = 0;
 FATFS FatFs;
 char *path = "ct1State.bin"; //example file for SD card writing
 FIL sdsavefile = {0};
@@ -200,7 +198,7 @@ void printCustomDebugText(void) {
         //print call count
         colorTextWrapper(textWhiteColor);
         _bzero(messageBuffer, sizeof(messageBuffer)); //clear buffer
-        _sprintf(messageBuffer, "%d", calls);
+        _sprintf(messageBuffer, "%d", *(u32*)0x80109DC4);
         _bzero(convertedMessageBuffer, sizeof(convertedMessageBuffer)); //clear buffer
         convertAsciiToText(&convertedMessageBuffer, (char*)&messageBuffer);
         textPrint(13.0f, 182.0f, 0.5f, &convertedMessageBuffer, 1);
@@ -208,7 +206,7 @@ void printCustomDebugText(void) {
         //print guSeed
         colorTextWrapper(textWhiteColor);
         _bzero(messageBuffer, sizeof(messageBuffer)); //clear buffer
-        _sprintf(messageBuffer, "%08X", xSeed2);
+        _sprintf(messageBuffer, "%08X", *(u32*)0x80109DC0);
         _bzero(convertedMessageBuffer, sizeof(convertedMessageBuffer)); //clear buffer
         convertAsciiToText(&convertedMessageBuffer, (char*)&messageBuffer);
         textPrint(13.0f, 194.0f, 0.5f, &convertedMessageBuffer, 1);
@@ -231,16 +229,35 @@ void printCustomDebugText(void) {
 int guRandom_Hook(void)
 {
     unsigned int x;
+    u32* seed = (u32*)0x80109DC0;
+    u32* calls = (u32*)0x80109DC4;
 
-    x = (xSeed2<<2) + 2;
+    x = (*seed<<2) + 2;
 
     x *= (x+1);
     x = x >> 2;
 
-    xSeed2 = x;
-    calls++;
+    *seed = x;
+    (*calls)++;
 
     return( x );
+}
+
+u32 guRandomRev(void) {
+    int i;
+    u32* seed = (u32*)0x80109DC0;
+    u32* calls = (u32*)0x80109DC4;
+    u32 y, z;
+    *seed = ((*seed)<<2) + 2;
+
+    y = 2, z = 1;
+    for (i = 0; i < 4; i++) {
+        y += ((*seed) - y*(y+1)) * z;
+        z = 2*z - z*z*(2*y+1);
+    }
+
+    (*calls)--;
+    *seed = y >> 2;
 }
 
 extern u32 nextZone;
@@ -303,6 +320,7 @@ s32 caveSkipPractice(void) {
 
 extern u8 gLevelAccessBitfeild;
 extern u8 gLevelClearBitfeild;
+extern u8 D_80200B68;
 
 //mod_main_per_frame: where to add code that runs every frame before main game loop
 void mod_main_per_frame(void) {
@@ -312,6 +330,7 @@ void mod_main_per_frame(void) {
 
     gLevelAccessBitfeild = 0xFF;
     gLevelClearBitfeild = 0xFF;
+    D_80200B68 = 0xFF; //unlock all levels
     gGameRecords.flags[1] = 0x04; //give white
 
     if (sDebugInt == -1) {

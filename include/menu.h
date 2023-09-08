@@ -33,7 +33,7 @@ extern volatile s32 isSaveOrLoadActive;
 extern s32 savestateRecordingSize;
 extern s32 currentlyPressedButtons;
 extern s32 previouslyPressedButtons;
-extern u8 toggles[];
+extern s8 toggles[];
 extern InputRecording inputRecordingBuffer;
 extern u32 recordingInputIndex;
 extern s32 textCyanColor[];
@@ -49,13 +49,21 @@ enum Pages {
 };
 
 enum Toggles {
-    NO_TOGGLE,
-    TOGGLE_HIDE_IGT,
+    NO_TOGGLE = 0,
+    //page 0
     TOGGLE_HIDE_SAVESTATE_TEXT,
-    TOGGLE_INFINITE_HEALTH,
+    TOGGLE_HIDE_IGT,
     TOGGLE_CUSTOM_DEBUG_TEXT,
     TOGGLE_CAVE_SKIP_PRACTICE,
     TOGGLE_ENEMY_SPAWNS_OFF,
+
+    //page 1
+    TOGGLE_LOAD_BOSS,
+    TOGGLE_INFINITE_HEALTH,
+    TOGGLE_ADV_RNG,
+    TOGGLE_REV_RNG,
+
+    //page 2
     TOGGLE_RECORDING,
     TOGGLE_PLAYBACK
 };
