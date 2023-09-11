@@ -7,6 +7,7 @@
 #include "../lib/ffconf.h"
 #include "../include/sd_toggle.h"
 
+s32 toggleSpeed(void);
 s8 toggleSpawnsOff = 0;  // 0 = on, 1 = off | Objects / Enemies Spawning
 extern void* crash_screen_copy_to_buf(void* dest, const char* src, u32 size);
 void textPrint(f32 xPos, f32 yPos, f32 scale, void *text, s32 num);
@@ -42,12 +43,14 @@ s8 toggles[] = {
     0,  // TOGGLE_INFINITE_HEALTH
     -1, // TOGGLE_ADV_RNG
     -1, // TOGGLE_REV_RNG
+    -1, // TOGGLE_SET_SEED
+    //0, // TOGGLE_SPEED
 
     //page 2
     0,  // TOGGLE_RECORDING
     0,  // TOGGLE_PLAYBACK
 };
-
+//80168DEC
 s32 toggleHideSavestateText(void) {
     toggles[TOGGLE_HIDE_SAVESTATE_TEXT] ^= 1;
     return 1;
@@ -62,6 +65,11 @@ s32 toggleInfiniteHealth(void) {
     toggles[TOGGLE_INFINITE_HEALTH] ^= 1;
     return 1;
 }
+
+// s32 toggleSpeed(void) {
+//     toggles[TOGGLE_SPEED] ^= 1;
+//     return 1;
+// }
 
 s32 toggleCustomDebugText(void) {
     //8016AA9C
@@ -269,26 +277,40 @@ s32 revGuRNG(void) {
     return 0;
 }
 
+s32 setBLSeed(void) {
+    u32* seed = (u32*)0x80109DC0;
+    u32* calls = (u32*)0x80109DC4;
+    *seed = 0x10A6D58F;
+    *calls = 706;
+    return 0;
+}
+
 menuPage page1 = {
-    4, //optionCount
+    5, //optionCount
     PAGE_MAIN, //pageIndex
     { //options
         "Load Boss\n",
         "Infinite Health\n",
         "Adv RNG\n",
-        "Rev RNG\n"
+        "Rev RNG\n",
+        "Set BL RNG Seed\n"
+        //"Speed\n"
     },
     { //menuProc
         &teleportToStageBoss,
         &toggleInfiniteHealth,
         &advanceGuRNG,
-        &revGuRNG
+        &revGuRNG,
+        &setBLSeed,
+        //&toggleSpeed
     },
     { //flags
         -1,
         TOGGLE_INFINITE_HEALTH,
         -1,
-        -1
+        -1,
+        TOGGLE_SET_SEED,
+        //TOGGLE_REV_RNG
     }
 };
 

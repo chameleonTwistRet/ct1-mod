@@ -327,6 +327,7 @@ void mod_main_per_frame(void) {
     s32 index = 0;
     char textBuffer[8];
     char convertedVersionBuffer[sizeof(pracTwistVersionString) * 2];
+    f32* acceleration = (f32*)0x80168DEC;
 
     gLevelAccessBitfeild = 0xFF;
     gLevelClearBitfeild = 0xFF;
@@ -387,6 +388,12 @@ void mod_main_per_frame(void) {
     if (isMenuActive == 0 ) {
         checkInputsForSavestates();
     }
+
+    // if (toggles[TOGGLE_SPEED] == 1) {
+    //     *acceleration = 1.66f;
+    // } else {
+    //     *acceleration = 0.32f;
+    // }
 
     //if a savestate is being saved/loaded, stall thread
     while (isSaveOrLoadActive != 0) {}

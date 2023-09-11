@@ -62,6 +62,8 @@ enum Toggles {
     TOGGLE_INFINITE_HEALTH,
     TOGGLE_ADV_RNG,
     TOGGLE_REV_RNG,
+    //TOGGLE_SPEED,
+    TOGGLE_SET_SEED,
 
     //page 2
     TOGGLE_RECORDING,
