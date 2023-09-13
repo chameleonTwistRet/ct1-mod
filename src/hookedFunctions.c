@@ -604,8 +604,8 @@ void func_80089BA0_Hook(void) {
     s32 sp78;
     s32 seconds;
     s32 milliseconds; // Added milliseconds variable
-    char timeString[12]; // Assuming a maximum of 99:59.999
-    char convertedBuffer[24];    
+    char timeString[16]; // Assuming a maximum of 99:59.999
+    char convertedBuffer[32];    
     s32 sp64;
     f32 sp5C;
     s32 minutes;
@@ -652,7 +652,7 @@ void func_80089BA0_Hook(void) {
                 SetTextGradient(0xFF, 0xFF, 0U, 0xFF, 0xFF, 0, 0, 0xFF, 0xFF, 0xFF, 0, 0xFF, 0xFF, 0, 0, 0xFF);
 
                 // Use sprintf to format the time components into a single string
-                _sprintf(timeString, "%02d:%02d:%03d", minutes, seconds, milliseconds);
+                _sprintf(timeString, "%02d\'%02d\"%03d", minutes, seconds, milliseconds);
                 convertAsciiToText(&convertedBuffer, (char*)&timeString);
 
                 // Print the formatted time string
