@@ -67,6 +67,7 @@ void debugMain(void);
 void debugMain_Hook(void);
 int guRandom_Hook(void);
 void Porocess_Mode0_Hook(void);
+void func_80089BA0_Hook(void);
 //mod_boot_func: runs a single time on boot before main game loop starts
 void mod_boot_func(void) {
     UINT filebytesread;
@@ -97,6 +98,7 @@ void mod_boot_func(void) {
     hookCode((s32*)&debugMain, &debugMain_Hook);
     hookCode((s32*)&guRandom, &guRandom_Hook);
     hookCode((s32*)&Porocess_Mode0, Porocess_Mode0_Hook);
+    hookCode((s32*)&func_80089BA0, &func_80089BA0_Hook);
     //
 
     patchInstruction((void*)0x800A1030, 0x10000002); //add black chameleon to story patch 1
@@ -636,7 +638,7 @@ void mod_main_per_frame(void) {
         textPrint(13.0f, 208.0f, 0.65f, &textBuffer, 3);
     }
 
-    if (toggles[TOGGLE_HIDE_IGT] == 1) {
+    if (toggles[TOGGLE_HIDE_IGT] > 0) {
         if (gameModeCurrent == GAME_MODE_OVERWORLD){
             if (gIsPaused == 0) {
                 func_80089BA0();

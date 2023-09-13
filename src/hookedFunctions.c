@@ -167,7 +167,7 @@ void debugMain_Hook(void) {
         if ((gContMain->buttons0 & 0x20) && (sDebugInt == 1)) {
             setPrimColor(0, 0, 0, 0x80);
             printUISprite(0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 80.0f, 192.0f, 0.0f, 0);
-            setTextGradient(0xBF, 0xAU, 0, 0xFF, 0xC8, 0xC8, 0, 0xFF, 0xBF, 0xA, 0, 0xFF, 0xC8, 0xC8, 0, 0xFF);
+            SetTextGradient(0xBF, 0xAU, 0, 0xFF, 0xC8, 0xC8, 0, 0xFF, 0xBF, 0xA, 0, 0xFF, 0xC8, 0xC8, 0, 0xFF);
             switch (gCurrentStage) {                /* switch 2 */
             case 1:                                 /* switch 2 */
                 PrintTextWrapper(32.0, 32.0, 0.0f, 1.0f, "ＡＮＴ", 1);
@@ -592,6 +592,125 @@ void func_800B4574(u8*, s16*);
 void func_800C1458(s32);
 void func_800C1510(u8, u8);
 void func_800C2820(u8, playerActor*, SaveFile*);
+
+char* ParseIntToBase10(s32, s32*);                         /* extern */
+extern char D_8010D8E8[];
+extern char D_8010D8F8[];
+extern char D_8010D8FC[];
+s32 func_80080430(f32, f32, f32, f32, f32, f32, char*, s32);
+
+void func_80089BA0_Hook(void) {
+    s32 unk;
+    s32 sp78;
+    s32 seconds;
+    s32 milliseconds; // Added milliseconds variable
+    char timeString[12]; // Assuming a maximum of 99:59.999
+    char convertedBuffer[24];    
+    s32 sp64;
+    f32 sp5C;
+    s32 minutes;
+    s32 xPos;
+    char* var_v1_2;
+
+    switch (toggles[TOGGLE_HIDE_IGT]) {
+        case 0:
+            break;
+        case 1: //original IGT display
+            if ((gameModeCurrent == 0) && (gCurrentStage != 8)) {
+                minutes = gCurrentStageTime / 1800; //(30 frames * 60 seconds)
+                seconds = (gCurrentStageTime % 1800) / 30;
+                func_800610A8();
+                SetTextGradient(0xFF, 0xFF, 0U, 0xFF, 0xFF, 0, 0, 0xFF, 0xFF, 0xFF, 0, 0xFF, 0xFF, 0, 0, 0xFF);
+                //print ' character
+                PrintText(220.0f, 208.0f, 0.0f, 0.5f, 0.0f, 0.0f, D_8010D8E8, 1);
+                xPos = 220;
+                if (minutes > 99) {
+                    minutes = 99;
+                    seconds = 59;
+                }
+                if (minutes < 10) {
+                    PrintText(0xDC, 0xD0, 0.0f, 0.5f, 0.0f, 0.0f, D_8010D8F8, 1);
+                    xPos = 228;
+                }
+                //var_v1_2 = ParseIntToBase10(minutes, &unk);
+                PrintText((f32) xPos, 0xD0, 0.0f, 0.5f, 0.0f, 0.0f, ParseIntToBase10(minutes, &unk), 1);
+                xPos = 244;
+                if (seconds < 10) {
+                    PrintText((f32) 0xF4, 0xD0, 0.0f, 0.5f, 0.0f, 0.0f, D_8010D8FC, 1);
+                    xPos = 252;
+                }
+                PrintText((f32) xPos, 0xD0, 0.0f, 0.5f, 0.0f, 0.0f, ParseIntToBase10(seconds, &unk), 1);
+            }
+            break;
+        case 2: //modified IGT display
+            if ((gameModeCurrent == 0) && (gCurrentStage != 8)) {
+                s32 totalFrames = gCurrentStageTime;
+                minutes = totalFrames / 1800; // (30 frames * 60 seconds)
+                seconds = (totalFrames % 1800) / 30;
+                milliseconds = (totalFrames % 30) * 33; // Assuming 30 frames per second
+                func_800610A8();
+                SetTextGradient(0xFF, 0xFF, 0U, 0xFF, 0xFF, 0, 0, 0xFF, 0xFF, 0xFF, 0, 0xFF, 0xFF, 0, 0, 0xFF);
+
+                // Use sprintf to format the time components into a single string
+                _sprintf(timeString, "%02d:%02d:%03d", minutes, seconds, milliseconds);
+                convertAsciiToText(&convertedBuffer, (char*)&timeString);
+
+                // Print the formatted time string
+                PrintText(220.0f, 208.0f, 0.0f, 0.5f, 0.0f, 0.0f, convertedBuffer, 1);
+            }
+
+    }
+}
+
+// void func_80089BA0_Hook(void) {
+//     s32 unk;
+//     s32 sp78;
+//     s32 seconds;
+//     s32 milliseconds; // Added milliseconds variable
+    
+//     s32 sp64;
+//     f32 sp5C;
+//     s32 minutes;
+//     s32 xPos;
+//     char* var_v1_2;
+
+//     if ((gameModeCurrent == 0) && (gCurrentStage != 8)) {
+//         s32 totalFrames = gCurrentStageTime;
+//         minutes = totalFrames / 1800; // (30 frames * 60 seconds)
+//         seconds = (totalFrames % 1800) / 30;
+//         milliseconds = (totalFrames % 30) * 33; // Assuming 30 frames per second
+//         func_800610A8();
+//         SetTextGradient(0xFF, 0xFF, 0U, 0xFF, 0xFF, 0, 0, 0xFF, 0xFF, 0xFF, 0, 0xFF, 0xFF, 0, 0, 0xFF);
+//         // Print ' character
+//         PrintText(220.0f, 208.0f, 0.0f, 0.5f, 0.0f, 0.0f, D_8010D8E8, 1);
+//         xPos = 220;
+//         if (minutes > 99) {
+//             minutes = 99;
+//             seconds = 59;
+//             milliseconds = 999; // Cap milliseconds at 999 if minutes exceed 99
+//         }
+//         if (minutes < 10) {
+//             PrintText(0xDC, 0xD0, 0.0f, 0.5f, 0.0f, 0.0f, D_8010D8F8, 1);
+//             xPos = 228;
+//         }
+//         PrintText((f32) xPos, 0xD0, 0.0f, 0.5f, 0.0f, 0.0f, ParseIntToBase10(minutes, &unk), 1);
+//         xPos = 244;
+//         if (seconds < 10) {
+//             PrintText((f32) 0xF4, 0xD0, 0.0f, 0.5f, 0.0f, 0.0f, D_8010D8FC, 1);
+//             xPos = 252;
+//         }
+//         PrintText((f32) xPos, 0xD0, 0.0f, 0.5f, 0.0f, 0.0f, ParseIntToBase10(seconds, &unk), 1);
+
+//         xPos = 268;
+//         // Print milliseconds with leading zeros
+//         PrintText((f32) xPos, 0xD0, 0.0f, 0.5f, 0.0f, 0.0f, ParseIntToBase10(milliseconds / 100, &unk), 1);
+//         xPos += 8;
+//         PrintText((f32) xPos, 0xD0, 0.0f, 0.5f, 0.0f, 0.0f, ParseIntToBase10((milliseconds / 10) % 10, &unk), 1);
+//         xPos += 8;
+//         PrintText((f32) xPos, 0xD0, 0.0f, 0.5f, 0.0f, 0.0f, ParseIntToBase10(milliseconds % 10, &unk), 1);
+//     }
+// }
+
 void Porocess_Mode0_Hook(void) {
     u32 temp_s0;
     s32 sp28;
@@ -635,7 +754,7 @@ void Porocess_Mode0_Hook(void) {
         for (; i < 4; i++) {
             gPlayerActors[i].active = 0;
         }
-        
+
         for (i = 0; i < 4; i++) {
             _bzero(&gTongues[i], sizeof(Tongue));
         }
