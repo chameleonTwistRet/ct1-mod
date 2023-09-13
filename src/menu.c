@@ -43,7 +43,7 @@ s8 toggles[] = {
     0,  // TOGGLE_INFINITE_HEALTH
     -1, // TOGGLE_ADV_RNG
     -1, // TOGGLE_REV_RNG
-    -1, // TOGGLE_SET_SEED
+    0, // TOGGLE_SET_SEED
     //0, // TOGGLE_SPEED
 
     //page 2
@@ -74,7 +74,7 @@ s32 toggleInfiniteHealth(void) {
 s32 toggleCustomDebugText(void) {
     //8016AA9C
     toggles[TOGGLE_CUSTOM_DEBUG_TEXT]++;
-    if (toggles[TOGGLE_CUSTOM_DEBUG_TEXT] >= 5) {
+    if (toggles[TOGGLE_CUSTOM_DEBUG_TEXT] >= 6) {
         toggles[TOGGLE_CUSTOM_DEBUG_TEXT] = 0;
     }
     return 1;
@@ -92,7 +92,6 @@ s32 toggleObjectSpawnsOff(void) {
 }
 
 void func_800C0CDC(playerActor* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
-extern unkIsChange isChange;
 void func_800CFDC8(playerActor*);
 
 s32 bossVar = 0x0B;
@@ -278,10 +277,7 @@ s32 revGuRNG(void) {
 }
 
 s32 setBLSeed(void) {
-    u32* seed = (u32*)0x80109DC0;
-    u32* calls = (u32*)0x80109DC4;
-    *seed = 0x10A6D58F;
-    *calls = 706;
+    toggles[TOGGLE_SET_SEED] ^= 1;
     return 0;
 }
 

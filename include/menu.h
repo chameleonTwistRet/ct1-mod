@@ -8,16 +8,24 @@ typedef struct InputRecording {
     contMain recordingBuffer[1200];
 } InputRecording;
 
-typedef struct unkIsChange {
-    /* 0x00 */ char unk_00[8];
-    /* 0x08 */ s32 unk_08;
-    /* 0x0C */ s32 unk_0C;
-    /* 0x10 */ s32 unk_10;
-    /* 0x14 */ s32 unk_14;
-    /* 0x18 */ char unk_18[0xBC];
-    /* 0xD4 */ s32 unk_D4;
-    /* 0xD8 */ s32 unk_D8;
-} unkIsChange;
+// typedef struct unkIsChange {
+//     /* 0x00 */ char unk_00[8];
+//     /* 0x08 */ s32 unk_08;
+//     /* 0x0C */ s32 unk_0C;
+//     /* 0x10 */ s32 unk_10;
+//     /* 0x14 */ s32 unk_14;
+//     /* 0x18 */ s32 unk18;
+//     /* 0x1C */ char unk_1C[0x24];
+//     /* 0x40 */ f32 unk40;
+//     /* 0x44 */ f32 unk44;
+//     /* 0x48 */ f32 unk48;
+//     /* 0x4C */ f32 unk4C;
+//     /* 0x50 */ f32 unk50;
+//     /* 0x54 */ f32 unk54;
+//     /* 0x58 */ char unk_58[0x7C];
+//     /* 0xD4 */ s32 unk_D4;
+//     /* 0xD8 */ s32 unk_D8;
+// } unkIsChange;
 
 extern void _sprintf(void* destination, void* fmt, ...);
 extern void convertAsciiToText(void* buffer, char* source);
