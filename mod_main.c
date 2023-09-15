@@ -5,7 +5,7 @@
 #include "include/sd_toggle.h"
 #include "include/menu.h"
 
-char pracTwistVersionString[] = "Practwist v1.1.2.1";
+char pracTwistVersionString[] = "Practwist v1.1.3";
 char textBuffer[0x100] = {'\0'};    // Text buffer set to empty string
 void gVideoThreadProcessHook(void);
 void videoproc_Hook(s32);
@@ -68,13 +68,20 @@ void debugMain_Hook(void);
 int guRandom_Hook(void);
 void Porocess_Mode0_Hook(void);
 void func_80089BA0_Hook(void);
+void ChameleonFromDoor_Hook(playerActor* player, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
+void func_800C54F8_Hook(Vec2s*, s32* arg1);
+void setTimerParametersBool(void);
+void setFreezeTimerAsm(void);
+
 //mod_boot_func: runs a single time on boot before main game loop starts
 void mod_boot_func(void) {
+    u32* startingCount = (u32*)0x80109DC8;
     UINT filebytesread;
     char testString[] = "Testing f_write() call\n";
     FRESULT fileres;
     s32 instructionBuffer[2];
     crash_screen_init();
+    *startingCount = osGetCount();
 
     #if USE_SD_CARD == TRUE
         //initialize SD card from everdrive, create test file, close
@@ -99,6 +106,10 @@ void mod_boot_func(void) {
     hookCode((s32*)&guRandom, &guRandom_Hook);
     hookCode((s32*)&Porocess_Mode0, Porocess_Mode0_Hook);
     hookCode((s32*)&func_80089BA0, &func_80089BA0_Hook);
+    hookCode((s32*)&ChameleonFromDoor, &ChameleonFromDoor_Hook);
+    hookCode((s32*)&func_800C54F8, &func_800C54F8_Hook);
+    hookCode((s32*)0x800C11C8, &setTimerParametersBool);
+    hookCode((s32*)0x800C11FC, &setFreezeTimerAsm);
     //
 
     patchInstruction((void*)0x800A1030, 0x10000002); //add black chameleon to story patch 1
@@ -598,8 +609,7 @@ void mod_main_per_frame(void) {
     char textBuffer[8];
     char convertedVersionBuffer[sizeof(pracTwistVersionString) * 2];
     f32* acceleration = (f32*)0x80168DEC;
-
-    puppyprint_calculate_average_times();
+    //puppyprint_calculate_average_times();
     gLevelAccessBitfeild = 0xFF;
     gLevelClearBitfeild = 0xFF;
     D_80200B68 = 0xFF; //unlock all levels
@@ -659,6 +669,18 @@ void mod_main_per_frame(void) {
     if (isMenuActive == 0 ) {
         checkInputsForSavestates();
     }
+
+    if (freezeTimer > 0) {
+        freezeTimer--;
+    }
+
+    
+
+    
+    // totalCount = totalCount + currentCount;
+    // if (currentCount)
+
+    
 
     // if (toggles[TOGGLE_SPEED] == 1) {
     //     *acceleration = 1.66f;

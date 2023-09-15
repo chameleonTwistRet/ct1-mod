@@ -93,3 +93,24 @@ glabel optimized_memcpy
     end_memcpy:
         jr $ra                   # Return
         nop
+
+glabel setTimerParametersBool
+    ori $t1, $zero, 1
+    lui $t2, %hi(timerParametersBool)
+    sw $t1, %lo(timerParametersBool) ($t2) /*set freeze on */
+    lw $t7, 0x0048 ($t3)
+    sw $t0, 0x0000 ($v1)
+    J 0x800C11D0
+    nop
+
+glabel setFreezeTimerAsm
+    J setFreezeTimerC
+    nop
+
+glabel osSetCount
+/* BB650 800E0250 40024800 */  mtc0       $a0, $9 # handwritten instruction
+/* BB658 800E0258 00000000 */  nop
+/* BB65C 800E025C 00000000 */  nop
+/* BB654 800E0254 03E00008 */  jr         $ra
+nop
+

@@ -17,6 +17,7 @@ int __osPiDeviceBusy(void) {
 }
 
 void loadstateMainBackup(void) {
+    u32* prevCurrentStageTimeRTA = (u32*)0x80109DD4;
     u32 saveMask;
     //wait on rsp
     while (__osSpDeviceBusy() == 1) {}
@@ -36,13 +37,17 @@ void loadstateMainBackup(void) {
     saveMask = __osDisableInt();
 
     decompress_lz4_ct_default(ramEndAddr - ramStartAddr, saveStateBackupSize, savestateBackup);
-
+    //osSetCount(*savestateCount);
+    *prevCurrentStageTimeRTA = osGetCount();
     __osRestoreInt(saveMask);
     isSaveOrLoadActive = 0; //allow thread 3 to continue
 }
 
 void loadstateMain(void) {
+    u32* prevCurrentStageTimeRTA = (u32*)0x80109DD4;
+    u32* savestateCount = (u32*)0x807FFFFC;
     u32 saveMask;
+
     //wait on rsp
     while (__osSpDeviceBusy() == 1) {}
 
@@ -62,23 +67,27 @@ void loadstateMain(void) {
 
     switch (savestateCurrentSlot) {
         case 0: //dpad left
-            if (savestate1Size != 0 && savestate1Size != -1) {
+            if (savestate1Size != 0 || savestate1Size != -1) {
                 decompress_lz4_ct_default(ramEndAddr - ramStartAddr, savestate1Size, ramAddrSavestateDataSlot1);
             }
         break;
         case 1:
-            if (savestate2Size != 0 && savestate2Size != -1) {
+            if (savestate2Size != 0 || savestate2Size != -1) {
                 decompress_lz4_ct_default(ramEndAddr - ramStartAddr, savestate2Size, ramAddrSavestateDataSlot2);
             }
         break;
     }
-
+    //osSetCount(*savestateCount);
+    *prevCurrentStageTimeRTA = osGetCount();
     __osRestoreInt(saveMask);
+    
     isSaveOrLoadActive = 0; //allow thread 3 to continue
 }
     
 void savestateMain(void) {
     u32 saveMask;
+    u32* savestateCount = (u32*)0x807FFFFC;
+    
     //wait on rsp
     while (__osSpDeviceBusy() == 1) {}
 
@@ -94,8 +103,8 @@ void savestateMain(void) {
     //invalidate caches
     osInvalICache((void*)0x80000000, 0x2000);
 	osInvalDCache((void*)0x80000000, 0x2000);
-
     saveMask = __osDisableInt();
+    *savestateCount = osGetCount();
     switch (savestateCurrentSlot) {
         case 0:
             if (savestate1Size == 0) {

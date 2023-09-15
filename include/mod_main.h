@@ -17,7 +17,11 @@ void updateMenuInput(void);
 void updateCustomInputTracking(void);
 void checkInputsForSavestates(void);
 void optimized_memcpy(void* destination, const void* source, u32 num_bytes);
+void setFreezeTimerC(void);
+void osSetCount(u32);
 extern s32 loadEnemiesBool; //used by `func_8002D644_patch.s`
+extern s32 freezeTimer;
+extern u64 prevCurrentStageTime;
 extern volatile s32 saveOrLoadStateMode;
 extern volatile s32 savestateCurrentSlot;
 extern s32 savestate1Size;
