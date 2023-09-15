@@ -123,11 +123,12 @@ s32 teleportToStageBoss(void) {
 }
 
 typedef struct menuPage {
-    /* 0x08 */ s32 optionCount;
-    /* 0x0C */ s32 pageIndex;
-    /* 0x10 */ char* options[FUNCS_PER_PAGE];
-    /* 0x30 */ s32 (*menuProc[FUNCS_PER_PAGE]) (void);
-    /* 0x50 */ s8 flags[FUNCS_PER_PAGE];
+    /* 0x00 */ s32 optionCount;
+    /* 0x04 */ s32 pageIndex;
+    /* 0x08 */ char* options[FUNCS_PER_PAGE];
+    /* 0x28 */ s32 (*menuProc[FUNCS_PER_PAGE]) (void);
+    /* 0x48 */ s8 flags[FUNCS_PER_PAGE];
+    /* 0x50 */ char*** selectionText;
 } menuPage;
 
 extern u32 recordingInputIndex;
@@ -246,27 +247,113 @@ s32 PlayRecording(void) {
     return 1;
 }
 
+char string_ON[] = {
+    "ON"
+};
+
+char string_OFF[] = {
+    "OFF"
+};
+
+char string_IGT[] = {
+    "NORMAL IGT"
+};
+
+char string_IGT_MS[] = {
+    "IGT W/ MS"
+};
+
+char string_IGT_FRAMES[] = {
+    "IGT W/ FRAMES"
+};
+
+char string_RTA_MS[] = {
+    "RTA TIMING"
+};
+
+
+char* ONAndOFF[] = {
+    string_OFF,
+    string_ON,
+};
+
+char* InGameTimerText[] = {
+    string_OFF,
+    string_IGT,
+    string_IGT_MS,
+    string_IGT_FRAMES,
+    string_RTA_MS
+};
+
+char variousStatsText[] = {
+    "VARIOUS"
+};
+
+char freeCamText[]= {
+    "CAM ANGLE SNAP"
+};
+
+char rngSeedText[] = {
+    "RNG CALLS/SEED"
+};
+
+char quintellaSpinCancelText[] = {
+    "SPIN CANCEL TIMER"
+};
+
+char frameCountText[] = {
+    "IGT TOTAL FRAMES"
+};
+
+char* CustomTextMain[] = {
+    string_OFF,
+    variousStatsText,
+    freeCamText,
+    rngSeedText,
+    quintellaSpinCancelText,
+    frameCountText
+};
+
+char** page0Strings[] = {
+    ONAndOFF, //Savestate Text Active text
+    InGameTimerText, //In Game Timer Active text
+    CustomTextMain,
+    ONAndOFF,
+    ONAndOFF,
+};
+
+char** page1Strings[] = {
+    NULL, //Savestate Text Active text
+    ONAndOFF, //In Game Timer Active text
+    NULL,
+    NULL,
+    ONAndOFF,
+};
+
 menuPage page2 = {
-    4, //optionCount
-    PAGE_RECORDING, //pageIndex
-    { //options
+    4, // optionCount
+    PAGE_RECORDING, // pageIndex
+    { // options
         "Recording",
         "Export Recording",
         "Import Recording",
         "Play Recording"
     },
-    { //menuProc
+    { // menuProc
         &StartRecording,
         &ExportRecording,
         &ImportRecording,
         &PlayRecording
     },
-    { //flags
+    { // flags
         TOGGLE_RECORDING,
         NO_TOGGLE,
         NO_TOGGLE,
         TOGGLE_PLAYBACK
-    }
+    },
+    {
+        page0Strings, //update when implemented
+    },
 };
 
 s32 advanceGuRNG(void) {
@@ -310,7 +397,10 @@ menuPage page1 = {
         -1,
         TOGGLE_SET_SEED,
         //TOGGLE_REV_RNG
-    }
+    },
+    {
+        page1Strings,
+    },
 };
 
 menuPage page0 = {
@@ -336,6 +426,9 @@ menuPage page0 = {
         TOGGLE_CUSTOM_DEBUG_TEXT,
         TOGGLE_CAVE_SKIP_PRACTICE,
         TOGGLE_ENEMY_SPAWNS_OFF
+    },
+    {
+        page0Strings,
     }
 };
 
@@ -492,15 +585,25 @@ void pageMainDisplay(s32 currPageNo, s32 currOptionNo) {
         _bzero(&menuOptionBuffer, sizeof(menuOptionBuffer));
         _bzero(&menuOptionBufferConverted, sizeof(menuOptionBufferConverted));
 
-        if (toggles[currPage->flags[i]] >= 1) {
-            colorTextWrapper(textGreenMatColor);
-            _sprintf(menuOptionBuffer, "ON");
-        } else if (toggles[currPage->flags[i]] == 0) {
+        if (toggles[currPage->flags[i]] == 0) {
             colorTextWrapper(textRedColor);
-            _sprintf(menuOptionBuffer, "OFF");
         } else {
-            continue;
+            colorTextWrapper(textGreenMatColor);
         }
+
+        if (currPage->selectionText[i][toggles[currPage->flags[i]]] != 0) {
+            _sprintf(menuOptionBuffer, currPage->selectionText[i][toggles[currPage->flags[i]]]);
+        }
+
+        // if (toggles[currPage->flags[i]] >= 1) {
+        //     colorTextWrapper(textGreenMatColor);
+        //     _sprintf(menuOptionBuffer, "ON");
+        // } else if (toggles[currPage->flags[i]] == 0) {
+        //     colorTextWrapper(textRedColor);
+        //     _sprintf(menuOptionBuffer, "OFF");
+        // } else {
+        //     continue;
+        // }
 
         convertAsciiToText(&menuOptionBufferConverted, (char*)&menuOptionBuffer);
         textPrint(xPos + (strLength * X_COORD_PER_LETTER), (yPos + (i * 15.0f)), 0.5f, &menuOptionBufferConverted, 1);  
