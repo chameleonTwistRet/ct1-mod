@@ -17,7 +17,7 @@ int __osPiDeviceBusy(void) {
 }
 
 void loadstateMainBackup(void) {
-    u32* prevCurrentStageTimeRTA = (u32*)0x80109DD4;
+    // u32* prevCurrentStageCountRTA = (u32*)0x80109DD4;
     u32 saveMask;
     //wait on rsp
     while (__osSpDeviceBusy() == 1) {}
@@ -37,15 +37,13 @@ void loadstateMainBackup(void) {
     saveMask = __osDisableInt();
 
     decompress_lz4_ct_default(ramEndAddr - ramStartAddr, saveStateBackupSize, savestateBackup);
-    //osSetCount(*savestateCount);
-    *prevCurrentStageTimeRTA = osGetCount();
+    *prevCurrentStageCountRTA = osGetCount();
     __osRestoreInt(saveMask);
     isSaveOrLoadActive = 0; //allow thread 3 to continue
 }
 
 void loadstateMain(void) {
-    u32* prevCurrentStageTimeRTA = (u32*)0x80109DD4;
-    u32* savestateCount = (u32*)0x807FFFFC;
+    // u32* prevCurrentStageCountRTA = (u32*)0x80109DD4;
     u32 saveMask;
 
     //wait on rsp
@@ -77,8 +75,7 @@ void loadstateMain(void) {
             }
         break;
     }
-    //osSetCount(*savestateCount);
-    *prevCurrentStageTimeRTA = osGetCount();
+    *prevCurrentStageCountRTA = osGetCount();
     __osRestoreInt(saveMask);
     
     isSaveOrLoadActive = 0; //allow thread 3 to continue
@@ -86,7 +83,6 @@ void loadstateMain(void) {
     
 void savestateMain(void) {
     u32 saveMask;
-    u32* savestateCount = (u32*)0x807FFFFC;
     
     //wait on rsp
     while (__osSpDeviceBusy() == 1) {}
@@ -104,7 +100,6 @@ void savestateMain(void) {
     osInvalICache((void*)0x80000000, 0x2000);
 	osInvalDCache((void*)0x80000000, 0x2000);
     saveMask = __osDisableInt();
-    *savestateCount = osGetCount();
     switch (savestateCurrentSlot) {
         case 0:
             if (savestate1Size == 0) {

@@ -53,7 +53,8 @@ extern OSContPad D_80175650[MAXCONTROLLERS];
 enum Pages {
     PAGE_MAIN = 0,
     PAGE_JL = 1,
-    PAGE_RECORDING = 2
+    PAGE_RECORDING = 2,
+    PAGE_MISC = 3
 };
 
 enum Toggles {
@@ -75,7 +76,11 @@ enum Toggles {
 
     //page 2
     TOGGLE_RECORDING,
-    TOGGLE_PLAYBACK
+    TOGGLE_PLAYBACK,
+
+    //page 3
+    TOGGLE_RTA_TIMER_RESET,
+    TOGGLE_DISPLAY_INDIVIDUAL_ROOM_TIME
 };
 
 

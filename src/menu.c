@@ -49,6 +49,10 @@ s8 toggles[] = {
     //page 2
     0,  // TOGGLE_RECORDING
     0,  // TOGGLE_PLAYBACK
+
+    //page 3
+    0, // TOGGLE_RTA_TIMER_RESET
+    0, // TOGGLE_DISPLAY_INDIVIDUAL_ROOM_TIME
 };
 //80168DEC
 s32 toggleHideSavestateText(void) {
@@ -185,6 +189,11 @@ void loadstateRecordingMain(void) {
     isSaveOrLoadActive = 0; //allow thread 3 to continue
 }
 
+s32 ResetTimerToggle(void) {
+    toggles[TOGGLE_RTA_TIMER_RESET] ^= 1;
+    return 0;
+}
+
 s32 StartRecording(void) {
     isMenuActive = 0;
     toggles[TOGGLE_RECORDING] ^= 1;
@@ -317,16 +326,21 @@ char* CustomTextMain[] = {
 char** page0Strings[] = {
     ONAndOFF, //Savestate Text Active text
     InGameTimerText, //In Game Timer Active text
-    CustomTextMain,
+    CustomTextMain, //CustomDebugText
     ONAndOFF,
     ONAndOFF,
 };
 
 char** page1Strings[] = {
-    NULL, //Savestate Text Active text
-    ONAndOFF, //In Game Timer Active text
-    NULL,
-    NULL,
+    NULL, //Load Boss
+    ONAndOFF, //Infinite Health
+    NULL, //Adv Rng
+    NULL, //Rev Rng
+    ONAndOFF, //Set BL RNG Seed
+};
+
+char** page3Strings[] = {
+    ONAndOFF,
     ONAndOFF,
 };
 
@@ -353,6 +367,31 @@ menuPage page2 = {
     },
     {
         page0Strings, //update when implemented
+    },
+};
+
+s32 DisplayIndividualRoomTimeToggle(void) {
+    toggles[TOGGLE_DISPLAY_INDIVIDUAL_ROOM_TIME] ^= 1;
+    return 0;
+}
+
+menuPage page3 = {
+    2, // optionCount
+    PAGE_MISC, // pageIndex
+    { // options
+        "STAGE START RESET TIMER",
+        "DISPLAY RTA TIME IN ROOM",
+    },
+    { // menuProc
+        &ResetTimerToggle,
+        &DisplayIndividualRoomTimeToggle
+    },
+    { // flags
+        TOGGLE_RTA_TIMER_RESET,
+        TOGGLE_DISPLAY_INDIVIDUAL_ROOM_TIME,
+    },
+    {
+        page3Strings, //update when implemented
     },
 };
 
@@ -435,7 +474,7 @@ menuPage page0 = {
 menuPage* pageList[] = {
     &page0,
     &page1,
-    //&page2,
+    &page3,
 };
 
 //testing func ptr

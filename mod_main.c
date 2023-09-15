@@ -11,7 +11,12 @@ void gVideoThreadProcessHook(void);
 void videoproc_Hook(s32);
 u32 xSeed2 = 174823885;
 u32 calls = 0;
-
+u64* storedTime = (u64*)0x80109EA8;
+u64* elapsedTime = (u64*)0x80109DF8;
+u32* storedIGT = (u32*)0x80109DD8;
+u64* prevDoorEntryTime = (u64*)0x80109DA8;
+u32* prevCurrentStageCountRTA = (u32*)0x80109DD4;
+u32* startingCount = (u32*)0x80109DC8;
 
 // Patches work the same way as 81 and 80 GameShark Codes
 void s16patch(void* patchAddr, s16 patchInstruction) {
@@ -67,7 +72,7 @@ void debugMain(void);
 void debugMain_Hook(void);
 int guRandom_Hook(void);
 void Porocess_Mode0_Hook(void);
-void func_80089BA0_Hook(void);
+void DisplayTimer(void);
 void ChameleonFromDoor_Hook(playerActor* player, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 void func_800C54F8_Hook(Vec2s*, s32* arg1);
 void setTimerParametersBool(void);
@@ -75,7 +80,6 @@ void setFreezeTimerAsm(void);
 
 //mod_boot_func: runs a single time on boot before main game loop starts
 void mod_boot_func(void) {
-    u32* startingCount = (u32*)0x80109DC8;
     UINT filebytesread;
     char testString[] = "Testing f_write() call\n";
     FRESULT fileres;
@@ -105,7 +109,7 @@ void mod_boot_func(void) {
     hookCode((s32*)&debugMain, &debugMain_Hook);
     hookCode((s32*)&guRandom, &guRandom_Hook);
     hookCode((s32*)&Porocess_Mode0, Porocess_Mode0_Hook);
-    hookCode((s32*)&func_80089BA0, &func_80089BA0_Hook);
+    hookCode((s32*)&func_80089BA0, &DisplayTimer);
     hookCode((s32*)&ChameleonFromDoor, &ChameleonFromDoor_Hook);
     hookCode((s32*)&func_800C54F8, &func_800C54F8_Hook);
     hookCode((s32*)0x800C11C8, &setTimerParametersBool);
@@ -649,11 +653,12 @@ void mod_main_per_frame(void) {
     }
 
     if (toggles[TOGGLE_HIDE_IGT] > 0) {
-        if (gameModeCurrent == GAME_MODE_OVERWORLD){
+        //if (gameModeCurrent == GAME_MODE_OVERWORLD){
             if (gIsPaused == 0) {
-                func_80089BA0();
+                //func_80089BA0();
+                DisplayTimer();
             }
-        }
+        //}
     }
 
     if (toggles[TOGGLE_CUSTOM_DEBUG_TEXT] != 0) {
@@ -672,6 +677,9 @@ void mod_main_per_frame(void) {
 
     if (freezeTimer > 0) {
         freezeTimer--;
+        if (freezeTimer == 0) {
+            *prevDoorEntryTime = *storedTime;
+        }
     }
 
     

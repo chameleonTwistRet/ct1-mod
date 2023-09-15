@@ -64,5 +64,11 @@ typedef struct CustomThread {
     /* 0x9D2 */ u16 height;
 } CustomThread; // size = 0x9D4
 
+extern u64* storedTime;
+extern u64* elapsedTime;
+extern u32* storedIGT;
+extern u64* prevDoorEntryTime;
+extern u32* prevCurrentStageCountRTA;
+extern u32* startingCount;
 
 #endif // _MOD_MAIN_H_

@@ -633,11 +633,8 @@ extern s32 textOrangeColor[];
 extern s32 textGreenColor[];
 extern s32 textPurpleColor[];
 
-void setFreezeTimerC(void) {
-    u64* storedTime = (u64*)0x80109EA8;
-    u64* elapsedTime = (u64*)0x80109DF8;
-    u32* storedIGT = (u32*)0x80109DD8;
 
+void setFreezeTimerC(void) {
     if (timerParametersBool == 1) {
         timerParametersBool = 0;
         freezeTimer = 60; //2 seconds
@@ -651,6 +648,9 @@ void func_800C54F8_Hook(Vec2s* arg0, s32* arg1) {
     arg0->y = 0;
     *arg1 = 0;
     freezeTimer = 0;
+    if (*storedTime != 0) {
+        *prevDoorEntryTime = *storedTime;
+    }
 }
 
 // f32 calculate_and_update_fps(void) {
@@ -666,11 +666,13 @@ void func_800C54F8_Hook(Vec2s* arg0, s32* arg1) {
 //     return ( (f32)FRAMETIME_COUNT * 1000000.0f) / (s32) OS_CYCLES_TO_USEC(newTime - oldTime);
 // }
 
-void func_80089BA0_Hook(void) { //displays IGT
-    u32* storedIGT = (u32*)0x80109DD8;
-    u64* elapsedTime = (u64*)0x80109DF8;
-    u64* storedTime = (u64*)0x80109EA8;
-    u32* prevCurrentStageTimeRTA = (u32*)0x80109DD4;
+void DisplayTimer(void) { //displays IGT
+    u32 count;
+    u64 currentCount = 0;
+    u64 elapsedMicroSeconds;
+    u64 prevDoorEntryMicroSeconds;
+    u64 temp;
+    u64 displayTime;
     s32 unk;
     s32 sp78;
     s32 seconds;
@@ -683,7 +685,6 @@ void func_80089BA0_Hook(void) { //displays IGT
     s32 xPos;
     char* var_v1_2;
     s32 frames;
-    u64* variable = (u64*)0x807FFFF8;
 
     switch (toggles[TOGGLE_HIDE_IGT]) {
         case 0:
@@ -770,13 +771,9 @@ void func_80089BA0_Hook(void) { //displays IGT
             break;
 
         case 4: //calculate real time, not igt
-            if ((gameModeCurrent == 0) && (gCurrentStage != 8)) {
-                u32 minutes, seconds, milliseconds;
-                u32 count = osGetCount();
-                u64 currentCount = 0;
-                u64 elapsedMicroSeconds;
-                u64 temp;
-                u64 displayTime;
+            //if ((gameModeCurrent == 0) && (gCurrentStage != 8)) {
+                count = osGetCount();
+                currentCount = 0;
 
                 if (freezeTimer != 0) {
                     colorTextWrapper(textCyanColor);
@@ -785,11 +782,11 @@ void func_80089BA0_Hook(void) { //displays IGT
                 }
 
                 currentCount = count;
-                if (*prevCurrentStageTimeRTA > currentCount) {
+                if (*prevCurrentStageCountRTA > currentCount) {
                     currentCount += 0x100000000;
                 }
 
-                *elapsedTime += (currentCount - *prevCurrentStageTimeRTA);
+                *elapsedTime += (currentCount - *prevCurrentStageCountRTA);
 
                 if (freezeTimer != 0) {
                     displayTime = *storedTime;
@@ -802,21 +799,31 @@ void func_80089BA0_Hook(void) { //displays IGT
                 seconds = (elapsedMicroSeconds / 1000000) % 60;
                 minutes = (elapsedMicroSeconds / 1000000) / 60;
 
-                *prevCurrentStageTimeRTA = count;
+                *prevCurrentStageCountRTA = count;
 
-                // Use sprintf to format the time components into a single string
                 _sprintf(timeString, "%02d\'%02d\"%03d", minutes, seconds, milliseconds);
                 convertAsciiToText(&convertedBuffer, (char*)&timeString);
 
                 // Print the formatted time string
                 PrintText(220.0f, 208.0f, 0.0f, 0.5f, 0.0f, 0.0f, convertedBuffer, 1);
+                if (freezeTimer != 0 && toggles[TOGGLE_DISPLAY_INDIVIDUAL_ROOM_TIME]) {
+                    prevDoorEntryMicroSeconds = OS_CYCLES_TO_USEC(*prevDoorEntryTime);
+                    elapsedMicroSeconds = elapsedMicroSeconds - prevDoorEntryMicroSeconds;
+                    milliseconds = (elapsedMicroSeconds / 1000) % 1000;
+                    seconds = (elapsedMicroSeconds / 1000000) % 60;
+                    minutes = (elapsedMicroSeconds / 1000000) / 60;
+                    _sprintf(timeString, "%02d\'%02d\"%03d", minutes, seconds, milliseconds);
+                    convertAsciiToText(&convertedBuffer, (char*)&timeString);
+                    colorTextWrapper(textGreenMatColor);
+                    PrintText(220.0f, 194.0f, 0.0f, 0.5f, 0.0f, 0.0f, convertedBuffer, 1);
+                }
                 
-            }
+            //}
             break;
     }
 }
 
-// void func_80089BA0_Hook(void) {
+// void DisplayTimer(void) {
 //     s32 unk;
 //     s32 sp78;
 //     s32 seconds;
@@ -866,9 +873,6 @@ void func_80089BA0_Hook(void) { //displays IGT
 // }
 
 void Porocess_Mode0_Hook(void) {
-    u64* elapsedTime = (u64*)0x80109DF8;
-    u32* startingCount = (u32*)0x80109DC8;
-    u32* prevCurrentStageTimeRTA = (u32*)0x80109DD4;
     u32 temp_s0;
     s32 sp28;
     s32 sp24;
@@ -885,9 +889,15 @@ void Porocess_Mode0_Hook(void) {
         }
         
         D_80174878 = loadStageByIndex(D_80174878);
-        *prevCurrentStageTimeRTA = osGetCount();
-        *startingCount = osGetCount();
-        *elapsedTime = 0;
+
+        if (gCurrentStage == 8 || toggles[TOGGLE_RTA_TIMER_RESET]) {
+            *prevCurrentStageCountRTA = osGetCount();
+            *startingCount =*prevCurrentStageCountRTA;
+            *elapsedTime = 0;
+            *prevDoorEntryTime = 0;
+            *storedTime = 0;
+        }
+
         //new code to set rng manip stuff
         //if entering bomb land, and set seed option is ON
         if (gCurrentStage == 2 && toggles[TOGGLE_SET_SEED]) { 
@@ -905,6 +915,8 @@ void Porocess_Mode0_Hook(void) {
             D_801749AC = 0;
             D_80168DA0 = 1;
         }
+
+
 
         //required 1 liner to match (changed in this since we dont need matching code)
         for (i = 0; i < D_80168DA0; i++) {
