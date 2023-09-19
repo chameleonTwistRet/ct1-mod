@@ -114,3 +114,19 @@ glabel osSetCount
 /* BB654 800E0254 03E00008 */  jr         $ra
 nop
 
+glabel endStageCodeAsm
+jal endStageCode
+nop
+j 0x8004B474
+nop
+
+glabel storeFirstEntry
+lw $t7, 0x0004 ($v0)
+lui $v1, %hi(isFirstZoneCopy)
+ori $v1, $v1, %lo(isFirstZoneCopy)
+sw $t7, 0x0000 ($v1)
+sw $zero, 0x0004 ($v0)
+MFLO $t7
+J 0x800C10CC
+NOP
+

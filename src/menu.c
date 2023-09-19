@@ -33,6 +33,7 @@ s8 toggles[] = {
     2,  // NO_TOGGLE
     //page 0
     1,  // TOGGLE_HIDE_SAVESTATE_TEXT
+    0,  // TOGGLE_NO_COMPRESSION_SAVESTATES
     0,  // TOGGLE_HIDE_IGT
     0,  // TOGGLE_CUSTOM_DEBUG_TEXT
     0,  // TOGGLE_CAVE_SKIP_PRACTICE
@@ -53,6 +54,7 @@ s8 toggles[] = {
     //page 3
     0, // TOGGLE_RTA_TIMER_RESET
     0, // TOGGLE_DISPLAY_INDIVIDUAL_ROOM_TIME
+    0, // TOGGLE_FRAME_ADVANCE
 };
 //80168DEC
 s32 toggleHideSavestateText(void) {
@@ -325,6 +327,7 @@ char* CustomTextMain[] = {
 
 char** page0Strings[] = {
     ONAndOFF, //Savestate Text Active text
+    ONAndOFF, //Savestate no compression text
     InGameTimerText, //In Game Timer Active text
     CustomTextMain, //CustomDebugText
     ONAndOFF,
@@ -340,6 +343,7 @@ char** page1Strings[] = {
 };
 
 char** page3Strings[] = {
+    ONAndOFF,
     ONAndOFF,
     ONAndOFF,
 };
@@ -375,20 +379,35 @@ s32 DisplayIndividualRoomTimeToggle(void) {
     return 0;
 }
 
+s32 FrameAdvanceToggle(void) {
+    toggles[TOGGLE_FRAME_ADVANCE] ^= 1;
+    return 0;
+}
+
+s32 NoCompressionToggle(void) {
+    toggles[TOGGLE_NO_COMPRESSION_SAVESTATES] ^= 1;
+    savestate1Size = 0;
+    savestate2Size = 0;
+    return 0;
+}
+
 menuPage page3 = {
-    2, // optionCount
+    3, // optionCount
     PAGE_MISC, // pageIndex
     { // options
         "STAGE START RESET TIMER",
         "DISPLAY RTA TIME IN ROOM",
+        "FRAME ADVANCE ON P2"
     },
     { // menuProc
         &ResetTimerToggle,
-        &DisplayIndividualRoomTimeToggle
+        &DisplayIndividualRoomTimeToggle,
+        &FrameAdvanceToggle
     },
     { // flags
         TOGGLE_RTA_TIMER_RESET,
         TOGGLE_DISPLAY_INDIVIDUAL_ROOM_TIME,
+        TOGGLE_FRAME_ADVANCE
     },
     {
         page3Strings, //update when implemented
@@ -443,10 +462,11 @@ menuPage page1 = {
 };
 
 menuPage page0 = {
-    5, //optionCount
+    6, //optionCount
     PAGE_JL, //pageIndex
     { //options
         "Savestate Text\n",
+        "No compression savestates\n",
         "In Game Timer\n",
         "Custom Debug Text\n",
         "Cave Skip Practice\n",
@@ -454,6 +474,7 @@ menuPage page0 = {
     },
     { //menuProc
         &toggleHideSavestateText,
+        &NoCompressionToggle,
         &toggleHideIGT,
         &toggleCustomDebugText,
         &toggleCaveSkipPractice,
@@ -461,6 +482,7 @@ menuPage page0 = {
     },
     { //flags
         TOGGLE_HIDE_SAVESTATE_TEXT,
+        TOGGLE_NO_COMPRESSION_SAVESTATES,
         TOGGLE_HIDE_IGT,
         TOGGLE_CUSTOM_DEBUG_TEXT,
         TOGGLE_CAVE_SKIP_PRACTICE,

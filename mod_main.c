@@ -5,7 +5,9 @@
 #include "include/sd_toggle.h"
 #include "include/menu.h"
 
-char pracTwistVersionString[] = "Practwist v1.1.4.1";
+//in assets/ you'll find an example of replacing an image
+
+char pracTwistVersionString[] = "Practwist v1.1.6";
 char textBuffer[0x100] = {'\0'};    // Text buffer set to empty string
 void gVideoThreadProcessHook(void);
 void videoproc_Hook(s32);
@@ -17,7 +19,28 @@ u32* storedIGT = (u32*)0x80109DD8;
 u64* prevDoorEntryTime = (u64*)0x80109DA8;
 u32* prevCurrentStageCountRTA = (u32*)0x80109DD4;
 u32* startingCount = (u32*)0x80109DC8;
-
+extern u8 gLevelAccessBitfeild;
+extern u8 gLevelClearBitfeild;
+extern u8 D_80200B68;
+s32 recordingErrorMessageStick = 0;
+s32 loadEnemiesBool = 0; //used by `asm_functions.s`
+volatile s32 saveOrLoadStateMode = 0;
+volatile s32 savestateCurrentSlot = 0;
+s32 savestate1Size = 0;
+s32 savestate2Size = 0;
+volatile s32 isSaveOrLoadActive = 0;
+s32 stateCooldown = 0;
+s32 currentlyPressedButtons = 0;
+s32 previouslyPressedButtons = 0;
+FATFS* FatFs = (FATFS*)0x807F0000;
+char *path = "ct1State.bin"; //example file for SD card writing
+FIL sdsavefile = {0};
+char pathTimes[] = "ct1TIMES.bin"; //example file for SD card writing
+FIL sdsavefileTimes = {0};
+u8 timesvaulted = 0;
+s32 isFirstZoneCopy = 0;
+extern s32 gNextZone;
+void storeFirstEntry(void);
 // Patches work the same way as 81 and 80 GameShark Codes
 void s16patch(void* patchAddr, s16 patchInstruction) {
     *(s16*)patchAddr = patchInstruction;
@@ -30,28 +53,9 @@ void textPrint(f32 xPos, f32 yPos, f32 scale, void *text, s32 num) {
     PrintText(xPos, yPos, 0, scale, 0, 0, text, num);
 }
 
-//in assets/ you'll find an example of replacing an image
-s32 recordingErrorMessageStick = 0;
-s32 loadEnemiesBool = 0; //used by `asm_functions.s`
-volatile s32 saveOrLoadStateMode = 0;
-volatile s32 savestateCurrentSlot = 0;
-s32 savestate1Size = 0;
-s32 savestate2Size = 0;
-volatile s32 isSaveOrLoadActive = 0;
-s32 stateCooldown = 0;
-s32 currentlyPressedButtons = 0;
-s32 previouslyPressedButtons = 0;
-FATFS FatFs;
-char *path = "ct1State.bin"; //example file for SD card writing
-FIL sdsavefile = {0};
-
-void loadEnemyObjectsHook(void);
-void crash_screen_init(void);
-void func_8004E784_Hook(contMain* arg0, s32 arg1, s32* arg2, contMain* arg3);
-
 FRESULT initFatFs(void) {
 	//Mount SD Card
-	return f_mount(&FatFs, "", 0);
+	return f_mount(FatFs, "", 0);
 }
 
 InputRecording inputRecordingBuffer; //1200 frames
@@ -66,18 +70,12 @@ void checkIfRecordInputs(void) {
     inputRecordingBuffer.totalFrameCount = recordingInputIndex;
 }
 
-void Debug_ChangeRoom_Hook(void);
-void Debug_ChangeRoom(void);
-void debugMain(void);
-void debugMain_Hook(void);
-int guRandom_Hook(void);
-void Porocess_Mode0_Hook(void);
-void DisplayTimer(void);
-void ChameleonFromDoor_Hook(playerActor* player, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
-void func_800C54F8_Hook(Vec2s*, s32* arg1);
-void setTimerParametersBool(void);
-void setFreezeTimerAsm(void);
-
+void endStageCode(void) {
+    loadBossDeadEyes(0x4B);
+    freezeTimer = 60; //2 seconds
+    *storedTime = *elapsedTime;
+    *storedIGT = gCurrentStageTime;
+}
 //mod_boot_func: runs a single time on boot before main game loop starts
 void mod_boot_func(void) {
     UINT filebytesread;
@@ -90,10 +88,10 @@ void mod_boot_func(void) {
     #if USE_SD_CARD == TRUE
         //initialize SD card from everdrive, create test file, close
         cart_init();
-        initFatFs();
-        // fileres = f_open(&sdsavefile, path, FA_OPEN_ALWAYS | FA_WRITE | FA_READ);
-        // f_write(&sdsavefile, testString, ALIGN4(sizeof(testString)), &filebytesread);
-        // f_close(&sdsavefile);
+        initFatFs(); //crashes game...usually but not always?
+        //fileres = f_open(&sdsavefile, path, FA_OPEN_ALWAYS | FA_WRITE | FA_READ);
+        //f_write(&sdsavefile, testString, ALIGN4(sizeof(testString)), &filebytesread);
+        //f_close(&sdsavefile);
     #endif
 
     // example of setting up text to print
@@ -114,6 +112,9 @@ void mod_boot_func(void) {
     hookCode((s32*)&func_800C54F8, &func_800C54F8_Hook);
     hookCode((s32*)0x800C11C8, &setTimerParametersBool);
     hookCode((s32*)0x800C11FC, &setFreezeTimerAsm);
+    hookCode((s32*)0x8004B46C, &endStageCodeAsm);
+    hookCode((s32*)0x800C10C4, &storeFirstEntry);
+    //hookCode((s32*)&ActorTick_GhostBoss, &ActorTick_GhostBoss_Hook); (currently, function isn't equivalent)
     //
 
     patchInstruction((void*)0x800A1030, 0x10000002); //add black chameleon to story patch 1
@@ -153,12 +154,6 @@ f32 clampTo45Degrees(f32 theta) {
 
     return theta;
 }
-
-
-extern s32 isMenuActive;
-extern s32 currPageNo;
-extern s32 currOptionNo;
-void func_80089BA0(void);
 
 void printCustomDebugText(void) {
     char messageBuffer[20];
@@ -286,9 +281,6 @@ u32 guRandomRev(void) {
     *seed = y >> 2;
 }
 
-extern u32 nextZone;
-u8 timesvaulted = 0;
-
 s32 caveSkipPractice(void) {
     f32 caveAngleDiff;
     f32 caveAngleDiffAbs;
@@ -298,7 +290,7 @@ s32 caveSkipPractice(void) {
     char messageBuffer[20];
     char convertedMessageBuffer[sizeof(messageBuffer) * 2];
 
-    if ((gameModeCurrent == GAME_MODE_OVERWORLD) && (gCurrentStage == 0) && (nextZone == 0) && (toggles[TOGGLE_CAVE_SKIP_PRACTICE] == 1)) {
+    if ((gameModeCurrent == GAME_MODE_OVERWORLD) && (gCurrentStage == 0) && (gNextZone == 0) && (toggles[TOGGLE_CAVE_SKIP_PRACTICE] == 1)) {
         // Printout Location
         f32 xPos = 20.0f;
         f32 yPos = 35.0f;
@@ -344,276 +336,12 @@ s32 caveSkipPractice(void) {
 }
 
 
-extern u8 gLevelAccessBitfeild;
-extern u8 gLevelClearBitfeild;
-extern u8 D_80200B68;
-
-enum TrackTimers {
-    PP_UNKNOWN,
-    PP_COLLISION,
-    PP_LIGHT,
-    PP_ENVMAP,
-    PP_HUD,
-    PP_DMA,
-    PP_PAD,
-    PP_TEXT,
-    PP_TEXTURES,
-    PP_SHADOW,
-    PP_AI,
-    PP_WEATHER,
-    PP_WAVES,
-    PP_DIALOGUE,
-    PP_CAMERA,
-    PP_MATRIX,
-    PP_BACKGROUND,
-    PP_BILLBOARD,
-    PP_VOID,
-    PP_SORTING,
-
-    PP_RSP_GFX,
-    PP_RSP_AUD,
-
-    PP_RDP_BUS,
-    PP_RDP_BUF,
-    PP_RDP_TMM,
-
-    PP_TIMES_TOTAL
-};
-
-#define NUM_OBJECT_PRINTS 128
-#define NUM_PERF_ITERATIONS 32
-#define PERF_AGGREGATE NUM_PERF_ITERATIONS
-#define PERF_TOTAL NUM_PERF_ITERATIONS + 1
-#define NUM_THREAD_ITERATIONS 8
-#define NUM_LOG_LINES 32
-typedef u32 PPTimer[NUM_PERF_ITERATIONS + 2];
-enum MainTimers {
-    PP_LEVELGFX,
-    PP_OBJGFX,
-    PP_OBJECTS,
-    PP_RACER,
-    PP_PARTICLEGFX,
-    PP_PROFILER_CALC,
-    PP_PROFILER_DRAW,
-
-    PP_MAIN_TIMES_TOTAL,
-    PP_MAIN_TIME_OFFSET = 3 // This exists to skip the profiler times.
-};
-enum PPProfilerEvent {
-    idk,
-    idk2,
-    THREAD5_START,
-    THREAD5_END,
-    THREAD3_START,
-    THREAD3_END,
-    THREAD4_START,
-    THREAD4_END,
-    THREAD30_START,
-    THREAD30_END,
-
-    NUM_THREAD_TIMERS
-};
-struct PuppyPrint {
-    PPTimer cpuTime; // Sum of multiple CPU timings, and what will be displayed.
-    u32 rspTime; // Sum of multiple RSP timings, and publicly shamed on the street.
-    u32 rdpTime; // Sum of multiple RDP timings, and hung by its entrails for all to see.
-    u32 rspPauseTime; // Buffer that keeps track of the halt time of the Gfx task.
-    u32 rspGfxBufTime; // Buffer that keeps track of the current Gfx task.
-    u32 rspAudioBufTime; // Buffer that keeps track of the current Audio task.
-    PPTimer timers[PP_TIMES_TOTAL]; // Large collection of timers for various things.
-    PPTimer coreTimers[PP_MAIN_TIMES_TOTAL]; // Large collection of timers for various things.
-    PPTimer audTime; // Normalised total for audio processing time.
-    PPTimer gameTime; // Normalised total for game processing time.
-    u32 threadTimes[NUM_THREAD_ITERATIONS][NUM_THREAD_TIMERS]; // Timers for individual threads.
-    u16 objTimers[NUM_OBJECT_PRINTS][NUM_PERF_ITERATIONS + 2]; // Timers for individual object IDs
-    u8 objCounts[NUM_OBJECT_PRINTS];
-    u32 mainTimerPoints[2][PP_MAIN_TIMES_TOTAL]; // Timers for individual threads.
-    u16 menuScroll; // Page menu scroll value to offset the text.
-    s16 pageScroll; // Generic scroller var for a page. Reset when swapped.
-    u16 textureLoads; // Tracked number of texture loads.
-    u8 threadIteration[NUM_THREAD_TIMERS / 2]; // Number of times the respective thread has looped.
-    u8 enabled; // Show the profiler
-    u8 menuOpen; // Whether the page menu's open
-    u8 page; // Current viewed page.
-    s8 menuOption; // Current option in the page menu.
-    char logText[NUM_LOG_LINES][127];
-};
-struct PuppyPrint gPuppyPrint;
-u8 perfIteration = 0;
-f32 gFPS = 0;
-u8 gWidescreen = 0;
-s32 sTriCount = 0;
-s32 sVtxCount = 0;
-s32 prevTime = 0;
-u32 sTimerTemp = 0;
-u8 gShowHiddenGeometry = FALSE;
-u8 gShowHiddenObjects = FALSE;
-u32 gFreeMem[12];
-u8 sPrintOrder[PP_RSP_GFX];
-u16 sObjPrintOrder[NUM_OBJECT_PRINTS];
-enum DebugPages {
-    PAGE_MINIMAL,
-    PAGE_OVERVIEW,
-    PAGE_BREAKDOWN,
-    PAGE_OBJECTS,
-    PAGE_MEMORY,
-    PAGE_AUDIO,
-    PAGE_LOG,
-    PAGE_COVERAGE,
-
-    PAGE_COUNT
-};
-
-s32 find_thread_interrupt_offset(u32 lowTime, u32 highTime) {
-    s32 i;
-    u32 offsetTime = 0;
-    // Find if there's been an audio thread update during this thread.
-    for (i = 0; i < gPuppyPrint.threadIteration[THREAD3_END / 2]; i++) {
-        if (gPuppyPrint.threadTimes[i][THREAD3_END] < highTime &&
-            gPuppyPrint.threadTimes[i][THREAD3_START] > lowTime) {
-            offsetTime += gPuppyPrint.threadTimes[i][THREAD3_END] - gPuppyPrint.threadTimes[i][THREAD3_START];
-        }
-    }
-    return offsetTime;
-}
-
-void calculate_core_timers(void) {
-    s32 i;
-    s32 lowTime;
-    s32 highTime;
-    s32 offsetTime = 0;
-
-
-    for (i = 0; i < PP_MAIN_TIMES_TOTAL; i++) {
-        offsetTime = 0;
-        lowTime = gPuppyPrint.mainTimerPoints[0][i];
-        highTime = gPuppyPrint.mainTimerPoints[1][i];
-        offsetTime = find_thread_interrupt_offset(lowTime, highTime);
-        gPuppyPrint.coreTimers[i][PERF_AGGREGATE] -= gPuppyPrint.coreTimers[i][perfIteration];
-        gPuppyPrint.coreTimers[i][perfIteration] = MIN(highTime - lowTime - offsetTime, (s32) OS_USEC_TO_CYCLES(99999));
-        gPuppyPrint.coreTimers[i][PERF_AGGREGATE] += gPuppyPrint.coreTimers[i][perfIteration];
-        gPuppyPrint.coreTimers[i][PERF_TOTAL] = OS_CYCLES_TO_USEC(gPuppyPrint.coreTimers[i][PERF_AGGREGATE]) / NUM_PERF_ITERATIONS;
-    }
-
-    gPuppyPrint.coreTimers[PP_OBJECTS][perfIteration] -= gPuppyPrint.coreTimers[PP_RACER][perfIteration];
-    gPuppyPrint.coreTimers[PP_OBJECTS][PERF_AGGREGATE] -= gPuppyPrint.coreTimers[PP_RACER][perfIteration];
-    gPuppyPrint.coreTimers[PP_LEVELGFX][perfIteration] -= gPuppyPrint.coreTimers[PP_OBJGFX][perfIteration];
-    gPuppyPrint.coreTimers[PP_LEVELGFX][PERF_AGGREGATE] -= gPuppyPrint.coreTimers[PP_OBJGFX][perfIteration];
-    gPuppyPrint.coreTimers[PP_LEVELGFX][perfIteration] -= gPuppyPrint.coreTimers[PP_PARTICLEGFX][perfIteration];
-    gPuppyPrint.coreTimers[PP_LEVELGFX][PERF_AGGREGATE] -= gPuppyPrint.coreTimers[PP_PARTICLEGFX][perfIteration];
-    gPuppyPrint.coreTimers[PP_LEVELGFX][perfIteration] += gPuppyPrint.coreTimers[PP_PARTICLEGFX][perfIteration];
-    gPuppyPrint.coreTimers[PP_LEVELGFX][PERF_AGGREGATE] += gPuppyPrint.coreTimers[PP_PARTICLEGFX][perfIteration];
-}
-void calculate_individual_thread_timers(void) {
-    s32 i;
-    s32 j;
-    u32 highTime;
-    u32 lowTime;
-    u32 normalTime;
-    u32 offsetTime;
-
-    // Audio thread is basically top prio, so no need to do any further shenanigans
-    highTime = 0;
-    lowTime = 0xFFFFFFFF;
-    for (i = THREAD3_START; i <= THREAD3_END; i++) {
-        for (j = 0; j < gPuppyPrint.threadIteration[i / 2]; j++) {
-            // If an iteration crosses over mid read, the low time could be zero, which would ruin this whole gig.
-            if (gPuppyPrint.threadTimes[gPuppyPrint.threadIteration[j]][i] < lowTime && 
-                gPuppyPrint.threadTimes[gPuppyPrint.threadIteration[j]][i] != 0) {
-                lowTime = gPuppyPrint.threadTimes[gPuppyPrint.threadIteration[j]][i];
-            }
-            if (gPuppyPrint.threadTimes[gPuppyPrint.threadIteration[j]][i] > highTime) {
-                highTime = gPuppyPrint.threadTimes[gPuppyPrint.threadIteration[j]][i];
-            }
-        }
-    }
-    gPuppyPrint.audTime[PERF_AGGREGATE] -= gPuppyPrint.audTime[perfIteration];
-    gPuppyPrint.audTime[perfIteration] = MIN(highTime - lowTime, (s32) OS_USEC_TO_CYCLES(99999));
-    gPuppyPrint.audTime[PERF_AGGREGATE] += gPuppyPrint.audTime[perfIteration];
-    gPuppyPrint.audTime[PERF_TOTAL] = OS_CYCLES_TO_USEC(gPuppyPrint.audTime[PERF_AGGREGATE]) / NUM_PERF_ITERATIONS;
-    // Game thread, unfortunately, does not. We have to take the times of the audio too, so we can offset the values for accuracy.
-    highTime = 0;
-    offsetTime = 0;
-    lowTime = 0xFFFFFFFF;
-    for (i = THREAD4_START; i <= THREAD4_END; i++) {
-        for (j = 0; j < gPuppyPrint.threadIteration[i / 2]; j++) {
-            // If an iteration crosses over mid read, the low time could be zero, which would ruin this whole gig.
-            normalTime = gPuppyPrint.threadTimes[gPuppyPrint.threadIteration[j]][i];
-            if (normalTime < lowTime &&  normalTime != 0) {
-                lowTime = normalTime;
-            }
-            offsetTime += find_thread_interrupt_offset(lowTime, normalTime);
-            if (normalTime > highTime) {
-                highTime = normalTime;
-            }
-        }
-    }
-    gPuppyPrint.gameTime[PERF_AGGREGATE] -= gPuppyPrint.gameTime[perfIteration];
-    gPuppyPrint.gameTime[perfIteration] = MIN(highTime - lowTime - offsetTime, (s32) OS_USEC_TO_CYCLES(99999));
-    gPuppyPrint.gameTime[PERF_AGGREGATE] += gPuppyPrint.gameTime[perfIteration];
-    gPuppyPrint.gameTime[PERF_TOTAL] = OS_CYCLES_TO_USEC(gPuppyPrint.gameTime[PERF_AGGREGATE]) / NUM_PERF_ITERATIONS;
-}
-/// Add whichever times you wish to create aggregates of.
-void puppyprint_calculate_average_times(void) {
-    s32 i;
-    s32 j;
-    u32 highTime = 0;
-    u32 lowTime = 0xFFFFFFFF;
-
-    gPuppyPrint.timers[PP_RSP_AUD][PERF_TOTAL] = OS_CYCLES_TO_USEC(gPuppyPrint.timers[PP_RSP_AUD][PERF_AGGREGATE]) / NUM_PERF_ITERATIONS;
-    gPuppyPrint.timers[PP_RSP_GFX][PERF_TOTAL] = OS_CYCLES_TO_USEC(gPuppyPrint.timers[PP_RSP_GFX][PERF_AGGREGATE]) / NUM_PERF_ITERATIONS;
-
-    for (i = 1; i < PP_RDP_BUS; i++) {
-        gPuppyPrint.timers[i][PERF_TOTAL] = OS_CYCLES_TO_USEC(gPuppyPrint.timers[i][PERF_AGGREGATE]) / NUM_PERF_ITERATIONS;
-    }
-    
-    for (i = 1; i < NUM_OBJECT_PRINTS; i++) {
-        gPuppyPrint.objTimers[i][PERF_TOTAL] = (gPuppyPrint.objTimers[i][PERF_AGGREGATE]) / NUM_PERF_ITERATIONS;
-    }
-    gPuppyPrint.timers[PP_RDP_BUF][PERF_TOTAL] = (gPuppyPrint.timers[PP_RDP_BUF][PERF_AGGREGATE] * 10) / (625*NUM_PERF_ITERATIONS);
-    gPuppyPrint.timers[PP_RDP_BUS][PERF_TOTAL] = (gPuppyPrint.timers[PP_RDP_BUS][PERF_AGGREGATE] * 10) / (625*NUM_PERF_ITERATIONS);
-    gPuppyPrint.timers[PP_RDP_TMM][PERF_TOTAL] = (gPuppyPrint.timers[PP_RDP_TMM][PERF_AGGREGATE] * 10) / (625*NUM_PERF_ITERATIONS);
-    gPuppyPrint.rspTime = gPuppyPrint.timers[PP_RSP_AUD][PERF_TOTAL] + gPuppyPrint.timers[PP_RSP_GFX][PERF_TOTAL];
-    gPuppyPrint.rdpTime = MAX(gPuppyPrint.timers[PP_RDP_BUF][PERF_TOTAL], gPuppyPrint.timers[PP_RDP_BUS][PERF_TOTAL]);
-    gPuppyPrint.rdpTime = MAX(gPuppyPrint.timers[PP_RDP_TMM][PERF_TOTAL], gPuppyPrint.rdpTime);
-    // Find the earliest snapshot and the latest snapshot.
-    for (i = 0; i < NUM_THREAD_TIMERS; i++) {
-        for (j = 0; j < gPuppyPrint.threadIteration[i / 2]; j++) {
-            // If an iteration crosses over mid read, the low time could be zero, which would ruin this whole gig.
-            if (gPuppyPrint.threadTimes[gPuppyPrint.threadIteration[j]][i] < lowTime && 
-                gPuppyPrint.threadTimes[gPuppyPrint.threadIteration[j]][i] != 0) {
-                lowTime = gPuppyPrint.threadTimes[gPuppyPrint.threadIteration[j]][i];
-            }
-            if (gPuppyPrint.threadTimes[gPuppyPrint.threadIteration[j]][i] > highTime) {
-                highTime = gPuppyPrint.threadTimes[gPuppyPrint.threadIteration[j]][i];
-            }
-        }
-    }
-    calculate_core_timers();
-    calculate_individual_thread_timers();
-    gPuppyPrint.cpuTime[PERF_AGGREGATE] -= gPuppyPrint.cpuTime[perfIteration];
-    gPuppyPrint.cpuTime[perfIteration] = MIN(highTime - lowTime, OS_USEC_TO_CYCLES(99999));
-    gPuppyPrint.cpuTime[PERF_AGGREGATE] += gPuppyPrint.cpuTime[perfIteration];
-    gPuppyPrint.cpuTime[PERF_TOTAL] = OS_CYCLES_TO_USEC(gPuppyPrint.cpuTime[PERF_AGGREGATE]) / NUM_PERF_ITERATIONS;
-    _bzero(&gPuppyPrint.threadIteration, sizeof(gPuppyPrint.threadIteration));
-    _bzero(&gPuppyPrint.threadTimes, sizeof(gPuppyPrint.threadTimes));
-    _bzero(&gPuppyPrint.mainTimerPoints, sizeof(gPuppyPrint.mainTimerPoints));
-    // if (gPuppyPrint.enabled) {
-    //     if (gPuppyPrint.page == PAGE_BREAKDOWN) {
-    //         calculate_print_order();
-    //     } else if (gPuppyPrint.page == PAGE_OBJECTS) {
-    //         calculate_obj_print_order();
-    //     }
-    // }
-}
-
 //mod_main_per_frame: where to add code that runs every frame before main game loop
 void mod_main_per_frame(void) {
     s32 index = 0;
     char textBuffer[8];
     char convertedVersionBuffer[sizeof(pracTwistVersionString) * 2];
     f32* acceleration = (f32*)0x80168DEC;
-    //puppyprint_calculate_average_times();
     gLevelAccessBitfeild = 0xFF;
     gLevelClearBitfeild = 0xFF;
     D_80200B68 = 0xFF; //unlock all levels
@@ -627,7 +355,6 @@ void mod_main_per_frame(void) {
 
     checkIfRecordInputs();
     caveSkipPractice();
-    //updateCustomInputTracking();
 
     if (stateCooldown > 0) {
         stateCooldown--;
@@ -635,7 +362,6 @@ void mod_main_per_frame(void) {
 
     if (isMenuActive == 1) {
         pageMainDisplay(currPageNo, currOptionNo);
-        //updateMenuInput();
     }
 
     if (toggles[TOGGLE_HIDE_SAVESTATE_TEXT] == 1) {
@@ -649,16 +375,15 @@ void mod_main_per_frame(void) {
 
         textBuffer[index++] = 0;
 
-        textPrint(13.0f, 208.0f, 0.65f, &textBuffer, 3);
+        if (toggles[TOGGLE_NO_COMPRESSION_SAVESTATES] == 0) {
+            textPrint(13.0f, 208.0f, 0.65f, &textBuffer, 3);
+        }
     }
 
     if (toggles[TOGGLE_HIDE_IGT] > 0) {
-        //if (gameModeCurrent == GAME_MODE_OVERWORLD){
-            if (gIsPaused == 0) {
-                //func_80089BA0();
-                DisplayTimer();
-            }
-        //}
+        if (gIsPaused == 0) {
+            DisplayTimer();
+        }
     }
 
     if (toggles[TOGGLE_CUSTOM_DEBUG_TEXT] != 0) {
@@ -681,15 +406,7 @@ void mod_main_per_frame(void) {
             *prevDoorEntryTime = *storedTime;
         }
     }
-
     
-
-    
-    // totalCount = totalCount + currentCount;
-    // if (currentCount)
-
-    
-
     // if (toggles[TOGGLE_SPEED] == 1) {
     //     *acceleration = 1.66f;
     // } else {
@@ -700,10 +417,14 @@ void mod_main_per_frame(void) {
     while (isSaveOrLoadActive != 0) {}
 }
 
+s32 inFrameAdvance = 0;
 //Thread 3 osStartThread function
 //this is a decomped version of `MainLoop.s`. It has a call to `mod_main_per_frame` before each gamemode step
 //name is hardcoded in configure script. if name is changed, change it there too
 void mod_main_func(void) {
+    s32 var;
+    s32 i;
+    contMain sp28[4];
     // func_8002D080(); //is already ran in MainLoop.s patch
     
     if (sGameModeStart != -1) {
@@ -726,8 +447,38 @@ void mod_main_func(void) {
     mod_main_per_frame();
     switch(gameModeCurrent) {
         case GAME_MODE_OVERWORLD:
-            Porocess_Mode0();
+            if (stateCooldown == 5) {
+                Porocess_Mode0();
+            }
+            if (toggles[TOGGLE_FRAME_ADVANCE]) {
+                if (gContMain[1].buttons2 & 0x1000) {
+                    if (D_80168DA0 == 1) {
+                        D_80168DA0 = 2;
+                    }
+                    inFrameAdvance = 1;
+                    Controller_Zero(&gContMain[1]);
+                }
+            }
+            if (inFrameAdvance) {
+                Controller_StartRead();
+                func_8002CB6C(0, &gGraphicsList[gFramebufferIndex], gFramebufferIndex);
+                func_8004E784(sp28, D_80168DA0, D_80168D78, sp28);
+                if (gContMain[1].buttons2 & 0x1000) {
+                    inFrameAdvance = 0;
+                    Porocess_Mode0();
+                } else if (gContMain[1].buttons0 & 0x4000) {
+                    Porocess_Mode0();
+                }
+                else if (gContMain[1].buttons2 & 0x8000) { //if p2 A pressed
+                    Porocess_Mode0();
+                }
+                Controller_Zero(&gContMain[1]);
+            } else {
+                Porocess_Mode0();
+            }
+            
             goto loop;
+
         case GAME_MODE_LEVEL_INTRO_MENU:
             Process_StageSelect();
             goto loop;
@@ -789,7 +540,6 @@ void mod_main_func(void) {
             Process_SunsoftLogo();
             goto loop;
         case GAME_MODE_UNK_15:
-            DummiedPrintf(D_8010DB20, gameModeCurrent);
             goto loop;
     }
 }

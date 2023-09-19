@@ -62,19 +62,28 @@ void loadstateMain(void) {
     osInvalICache((void*)0x80000000, 0x2000);
 	osInvalDCache((void*)0x80000000, 0x2000);
     saveMask = __osDisableInt();
-
-    switch (savestateCurrentSlot) {
-        case 0: //dpad left
-            if (savestate1Size != 0 || savestate1Size != -1) {
-                decompress_lz4_ct_default(ramEndAddr - ramStartAddr, savestate1Size, ramAddrSavestateDataSlot1);
-            }
-        break;
-        case 1:
-            if (savestate2Size != 0 || savestate2Size != -1) {
-                decompress_lz4_ct_default(ramEndAddr - ramStartAddr, savestate2Size, ramAddrSavestateDataSlot2);
-            }
-        break;
+    //2C6E40
+    //80786E40
+    if (toggles[TOGGLE_NO_COMPRESSION_SAVESTATES]) {
+        if (*(u32*)ramAddrSavestateDataSlot1 == 0x09000419) {
+            //has valid uncompressed state, allow load
+            optimized_memcpy((void*)ramStartAddr,  ramAddrSavestateDataSlot1, ramEndAddr - ramStartAddr);
+        }
+    } else {
+        switch (savestateCurrentSlot) {
+            case 0: //dpad left
+                if (savestate1Size != 0 || savestate1Size != -1) {
+                    decompress_lz4_ct_default(ramEndAddr - ramStartAddr, savestate1Size, ramAddrSavestateDataSlot1);
+                }
+            break;
+            case 1:
+                if (savestate2Size != 0 || savestate2Size != -1) {
+                    decompress_lz4_ct_default(ramEndAddr - ramStartAddr, savestate2Size, ramAddrSavestateDataSlot2);
+                }
+            break;
+        }
     }
+
     *prevCurrentStageCountRTA = osGetCount();
     __osRestoreInt(saveMask);
     
@@ -100,52 +109,59 @@ void savestateMain(void) {
     osInvalICache((void*)0x80000000, 0x2000);
 	osInvalDCache((void*)0x80000000, 0x2000);
     saveMask = __osDisableInt();
-    switch (savestateCurrentSlot) {
-        case 0:
-            if (savestate1Size == 0) {
-                if (savestate2Size == 0) {
-                    //both states blank, create state
-                    savestate1Size = compress_lz4_ct_default((void*)ramStartAddr, ramEndAddr - ramStartAddr, ramAddrSavestateDataSlot1);
-                } else {
-                    //savestate 1 isn't initialized but savestate 2 is, therefore backup state 2
-                    optimized_memcpy(savestateBackup, ramAddrSavestateDataSlot2, savestate2Size);
-                    saveStateBackupSize = savestate2Size;
-                    savestate1Size = compress_lz4_ct_default((void*)ramStartAddr, ramEndAddr - ramStartAddr, ramAddrSavestateDataSlot1);
-                }
-            } else {
-                //savestate 1 is already created, therefore backup state 1
-                optimized_memcpy(savestateBackup, ramAddrSavestateDataSlot1, savestate1Size);
-                saveStateBackupSize = savestate1Size;
-                savestate1Size = compress_lz4_ct_default((void*)ramStartAddr, ramEndAddr - ramStartAddr, ramAddrSavestateDataSlot1);                
-            }
-        break;
-
-        case 1:
-            if (savestate2Size == 0) {
+    if (toggles[TOGGLE_NO_COMPRESSION_SAVESTATES]) {
+        optimized_memcpy(ramAddrSavestateDataSlot1, (void*)ramStartAddr, ramEndAddr - ramStartAddr);
+    } else {
+        switch (savestateCurrentSlot) {
+            case 0:
                 if (savestate1Size == 0) {
-                    //both states blank, create state
-                    savestate2Size = compress_lz4_ct_default((void*)ramStartAddr, ramEndAddr - ramStartAddr, ramAddrSavestateDataSlot2);
+                    if (savestate2Size == 0) {
+                        //both states blank, create state
+                        savestate1Size = compress_lz4_ct_default((void*)ramStartAddr, ramEndAddr - ramStartAddr, ramAddrSavestateDataSlot1);
+                    } else {
+                        //savestate 1 isn't initialized but savestate 2 is, therefore backup state 2
+                        optimized_memcpy(savestateBackup, ramAddrSavestateDataSlot2, savestate2Size);
+                        saveStateBackupSize = savestate2Size;
+                        savestate1Size = compress_lz4_ct_default((void*)ramStartAddr, ramEndAddr - ramStartAddr, ramAddrSavestateDataSlot1);
+                    }
                 } else {
-                    //savestate 2 isn't initialized but savestate 1 is, therefore backup state 1
+                    //savestate 1 is already created, therefore backup state 1
                     optimized_memcpy(savestateBackup, ramAddrSavestateDataSlot1, savestate1Size);
                     saveStateBackupSize = savestate1Size;
-                    savestate2Size = compress_lz4_ct_default((void*)ramStartAddr, ramEndAddr - ramStartAddr, ramAddrSavestateDataSlot2);
+                    savestate1Size = compress_lz4_ct_default((void*)ramStartAddr, ramEndAddr - ramStartAddr, ramAddrSavestateDataSlot1);                
                 }
-            } else {
-                //savestate 2 is already created, therefore backup state 2
-                optimized_memcpy(savestateBackup, ramAddrSavestateDataSlot2, savestate2Size);
-                saveStateBackupSize = savestate2Size;
-                savestate2Size = compress_lz4_ct_default((void*)ramStartAddr, ramEndAddr - ramStartAddr, ramAddrSavestateDataSlot2);                
-            }
-        break;
+            break;
+
+            case 1:
+                if (savestate2Size == 0) {
+                    if (savestate1Size == 0) {
+                        //both states blank, create state
+                        savestate2Size = compress_lz4_ct_default((void*)ramStartAddr, ramEndAddr - ramStartAddr, ramAddrSavestateDataSlot2);
+                    } else {
+                        //savestate 2 isn't initialized but savestate 1 is, therefore backup state 1
+                        optimized_memcpy(savestateBackup, ramAddrSavestateDataSlot1, savestate1Size);
+                        saveStateBackupSize = savestate1Size;
+                        savestate2Size = compress_lz4_ct_default((void*)ramStartAddr, ramEndAddr - ramStartAddr, ramAddrSavestateDataSlot2);
+                    }
+                } else {
+                    //savestate 2 is already created, therefore backup state 2
+                    optimized_memcpy(savestateBackup, ramAddrSavestateDataSlot2, savestate2Size);
+                    saveStateBackupSize = savestate2Size;
+                    savestate2Size = compress_lz4_ct_default((void*)ramStartAddr, ramEndAddr - ramStartAddr, ramAddrSavestateDataSlot2);                
+                }
+            break;
+        }
     }
-    
     __osRestoreInt(saveMask);
     isSaveOrLoadActive = 0; //allow thread 3 to continue
 }
 
 void checkInputsForSavestates(void) {
     if (stateCooldown != 0){
+        return;
+    }
+
+    if (inFrameAdvance) {
         return;
     }
 
@@ -168,11 +184,13 @@ void checkInputsForSavestates(void) {
             stateCooldown = 5;   
         } else if (D_80175650[0].button & CONT_UP) {
             if (saveStateBackupSize != 0) {
-                isSaveOrLoadActive = 1;
-                osCreateThread(&gCustomThread.thread, 255, (void*)loadstateMainBackup, NULL,
+                if (toggles[TOGGLE_NO_COMPRESSION_SAVESTATES] == 0) {
+                    isSaveOrLoadActive = 1;
+                    osCreateThread(&gCustomThread.thread, 255, (void*)loadstateMainBackup, NULL,
                         gCustomThread.stack + sizeof(gCustomThread.stack), 255);
-                osStartThread(&gCustomThread.thread);
-                stateCooldown = 5;
+                    osStartThread(&gCustomThread.thread);
+                    stateCooldown = 5;
+                }
             }
         }
     }
