@@ -22,8 +22,7 @@ u32 guRandomRev(void);
 #define X_COORD_PER_LETTER 4.5
 // shift x value per print per length of string (8px per letter) then print ON/OFF
 
-#define FUNCS_PER_PAGE 8
-#define FUNCS_PER_LAST_PAGE 3
+#define FUNCS_PER_PAGE 6
 
 typedef s32 (*menuProc) (void);
 #define ARRAY_COUNT(arr) (s32)(sizeof(arr) / sizeof(arr[0]))
@@ -36,14 +35,16 @@ s8 toggles[] = {
     0,  // TOGGLE_NO_COMPRESSION_SAVESTATES
     0,  // TOGGLE_DISPLAY_IGT
     0,  // TOGGLE_CUSTOM_DEBUG_TEXT
+    0,  // TOGGLE_INFINITE_HEALTH
+
+    // page 4
     0,  // TOGGLE_CAVE_SKIP_PRACTICE
-    0, //TOGGLE_YOLO_PILLAR_PRACTICE
-    0, //TOGGLE_BACKVAULT_PRACTICE
+    0,  // TOGGLE_YOLO_PILLAR_PRACTICE
+    0,  // TOGGLE_BACKVAULT_PRACTICE
     0,  // TOGGLE_ENEMY_SPAWNS_OFF
+    -1, // TOGGLE_LOAD_BOSS
 
     //page 1
-    -1, // TOGGLE_LOAD_BOSS
-    0,  // TOGGLE_INFINITE_HEALTH
     -1, // TOGGLE_ADV_RNG
     -1, // TOGGLE_REV_RNG
     0, // TOGGLE_SET_SEED_BL
@@ -335,15 +336,18 @@ char** page0Strings[] = {
     ONAndOFF, //Savestate no compression text
     InGameTimerText, //In Game Timer Active text
     CustomTextMain, //CustomDebugText
-    ONAndOFF,
-    ONAndOFF,
-    ONAndOFF,
-    ONAndOFF,
+    ONAndOFF, // TOGGLE_INFINITE_HEALTH
+};
+
+char** page4Strings[] = {
+    ONAndOFF, //Cave skip practice
+    ONAndOFF, //yolo pillar practice
+    ONAndOFF, //backvault practice
+    ONAndOFF, //enemy spawns off
+    NULL, // TOGGLE_LOAD_BOSS    
 };
 
 char** page1Strings[] = {
-    NULL, //Load Boss
-    ONAndOFF, //Infinite Health
     NULL, //Adv Rng
     NULL, //Rev Rng
     ONAndOFF, //Set BL RNG Seed
@@ -458,11 +462,9 @@ s32 setGCSeed(void) {
 }
 
 menuPage page1 = {
-    7, //optionCount
+    5, //optionCount
     PAGE_MAIN, //pageIndex
     { //options
-        "Load Boss\n",
-        "Infinite Health\n",
         "Adv RNG\n",
         "Rev RNG\n",
         "Set BL RNG Seed\n",
@@ -471,8 +473,6 @@ menuPage page1 = {
         //"Speed\n"
     },
     { //menuProc
-        &teleportToStageBoss,
-        &toggleInfiniteHealth,
         &advanceGuRNG,
         &revGuRNG,
         &setBLSeed,
@@ -481,8 +481,6 @@ menuPage page1 = {
         //&toggleSpeed
     },
     { //flags
-        -1,
-        TOGGLE_INFINITE_HEALTH,
         -1,
         -1,
         TOGGLE_SET_SEED_BL,
@@ -505,38 +503,58 @@ s32 toggleBackVaultPractice(void) {
     return 0;
 }
 
+menuPage page4 = {
+    5, //optionCount
+    PAGE_PRACTICE, //pageIndex
+    { //options
+        "Cave Skip Practice\n",
+        "Yolo Pillar Practice\n",
+        "Back Vault Practice\n",
+        "Disable Actors\n",
+        "Load Boss\n"
+    },
+    { //menuProc
+        &toggleCaveSkipPractice,
+        &toggleYoloPillarPractice,
+        &toggleBackVaultPractice,
+        &toggleObjectSpawnsOff,
+        &teleportToStageBoss,
+    },
+    { //flags
+        TOGGLE_CAVE_SKIP_PRACTICE,
+        TOGGLE_YOLO_PILLAR_PRACTICE,
+        TOGGLE_BACKVAULT_PRACTICE,
+        TOGGLE_ENEMY_SPAWNS_OFF,
+        -1
+    },
+    {
+        page4Strings,
+    }
+};
+
 menuPage page0 = {
-    8, //optionCount
+    5, //optionCount
     PAGE_JL, //pageIndex
     { //options
         "Savestate Text\n",
         "No compression savestates\n",
         "In Game Timer\n",
         "Custom Debug Text\n",
-        "Cave Skip Practice\n",
-        "Yolo Pillar Practice\n",
-        "Back Vault Practice\n",
-        "Disable Actors\n"
+        "Infinite Health\n"
     },
     { //menuProc
         &toggleHideSavestateText,
         &NoCompressionToggle,
         &toggleHideIGT,
         &toggleCustomDebugText,
-        &toggleCaveSkipPractice,
-        &toggleYoloPillarPractice,
-        &toggleBackVaultPractice,
-        &toggleObjectSpawnsOff
+        &toggleInfiniteHealth
     },
     { //flags
         TOGGLE_HIDE_SAVESTATE_TEXT,
         TOGGLE_NO_COMPRESSION_SAVESTATES,
         TOGGLE_DISPLAY_IGT,
         TOGGLE_CUSTOM_DEBUG_TEXT,
-        TOGGLE_CAVE_SKIP_PRACTICE,
-        TOGGLE_YOLO_PILLAR_PRACTICE,
-        TOGGLE_BACKVAULT_PRACTICE,
-        TOGGLE_ENEMY_SPAWNS_OFF
+        TOGGLE_INFINITE_HEALTH
     },
     {
         page0Strings,
@@ -545,6 +563,7 @@ menuPage page0 = {
 
 menuPage* pageList[] = {
     &page0,
+    &page4,
     &page1,
     &page3,
 };
