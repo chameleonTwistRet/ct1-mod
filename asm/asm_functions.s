@@ -1,5 +1,6 @@
 .include "macro.inc"
 .set noreorder
+.set noat
 
 glabel loadEnemyObjectsHook
     LUI $t0, %hi(loadEnemiesBool)
@@ -115,6 +116,14 @@ glabel osSetCount
 nop
 
 glabel endStageCodeAsm
+lui $at, 0x8017
+sw $t6, 0x4980 ($at)
+jal endStageCode
+nop
+j 0x80037188
+nop
+
+glabel endStageCodeAsm2
 jal endStageCode
 nop
 j 0x8004B474

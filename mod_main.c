@@ -7,16 +7,16 @@
 
 //in assets/ you'll find an example of replacing an image
 
-char pracTwistVersionString[] = "Practwist v1.1.6";
+char pracTwistVersionString[] = "Practwist v1.1.8";
 char textBuffer[0x100] = {'\0'};    // Text buffer set to empty string
 void gVideoThreadProcessHook(void);
 void videoproc_Hook(s32);
 u32 xSeed2 = 174823885;
 u32 calls = 0;
-u64* storedTime = (u64*)0x80109EA8;
-u64* elapsedTime = (u64*)0x80109DF8;
+u64* storedCount = (u64*)0x80109EA8;
+u64* elapsedCount = (u64*)0x80109DF8;
 u32* storedIGT = (u32*)0x80109DD8;
-u64* prevDoorEntryTime = (u64*)0x80109DA8;
+u64* prevDoorEntryCount = (u64*)0x80109DA8;
 u32* prevCurrentStageCountRTA = (u32*)0x80109DD4;
 u32* startingCount = (u32*)0x80109DC8;
 extern u8 gLevelAccessBitfeild;
@@ -41,6 +41,8 @@ u8 timesvaulted = 0;
 s32 isFirstZoneCopy = 0;
 extern s32 gNextZone;
 void storeFirstEntry(void);
+s32 previousVault = 0;
+f32 previousVaultSpeed = 0;
 // Patches work the same way as 81 and 80 GameShark Codes
 void s16patch(void* patchAddr, s16 patchInstruction) {
     *(s16*)patchAddr = patchInstruction;
@@ -71,9 +73,8 @@ void checkIfRecordInputs(void) {
 }
 
 void endStageCode(void) {
-    loadBossDeadEyes(0x4B);
     freezeTimer = 60; //2 seconds
-    *storedTime = *elapsedTime;
+    *storedCount = *elapsedCount;
     *storedIGT = gCurrentStageTime;
 }
 //mod_boot_func: runs a single time on boot before main game loop starts
@@ -112,7 +113,8 @@ void mod_boot_func(void) {
     hookCode((s32*)&func_800C54F8, &func_800C54F8_Hook);
     hookCode((s32*)0x800C11C8, &setTimerParametersBool);
     hookCode((s32*)0x800C11FC, &setFreezeTimerAsm);
-    hookCode((s32*)0x8004B46C, &endStageCodeAsm);
+    hookCode((s32*)0x80037160, &endStageCodeAsm); //snake boss
+    hookCode((s32*)0x8004B46C, &endStageCodeAsm2); //jungle land boss
     hookCode((s32*)0x800C10C4, &storeFirstEntry);
     //hookCode((s32*)&ActorTick_GhostBoss, &ActorTick_GhostBoss_Hook); (currently, function isn't equivalent)
     //
@@ -281,6 +283,66 @@ u32 guRandomRev(void) {
     *seed = y >> 2;
 }
 
+s32 backvaultPractice(void) {
+    char messageBuffer[20];
+    char convertedMessageBuffer[20];
+
+    //previousVault
+    
+
+    if (toggles[TOGGLE_BACKVAULT_PRACTICE]) {
+        _bzero(messageBuffer, sizeof(messageBuffer)); //clear buffer
+        _sprintf(messageBuffer, "%d", gTongues[0].vaultTime);
+        _bzero(convertedMessageBuffer, sizeof(convertedMessageBuffer)); //clear buffer
+        convertAsciiToText(&convertedMessageBuffer, (char*)&messageBuffer);
+        if (gTongues[0].vaultTime == 21) {
+            colorTextWrapper(textGreenMatColor);
+        } else {
+            colorTextWrapper(textWhiteColor);
+        }
+        textPrint(13.0f, 182.0f, 0.5f, &convertedMessageBuffer, 1);
+        //
+        _bzero(messageBuffer, sizeof(messageBuffer)); //clear buffer
+        _sprintf(messageBuffer, "%.2f", previousVaultSpeed);
+        _bzero(convertedMessageBuffer, sizeof(convertedMessageBuffer)); //clear buffer
+        convertAsciiToText(&convertedMessageBuffer, (char*)&messageBuffer);
+        if (previousVaultSpeed > 17.0f) {
+            colorTextWrapper(textGreenMatColor);
+        } else {
+            colorTextWrapper(textWhiteColor);
+        }
+        textPrint(13.0f, 194.0f, 0.5f, &convertedMessageBuffer, 1);
+    }    
+}
+
+s32 yoloPillarPractice(void) {
+    char messageBuffer[20];
+    char convertedMessageBuffer[20];
+    if (toggles[TOGGLE_YOLO_PILLAR_PRACTICE] && gCurrentStage == 2 && gCurrentZone == 8) {
+        _bzero(messageBuffer, sizeof(messageBuffer)); //clear buffer
+        _sprintf(messageBuffer, "%d", gTongues[0].vaultTime);
+        _bzero(convertedMessageBuffer, sizeof(convertedMessageBuffer)); //clear buffer
+        convertAsciiToText(&convertedMessageBuffer, (char*)&messageBuffer);
+        if (gTongues[0].vaultTime == 22) {
+            colorTextWrapper(textGreenMatColor);
+        } else {
+            colorTextWrapper(textWhiteColor);
+        }
+        textPrint(13.0f, 182.0f, 0.5f, &convertedMessageBuffer, 1);
+        //
+        _bzero(messageBuffer, sizeof(messageBuffer)); //clear buffer
+        _sprintf(messageBuffer, "%.2f", previousVaultSpeed);
+        _bzero(convertedMessageBuffer, sizeof(convertedMessageBuffer)); //clear buffer
+        convertAsciiToText(&convertedMessageBuffer, (char*)&messageBuffer);
+        if (previousVaultSpeed > 20.7f) {
+            colorTextWrapper(textGreenMatColor);
+        } else {
+            colorTextWrapper(textWhiteColor);
+        }
+        textPrint(13.0f, 194.0f, 0.5f, &convertedMessageBuffer, 1);
+    }    
+}
+
 s32 caveSkipPractice(void) {
     f32 caveAngleDiff;
     f32 caveAngleDiffAbs;
@@ -355,6 +417,8 @@ void mod_main_per_frame(void) {
 
     checkIfRecordInputs();
     caveSkipPractice();
+    backvaultPractice();
+    yoloPillarPractice();
 
     if (stateCooldown > 0) {
         stateCooldown--;
@@ -380,7 +444,7 @@ void mod_main_per_frame(void) {
         }
     }
 
-    if (toggles[TOGGLE_HIDE_IGT] > 0) {
+    if (toggles[TOGGLE_DISPLAY_IGT] > 0) {
         if (gIsPaused == 0) {
             DisplayTimer();
         }
@@ -403,9 +467,22 @@ void mod_main_per_frame(void) {
     if (freezeTimer > 0) {
         freezeTimer--;
         if (freezeTimer == 0) {
-            *prevDoorEntryTime = *storedTime;
+            *prevDoorEntryCount = *storedCount;
         }
     }
+
+    if (toggles[TOGGLE_BACKVAULT_PRACTICE]) {
+        if (gTongues[0].tongueMode == 0 && gPlayerActors[0].canJump == 0) { //if 0, update variables
+            previousVault = gTongues[0].vaulting;
+            previousVaultSpeed = gPlayerActors[0].forwardVel;
+        }
+    } else {
+        previousVault = gTongues[0].vaulting;
+        previousVaultSpeed = gPlayerActors[0].forwardVel;
+    }
+
+
+
     
     // if (toggles[TOGGLE_SPEED] == 1) {
     //     *acceleration = 1.66f;

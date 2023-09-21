@@ -34,9 +34,11 @@ s8 toggles[] = {
     //page 0
     1,  // TOGGLE_HIDE_SAVESTATE_TEXT
     0,  // TOGGLE_NO_COMPRESSION_SAVESTATES
-    0,  // TOGGLE_HIDE_IGT
+    0,  // TOGGLE_DISPLAY_IGT
     0,  // TOGGLE_CUSTOM_DEBUG_TEXT
     0,  // TOGGLE_CAVE_SKIP_PRACTICE
+    0, //TOGGLE_YOLO_PILLAR_PRACTICE
+    0, //TOGGLE_BACKVAULT_PRACTICE
     0,  // TOGGLE_ENEMY_SPAWNS_OFF
 
     //page 1
@@ -44,7 +46,9 @@ s8 toggles[] = {
     0,  // TOGGLE_INFINITE_HEALTH
     -1, // TOGGLE_ADV_RNG
     -1, // TOGGLE_REV_RNG
-    0, // TOGGLE_SET_SEED
+    0, // TOGGLE_SET_SEED_BL
+    0, // TOGGLE_SET_SEED_KL
+    0, // TOGGLE_SET_SEED_GC
     //0, // TOGGLE_SPEED
 
     //page 2
@@ -52,8 +56,9 @@ s8 toggles[] = {
     0,  // TOGGLE_PLAYBACK
 
     //page 3
-    0, // TOGGLE_RTA_TIMER_RESET
+    1, // TOGGLE_RTA_TIMER_RESET
     0, // TOGGLE_DISPLAY_INDIVIDUAL_ROOM_TIME
+    1, // TOGGLE_TAS_COMPARISON
     0, // TOGGLE_FRAME_ADVANCE
 };
 //80168DEC
@@ -63,9 +68,9 @@ s32 toggleHideSavestateText(void) {
 }
 
 s32 toggleHideIGT(void) {
-    toggles[TOGGLE_HIDE_IGT]++;
-    if (toggles[TOGGLE_HIDE_IGT] >= 5) {
-        toggles[TOGGLE_HIDE_IGT] = 0;
+    toggles[TOGGLE_DISPLAY_IGT]++;
+    if (toggles[TOGGLE_DISPLAY_IGT] >= 5) {
+        toggles[TOGGLE_DISPLAY_IGT] = 0;
     }
     return 1;
 }
@@ -332,6 +337,8 @@ char** page0Strings[] = {
     CustomTextMain, //CustomDebugText
     ONAndOFF,
     ONAndOFF,
+    ONAndOFF,
+    ONAndOFF,
 };
 
 char** page1Strings[] = {
@@ -340,9 +347,12 @@ char** page1Strings[] = {
     NULL, //Adv Rng
     NULL, //Rev Rng
     ONAndOFF, //Set BL RNG Seed
+    ONAndOFF, //Set KL RNG Seed
+    ONAndOFF, //Set GC RNG Seed
 };
 
 char** page3Strings[] = {
+    ONAndOFF,
     ONAndOFF,
     ONAndOFF,
     ONAndOFF,
@@ -379,6 +389,11 @@ s32 DisplayIndividualRoomTimeToggle(void) {
     return 0;
 }
 
+s32 DisplayTASComparison(void) {
+    toggles[TOGGLE_TAS_COMPARISON] ^= 1;
+    return 0;
+}
+
 s32 FrameAdvanceToggle(void) {
     toggles[TOGGLE_FRAME_ADVANCE] ^= 1;
     return 0;
@@ -392,25 +407,28 @@ s32 NoCompressionToggle(void) {
 }
 
 menuPage page3 = {
-    3, // optionCount
+    4, // optionCount
     PAGE_MISC, // pageIndex
     { // options
         "STAGE START RESET TIMER",
         "DISPLAY RTA TIME IN ROOM",
-        "FRAME ADVANCE ON P2"
+        "DISPLAY TAS COMPARISON",
+        "FRAME ADVANCE ON P2",
     },
     { // menuProc
         &ResetTimerToggle,
         &DisplayIndividualRoomTimeToggle,
+        &DisplayTASComparison,
         &FrameAdvanceToggle
     },
     { // flags
         TOGGLE_RTA_TIMER_RESET,
         TOGGLE_DISPLAY_INDIVIDUAL_ROOM_TIME,
+        TOGGLE_TAS_COMPARISON,
         TOGGLE_FRAME_ADVANCE
     },
     {
-        page3Strings, //update when implemented
+        page3Strings,
     },
 };
 
@@ -425,19 +443,31 @@ s32 revGuRNG(void) {
 }
 
 s32 setBLSeed(void) {
-    toggles[TOGGLE_SET_SEED] ^= 1;
+    toggles[TOGGLE_SET_SEED_BL] ^= 1;
+    return 0;
+}
+
+s32 setKLSeed(void) {
+    toggles[TOGGLE_SET_SEED_KL] ^= 1;
+    return 0;
+}
+
+s32 setGCSeed(void) {
+    toggles[TOGGLE_SET_SEED_GC] ^= 1;
     return 0;
 }
 
 menuPage page1 = {
-    5, //optionCount
+    7, //optionCount
     PAGE_MAIN, //pageIndex
     { //options
         "Load Boss\n",
         "Infinite Health\n",
         "Adv RNG\n",
         "Rev RNG\n",
-        "Set BL RNG Seed\n"
+        "Set BL RNG Seed\n",
+        "Set KL RNG Seed\n",
+        "Set GC RNG Seed\n",
         //"Speed\n"
     },
     { //menuProc
@@ -446,6 +476,8 @@ menuPage page1 = {
         &advanceGuRNG,
         &revGuRNG,
         &setBLSeed,
+        &setKLSeed,
+        &setGCSeed
         //&toggleSpeed
     },
     { //flags
@@ -453,7 +485,9 @@ menuPage page1 = {
         TOGGLE_INFINITE_HEALTH,
         -1,
         -1,
-        TOGGLE_SET_SEED,
+        TOGGLE_SET_SEED_BL,
+        TOGGLE_SET_SEED_KL,
+        TOGGLE_SET_SEED_GC,
         //TOGGLE_REV_RNG
     },
     {
@@ -461,8 +495,18 @@ menuPage page1 = {
     },
 };
 
+s32 toggleYoloPillarPractice(void) {
+    toggles[TOGGLE_YOLO_PILLAR_PRACTICE] ^= 1;
+    return 0;
+}
+
+s32 toggleBackVaultPractice(void) {
+    toggles[TOGGLE_BACKVAULT_PRACTICE] ^= 1;
+    return 0;
+}
+
 menuPage page0 = {
-    6, //optionCount
+    8, //optionCount
     PAGE_JL, //pageIndex
     { //options
         "Savestate Text\n",
@@ -470,6 +514,8 @@ menuPage page0 = {
         "In Game Timer\n",
         "Custom Debug Text\n",
         "Cave Skip Practice\n",
+        "Yolo Pillar Practice\n",
+        "Back Vault Practice\n",
         "Disable Actors\n"
     },
     { //menuProc
@@ -478,14 +524,18 @@ menuPage page0 = {
         &toggleHideIGT,
         &toggleCustomDebugText,
         &toggleCaveSkipPractice,
+        &toggleYoloPillarPractice,
+        &toggleBackVaultPractice,
         &toggleObjectSpawnsOff
     },
     { //flags
         TOGGLE_HIDE_SAVESTATE_TEXT,
         TOGGLE_NO_COMPRESSION_SAVESTATES,
-        TOGGLE_HIDE_IGT,
+        TOGGLE_DISPLAY_IGT,
         TOGGLE_CUSTOM_DEBUG_TEXT,
         TOGGLE_CAVE_SKIP_PRACTICE,
+        TOGGLE_YOLO_PILLAR_PRACTICE,
+        TOGGLE_BACKVAULT_PRACTICE,
         TOGGLE_ENEMY_SPAWNS_OFF
     },
     {

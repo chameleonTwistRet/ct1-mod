@@ -33,6 +33,8 @@ extern OSTimer D_801B3148;
 extern OSMesgQueue D_801B35A0;
 extern s32 D_802478E0;
 
+u64 snakeTime = 0x00000000010C2300;
+s32 zoneExitID = 0;
 s32 freezeTimer = 0;
 s32 timerParametersBool = 0;
 
@@ -643,7 +645,8 @@ void setFreezeTimerC(void) {
     if (timerParametersBool == 1) {
         timerParametersBool = 0;
         freezeTimer = 60; //2 seconds
-        *storedTime = *elapsedTime;
+        zoneExitID = gCurrentZone;
+        *storedCount = *elapsedCount;
         *storedIGT = gCurrentStageTime;
         saveTimeBool = 1;
     }
@@ -654,8 +657,8 @@ void func_800C54F8_Hook(Vec2s* arg0, s32* arg1) {
     arg0->y = 0;
     *arg1 = 0;
     freezeTimer = 0;
-    if (*storedTime != 0) {
-        *prevDoorEntryTime = *storedTime;
+    if (*storedCount != 0) {
+        *prevDoorEntryCount = *storedCount;
     }
 }
 
@@ -672,6 +675,25 @@ void func_800C54F8_Hook(Vec2s* arg0, s32* arg1) {
 //     return ( (f32)FRAMETIME_COUNT * 1000000.0f) / (s32) OS_CYCLES_TO_USEC(newTime - oldTime);
 // }
 extern s32 gPrevZone;
+
+u64 BLZoneExitTimesTAS[] = {
+    0x00000000001F3B48, //first room exit
+    0x0000000000653180, //second room exit
+    0x0000000000497480, //third room exit
+    0x000000000065B500, //pillar 1 exit
+    0x000000000063A700, //lava 1 exit
+    0x00000000002BA980, //spin room exit
+    0x00000000004F9E80, //room before cannon 1
+    0x000000000062A000, //cannon 1 exit
+    0x0000000000A98300, //pillar 2 exit
+    0x0000000000621C80, //lava 2 exit
+    0x000000000030CC80, //bomb jump exit
+    0x000000000052B380, //door clip 1 exit
+    0x00000000005D7D00, //cannon 2
+    0x0000000000621C80, //boss door exit
+    0x00000000010C2300, //snake death
+};
+
 void DisplayTimer(void) { //displays IGT
     UINT filebytesread;
     char testString[] = "Testing f_write() call\n";
@@ -695,7 +717,7 @@ void DisplayTimer(void) { //displays IGT
     char* var_v1_2;
     s32 frames;
 
-    switch (toggles[TOGGLE_HIDE_IGT]) {
+    switch (toggles[TOGGLE_DISPLAY_IGT]) {
         case 0:
             break;
         case 1: //original IGT display
@@ -795,12 +817,12 @@ void DisplayTimer(void) { //displays IGT
                     currentCount += 0x100000000;
                 }
 
-                *elapsedTime += (currentCount - *prevCurrentStageCountRTA);
+                *elapsedCount += (currentCount - *prevCurrentStageCountRTA);
 
                 if (freezeTimer != 0) {
-                    displayTime = *storedTime;
+                    displayTime = *storedCount;
                 } else {
-                    displayTime = *elapsedTime;
+                    displayTime = *elapsedCount;
                 }
                 
                 elapsedMicroSeconds = OS_CYCLES_TO_USEC(displayTime);
@@ -811,13 +833,10 @@ void DisplayTimer(void) { //displays IGT
 
                 _sprintf(timeString, "%02d\'%02d\"%03d", minutes, seconds, milliseconds);
                 convertAsciiToText(&convertedBuffer, (char*)&timeString);
-
-                // Print the formatted time string
                 PrintText(220.0f, 208.0f, 0.0f, 0.5f, 0.0f, 0.0f, convertedBuffer, 1);
 
-                prevDoorEntryMicroSeconds = OS_CYCLES_TO_USEC(*prevDoorEntryTime);
+                prevDoorEntryMicroSeconds = OS_CYCLES_TO_USEC(*prevDoorEntryCount);
                 elapsedMicroSeconds = elapsedMicroSeconds - prevDoorEntryMicroSeconds;
-
 
                 if (saveTimeBool) {
                     if (BestRTATimes[gCurrentStage][gCurrentZone][gNextZone][isFirstZoneCopy] == 0) {
@@ -842,6 +861,48 @@ void DisplayTimer(void) { //displays IGT
                     convertAsciiToText(&convertedBuffer, (char*)&timeString);
                     colorTextWrapper(textGreenMatColor);
                     PrintText(220.0f, 194.0f, 0.0f, 0.5f, 0.0f, 0.0f, convertedBuffer, 1);
+                } else if (freezeTimer != 0 && toggles[TOGGLE_TAS_COMPARISON])  {
+                    if (gCurrentStage == 2 || gCurrentStage == 0x0B) {
+                        s64 timeDifference;
+                        if (gCurrentStage == 0x0B) {
+                            if (elapsedMicroSeconds < snakeTime) {
+                                timeDifference = snakeTime - elapsedMicroSeconds;
+                            } else {
+                                timeDifference = elapsedMicroSeconds - snakeTime;
+                            }
+                        } else {
+                            if (elapsedMicroSeconds < BLZoneExitTimesTAS[zoneExitID]) {
+                                timeDifference = BLZoneExitTimesTAS[zoneExitID] - elapsedMicroSeconds;
+                            } else {
+                                timeDifference = elapsedMicroSeconds - BLZoneExitTimesTAS[zoneExitID];
+                            }
+                            
+                        }
+                        
+                        milliseconds = (timeDifference / 1000) % 1000;
+                        seconds = (timeDifference / 1000000) % 60;
+                        minutes = (timeDifference / 1000000) / 60;
+                        if (gCurrentStage == 2) {
+                            if (elapsedMicroSeconds < BLZoneExitTimesTAS[zoneExitID]) {
+                                colorTextWrapper(textGreenMatColor);
+                                _sprintf(timeString, "-%02d\'%02d\"%03d", minutes, seconds, milliseconds);
+                            } else {
+                                colorTextWrapper(textOrangeColor);
+                                _sprintf(timeString, "+%02d\'%02d\"%03d", minutes, seconds, milliseconds);
+                            }
+                        } else if (gCurrentStage == 0x0B) {
+                            if (elapsedMicroSeconds < snakeTime) {
+                                colorTextWrapper(textGreenMatColor);
+                                _sprintf(timeString, "-%02d\'%02d\"%03d", minutes, seconds, milliseconds);
+                            } else {
+                                colorTextWrapper(textOrangeColor);
+                                _sprintf(timeString, "+%02d\'%02d\"%03d", minutes, seconds, milliseconds);
+                            }
+                        }
+                        convertAsciiToText(&convertedBuffer, (char*)&timeString);
+
+                        PrintText(220.0f, 194.0f, 0.0f, 0.5f, 0.0f, 0.0f, convertedBuffer, 1);       
+                    }
                 }
                 
             //}
@@ -870,21 +931,37 @@ void Porocess_Mode0_Hook(void) {
         if (gCurrentStage == 8 || toggles[TOGGLE_RTA_TIMER_RESET]) {
             *prevCurrentStageCountRTA = osGetCount();
             *startingCount =*prevCurrentStageCountRTA;
-            *elapsedTime = 0;
-            *prevDoorEntryTime = 0;
-            *storedTime = 0;
+            *elapsedCount = 0;
+            *prevDoorEntryCount = 0;
+            *storedCount = 0;
         }
 
         //new code to set rng manip stuff
         //if entering bomb land, and set seed option is ON
-        if (gCurrentStage == 2 && toggles[TOGGLE_SET_SEED]) { 
+        if (gCurrentStage == 2 && toggles[TOGGLE_SET_SEED_BL]) { 
             u32* seed = (u32*)0x80109DC0;
             u32* calls = (u32*)0x80109DC4;
             //the game will advance the seed 4 times after we set it
             //so we set it to what we want - 4
             *seed = 0x14B0B9CB;
             *calls = 702;
+        } else if (gCurrentStage == 4 && toggles[TOGGLE_SET_SEED_KL]) {
+            u32* seed = (u32*)0x80109DC0;
+            u32* calls = (u32*)0x80109DC4;
+            //the game will advance the seed 4 times after we set it
+            //so we set it to what we want - 4
+            *seed = 0x1274126A;
+            *calls = 1045;
+        } else if (gCurrentStage == 5 && toggles[TOGGLE_SET_SEED_GC]) {
+            u32* seed = (u32*)0x80109DC0;
+            u32* calls = (u32*)0x80109DC4;
+            //the game will advance the seed 4 times after we set it
+            //so we set it to what we want - 4
+            *seed = 0x0C89505D;
+            *calls = 10384;
         }
+
+        
         if (gCurrentStage == 7) {
             D_80168DA0 = (u32) gControllerNo;
             D_801749AC = 2;
