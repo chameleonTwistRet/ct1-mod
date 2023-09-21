@@ -2,99 +2,10 @@
 #include "../include/mod_main.h"
 #include "../include/menu.h"
 
-void Rumble_StopAll(void);                                 /* extern */
-void func_8007B174(void);                                  /* extern */
-void func_8008C440(void);                                  /* extern */
-void func_8008C464(void);                                  /* extern */
-void func_8008C4E8(void);                                  /* extern */
-void func_8008C610(void);                                  /* extern */
-void func_8008C698(void);                                  /* extern */
-void func_8008C6D4(void);                                  /* extern */
-void func_800A7844(void);                                  /* extern */
-void func_800A78D0(void);                                  /* extern */
-extern s16 D_800FF5C4;
-extern s32 D_800FF5C8;
-extern s16 D_800FF5CC;
-extern s16 D_800FF5D8;
-extern char D_8010D530[];
-extern char D_8010D540[];
-extern char D_8010D544[];
-extern char D_8010D548[];
-extern char D_8010D54C[];
-extern char D_8010D550[];
-extern char D_8010D558[];
-extern char D_8010D55C[];
-extern char D_8010D560[];
-extern char D_8010D564[];
-extern OSMesgQueue D_801192B8;
-extern OSMesgQueue D_801192D0;
-extern void* D_801B30A0;
-extern OSTimer D_801B3148;
-extern OSMesgQueue D_801B35A0;
-extern s32 D_802478E0;
-
 u64 snakeTime = 0x00000000010C2300;
 s32 zoneExitID = 0;
 s32 freezeTimer = 0;
 s32 timerParametersBool = 0;
-
-typedef struct tempStructDebug {
-    char unk0[0x28];
-    f32 unk28;
-    f32 unk2C;
-    f32 unk30;
-    f32 unk34;
-    f32 unk38;
-    f32 unk3C;
-}tempStructDebug;
-
-extern s32 sDebugInt;
-// typedef struct unk80174880 {
-// /* 0x00 */ s32 unk_00[4];
-// /* 0x10 */ char unk_10[0x18];
-// /* 0x28 */ s32 unk_28[4];
-// /* 0x38 */ char unk_38[0x18];
-// /* 0x50 */ s32 unk_50[4];
-// /* 0x60 */ char unk_60[0x18];
-// /* 0x78 */ s32 unk_78;
-// /* 0x7C */ s32 unk_7C;
-// } unk80174880;
-
-extern unk80174880 D_80174880[];
-
-void Debug_ChangeRoom(void);                               /* extern */
-void Debug_ChangeView(void);                               /* extern */
-void Debug_MovePlayer(void);                               /* extern */
-s32 func_80080C28(f32, f32, f32, f32, f32, f32, s32, s32, s32, s32); /* extern */
-extern f32 D_800F070C;
-extern f32 D_800F0710;
-extern f32 D_800F0714;
-extern s32 D_800F0B40;
-extern char D_8010C7C4[];
-extern char D_8010C7CC[];
-extern char D_8010C7D4[];
-extern char D_8010C7E0[];
-extern char D_8010C7F0[];
-extern char D_8010C800[];
-extern char D_8010C80C[];
-extern char D_8010C81C[];
-extern char D_8010C824[];
-extern char D_8010C838[];
-extern char D_8010C850[];
-extern char D_8010C860[];
-extern char D_8010C870[];
-extern char D_8010C888[];
-extern char D_8010C89C[];
-extern f32 D_8010C8F4;
-extern f32 D_8010C8F8;
-
-extern s32 D_801748A8;
-extern s32 D_80174980;
-extern tempStructDebug D_801768A0;
-extern playerActor* D_80176B74;
-extern s32 D_802478E0;
-extern Collision gZoneCollisions[];
-extern s32 sDebugCodeSeqStep;
 
 void debugMain_Hook(void) {
     volatile s32 sp64;

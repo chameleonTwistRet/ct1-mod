@@ -62,8 +62,6 @@ void loadstateMain(void) {
     osInvalICache((void*)0x80000000, 0x2000);
 	osInvalDCache((void*)0x80000000, 0x2000);
     saveMask = __osDisableInt();
-    //2C6E40
-    //80786E40
     if (toggles[TOGGLE_NO_COMPRESSION_SAVESTATES]) {
         if (*(u32*)ramAddrSavestateDataSlot1 == 0x09000419) {
             //has valid uncompressed state, allow load

@@ -5,6 +5,16 @@
 #include "text.h"
 #include "../lib/ff.h"
 
+typedef struct tempStructDebug {
+    char unk0[0x28];
+    f32 unk28;
+    f32 unk2C;
+    f32 unk30;
+    f32 unk34;
+    f32 unk38;
+    f32 unk3C;
+} tempStructDebug;
+
 extern FIL fileres;
 extern Addr* mod_ROM_START;
 extern Addr* mod_VRAM;
@@ -21,6 +31,11 @@ void checkInputsForSavestates(void);
 void optimized_memcpy(void* destination, const void* source, u32 num_bytes);
 void setFreezeTimerC(void);
 void osSetCount(u32);
+void Debug_ChangeRoom(void);                               /* extern */
+void Debug_ChangeView(void);                               /* extern */
+void Debug_MovePlayer(void);                               /* extern */
+s32 func_80080C28(f32, f32, f32, f32, f32, f32, s32, s32, s32, s32); /* extern */
+
 extern s32 isFirstZoneCopy;
 extern s32 loadEnemiesBool; //used by `func_8002D644_patch.s`
 extern s32 freezeTimer;
@@ -34,6 +49,78 @@ extern s32 stateCooldown;
 extern s32 gameBootTimer;
 extern Collision gZoneCollisions[];
 extern s32 isMenuActive;
+extern s32 sDebugInt;
+extern unk80174880 D_80174880[];
+extern f32 D_800F070C;
+extern f32 D_800F0710;
+extern f32 D_800F0714;
+extern s32 D_800F0B40;
+extern char D_8010C7C4[];
+extern char D_8010C7CC[];
+extern char D_8010C7D4[];
+extern char D_8010C7E0[];
+extern char D_8010C7F0[];
+extern char D_8010C800[];
+extern char D_8010C80C[];
+extern char D_8010C81C[];
+extern char D_8010C824[];
+extern char D_8010C838[];
+extern char D_8010C850[];
+extern char D_8010C860[];
+extern char D_8010C870[];
+extern char D_8010C888[];
+extern char D_8010C89C[];
+extern f32 D_8010C8F4;
+extern f32 D_8010C8F8;
+
+extern s32 D_801748A8;
+extern s32 D_80174980;
+extern tempStructDebug D_801768A0;
+extern playerActor* D_80176B74;
+extern s32 D_802478E0;
+extern Collision gZoneCollisions[];
+extern s32 sDebugCodeSeqStep;
+void Rumble_StopAll(void);                                 /* extern */
+void func_8007B174(void);                                  /* extern */
+void func_8008C440(void);                                  /* extern */
+void func_8008C464(void);                                  /* extern */
+void func_8008C4E8(void);                                  /* extern */
+void func_8008C610(void);                                  /* extern */
+void func_8008C698(void);                                  /* extern */
+void func_8008C6D4(void);                                  /* extern */
+void func_800A7844(void);                                  /* extern */
+void func_800A78D0(void);                                  /* extern */
+extern s16 D_800FF5C4;
+extern s32 D_800FF5C8;
+extern s16 D_800FF5CC;
+extern s16 D_800FF5D8;
+extern char D_8010D530[];
+extern char D_8010D540[];
+extern char D_8010D544[];
+extern char D_8010D548[];
+extern char D_8010D54C[];
+extern char D_8010D550[];
+extern char D_8010D558[];
+extern char D_8010D55C[];
+extern char D_8010D560[];
+extern char D_8010D564[];
+extern OSMesgQueue D_801192B8;
+extern OSMesgQueue D_801192D0;
+extern void* D_801B30A0;
+extern OSTimer D_801B3148;
+extern OSMesgQueue D_801B35A0;
+extern s32 D_802478E0;
+s32 toggleSpeed(void);
+extern void* crash_screen_copy_to_buf(void* dest, const char* src, u32 size);
+void textPrint(f32 xPos, f32 yPos, f32 scale, void *text, s32 num);
+int __osPiDeviceBusy(void);
+s32 compress_lz4_ct_default(const u8* srcData, int srcSize, u8* bufferAddr);
+void decompress_lz4_ct_default(int srcSize, int savestateCompressedSize, u8* compressBuffer);
+void func_800C2A00(void);
+u32 guRandomRev(void);
+void func_800C0CDC(playerActor* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
+void func_800CFDC8(playerActor*);
+s32 printCustomDebugText(void);
 void func_8002CB6C(Gfx*, void*, s32);
 void osInvalICache(void*, s32);
 void osInvalDCache(void*, s32);
@@ -94,6 +181,7 @@ typedef struct CustomThread {
     /* 0x9D0 */ u16 width;
     /* 0x9D2 */ u16 height;
 } CustomThread; // size = 0x9D4
+extern CustomThread gCustomThread;
 extern graphicStruct gGraphicsList[2];
 extern s32 gFramebufferIndex;
 extern s32 D_800F066C;

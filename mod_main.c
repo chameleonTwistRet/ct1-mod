@@ -32,7 +32,6 @@ volatile s32 isSaveOrLoadActive = 0;
 s32 stateCooldown = 0;
 s32 currentlyPressedButtons = 0;
 s32 previouslyPressedButtons = 0;
-FATFS* FatFs = (FATFS*)0x807F0000;
 char *path = "ct1State.bin"; //example file for SD card writing
 FIL sdsavefile = {0};
 char pathTimes[] = "ct1TIMES.bin"; //example file for SD card writing
@@ -43,6 +42,9 @@ extern s32 gNextZone;
 void storeFirstEntry(void);
 s32 previousVault = 0;
 f32 previousVaultSpeed = 0;
+InputRecording inputRecordingBuffer; //1200 frames
+u32 recordingInputIndex = 0;
+
 // Patches work the same way as 81 and 80 GameShark Codes
 void s16patch(void* patchAddr, s16 patchInstruction) {
     *(s16*)patchAddr = patchInstruction;
@@ -57,11 +59,8 @@ void textPrint(f32 xPos, f32 yPos, f32 scale, void *text, s32 num) {
 
 FRESULT initFatFs(void) {
 	//Mount SD Card
-	return f_mount(FatFs, "", 0);
+	//return f_mount(FatFs, "", 0);
 }
-
-InputRecording inputRecordingBuffer; //1200 frames
-u32 recordingInputIndex = 0;
 
 void checkIfRecordInputs(void) {
     if (toggles[TOGGLE_RECORDING] == 0) {
@@ -89,7 +88,7 @@ void mod_boot_func(void) {
     #if USE_SD_CARD == TRUE
         //initialize SD card from everdrive, create test file, close
         cart_init();
-        initFatFs(); //crashes game...usually but not always?
+        //initFatFs(); //crashes game...usually but not always?
         //fileres = f_open(&sdsavefile, path, FA_OPEN_ALWAYS | FA_WRITE | FA_READ);
         //f_write(&sdsavefile, testString, ALIGN4(sizeof(testString)), &filebytesread);
         //f_close(&sdsavefile);
@@ -157,7 +156,7 @@ f32 clampTo45Degrees(f32 theta) {
     return theta;
 }
 
-void printCustomDebugText(void) {
+s32 printCustomDebugText(void) {
     char messageBuffer[20];
     char convertedMessageBuffer[sizeof(messageBuffer) * 2];
     f32 freeCamAngle = 0.0f;
@@ -247,6 +246,7 @@ void printCustomDebugText(void) {
         textPrint(13.0f, 194.0f, 0.5f, &convertedMessageBuffer, 1);
         break;
     }
+    return 0;
 }
 
 int guRandom_Hook(void)

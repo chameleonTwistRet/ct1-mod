@@ -2,30 +2,12 @@
 #define _MENU_H
 
 #include "common.h"
+#include "../lib/ff.h"
 
 typedef struct InputRecording {
     u32 totalFrameCount;
     contMain recordingBuffer[1200];
 } InputRecording;
-
-// typedef struct unkIsChange {
-//     /* 0x00 */ char unk_00[8];
-//     /* 0x08 */ s32 unk_08;
-//     /* 0x0C */ s32 unk_0C;
-//     /* 0x10 */ s32 unk_10;
-//     /* 0x14 */ s32 unk_14;
-//     /* 0x18 */ s32 unk18;
-//     /* 0x1C */ char unk_1C[0x24];
-//     /* 0x40 */ f32 unk40;
-//     /* 0x44 */ f32 unk44;
-//     /* 0x48 */ f32 unk48;
-//     /* 0x4C */ f32 unk4C;
-//     /* 0x50 */ f32 unk50;
-//     /* 0x54 */ f32 unk54;
-//     /* 0x58 */ char unk_58[0x7C];
-//     /* 0xD4 */ s32 unk_D4;
-//     /* 0xD8 */ s32 unk_D8;
-// } unkIsChange;
 
 extern void _sprintf(void* destination, void* fmt, ...);
 extern void convertAsciiToText(void* buffer, char* source);
@@ -50,12 +32,41 @@ extern s32 textGreenMatColor[];
 extern s32 textWhiteColor[];
 extern s32 textRedColor[];
 extern OSContPad D_80175650[MAXCONTROLLERS];
+
+s32 DisplayIndividualRoomTimeToggle(void);
+s32 DisplayTASComparison(void);
+s32 FrameAdvanceToggle(void);
+s32 NoCompressionToggle(void);
+s32 advanceGuRNG(void);
+s32 revGuRNG(void);
+s32 setBLSeed(void);
+s32 setKLSeed(void);
+s32 setGCSeed(void);
+s32 toggleYoloPillarPractice(void);
+s32 toggleBackVaultPractice(void);
+s32 toggleHideSavestateText(void);
+s32 toggleHideIGT(void);
+s32 toggleInfiniteHealth(void);
+// s32 toggleSpeed(void);
+s32 toggleCustomDebugText(void);
+s32 toggleCaveSkipPractice(void);
+s32 toggleObjectSpawnsOff(void);
+void enterBossRoom2(s32 unk);
+s32 teleportToStageBoss(void);
+void savestateMainStartRecording(void);
+void loadstateRecordingMain(void);
+s32 ResetTimerToggle(void);
+s32 StartRecording(void);
+s32 ExportRecording(void);
+s32 ImportRecording(void);
+s32 PlayRecording(void);
+
 enum Pages {
     PAGE_MAIN = 0,
     PAGE_JL = 1,
     PAGE_RECORDING = 2,
     PAGE_MISC = 3,
-    PAGE_PRACTICE = 4,
+    PAGE_PRACTICE = 4
 };
 
 enum Toggles {
@@ -93,5 +104,26 @@ enum Toggles {
     TOGGLE_FRAME_ADVANCE
 };
 
+extern char string_ON[];
+extern char string_OFF[];
+extern char string_IGT[];
+extern char string_IGT_MS[];
+extern char string_IGT_FRAMES[];
+extern char string_RTA_MS[];
+extern char* ONAndOFF[];
+extern char* InGameTimerText[];
+extern char variousStatsText[];
+extern char freeCamText[];
+extern char rngSeedText[];
+extern char quintellaSpinCancelText[];
+extern char frameCountText[];
+extern char* CustomTextMain[];
+extern char** page0Strings[];
+extern char** page4Strings[];
+extern char** page1Strings[];
+extern char** page3Strings[];
+extern FATFS FatFs;
+extern char *path; //"ct1State.bin"; //example file for SD card writing
+extern FIL sdsavefile;
 
 #endif
