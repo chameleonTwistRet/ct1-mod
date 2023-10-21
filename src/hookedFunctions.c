@@ -1190,12 +1190,12 @@ void ActorTick_GhostBoss_Hook(Actor* arg0) {
         }
     }
     //the jump table locations are correct even though rodata is off by 0x04
-    switch (arg0->unk_10C[2]) {
+    switch (arg0->userVariables[2]) {
     case BOOKS_STILL_ON_ENTRY:
         if (arg0->globalTimer >= 0x79U) {
             arg0->pos.y += 20.0f;
             if (arg0->globalTimer == 0x96) {
-                arg0->unk_10C[2] = BOOKS_ASSEMBLE_PHASE1;
+                arg0->userVariables[2] = BOOKS_ASSEMBLE_PHASE1;
                 playSoundEffect(0xB2, NULL, NULL, NULL, 0, 0x10);
             }
         }
@@ -1212,7 +1212,7 @@ void ActorTick_GhostBoss_Hook(Actor* arg0) {
         arg0->unk_F0++;
         
         if (arg0->unk_F0 == 0xB3) {
-            arg0->unk_10C[2] = BOOKS_CREATE_ARMS;
+            arg0->userVariables[2] = BOOKS_CREATE_ARMS;
             arg0->unk_90 = arg0->unk_134[2];
         }
         break;
@@ -1227,11 +1227,11 @@ void ActorTick_GhostBoss_Hook(Actor* arg0) {
         temp_s0_2->pos.y = arg0->pos.y + (arg0->unknownPositionThings[0].unk_10 * 0.6f) - (temp_s0_2->unknownPositionThings[0].unk_10 * 0.125f);
         temp_s0_2->pos.z = -__sinf((arg0->unk_90 + 90.0f) * 2.0f * PI / 360.0) * 300.0f + arg0->pos.z;
         temp_s0_2->unk_90 = arg0->unk_90 + 45.0f;
-        arg0->unk_10C[0] = -1;
-        arg0->unk_10C[1] = -1;
+        arg0->userVariables[0] = -1;
+        arg0->userVariables[1] = -1;
         func_80044C30(arg0, 2);
         func_800448C0(arg0);
-        arg0->unk_10C[2] = BOOKS_SEND_OUT_ARMS;
+        arg0->userVariables[2] = BOOKS_SEND_OUT_ARMS;
         playSoundEffect(0xB4, &arg0->pos.x, &arg0->pos.y, &arg0->pos.z, 0, 0);
         break;
     case BOOKS_SEND_OUT_ARMS:
@@ -1247,8 +1247,8 @@ void ActorTick_GhostBoss_Hook(Actor* arg0) {
         func_80044C30(arg0, 2);
         func_800448C0(arg0);
         if (func_80044E80(arg0, 0) == 8) {
-            arg0->unk_10C[2] = BOOKS_ARM_ATTACK;
-            arg0->unk_10C[4] += 1;
+            arg0->userVariables[2] = BOOKS_ARM_ATTACK;
+            arg0->userVariables[4] += 1;
             if ((f32) (Random(0, 60000) % 100) < (arg0->unk_164 * 100.0f)) {
                 arg0->unk_134[7] = 2.0f;
             } else {
@@ -1259,20 +1259,20 @@ void ActorTick_GhostBoss_Hook(Actor* arg0) {
         break;
     case BOOKS_ARM_ATTACK:
     case BOOKS_ARM_ATTACK_COPY:
-        if (func_80044E80(arg0, 5 - arg0->unk_10C[2]) == 0) {
+        if (func_80044E80(arg0, 5 - arg0->userVariables[2]) == 0) {
             arg0->unk_134[6] += 1.0f;
-            if ((arg0->unk_134[6] == 30.0f) || (arg0->unk_124 != arg0->unk_10C[4])) {
+            if ((arg0->unk_134[6] == 30.0f) || (arg0->unk_124 != arg0->userVariables[4])) {
                 temp_f0_2 = arg0->pos.x - PlayerPointer->pos.x;
                 temp_f2_3 = arg0->pos.z - PlayerPointer->pos.z;
                 arg0->unk_134[6] = 0;
-                if ((arg0->unk_124 == arg0->unk_10C[4]) || (arg0->unk_10C[3] == 0)) {
-                    arg0->unk_10C[4] = 0;
-                    arg0->unk_10C[2] = BOOKS_PULL_ARMS_IN_COPY;
+                if ((arg0->unk_124 == arg0->userVariables[4]) || (arg0->userVariables[3] == 0)) {
+                    arg0->userVariables[4] = 0;
+                    arg0->userVariables[2] = BOOKS_PULL_ARMS_IN_COPY;
                 } else if (arg0->position._f32.x < ((SQ(temp_f0_2)) + (SQ(temp_f2_3)))) {
-                    arg0->unk_10C[2] = BOOKS_PULL_ARMS_IN;
-                } else if (arg0->unk_10C[2] == BOOKS_ARM_ATTACK) {
-                    arg0->unk_10C[2] = BOOKS_ARM_ATTACK_COPY;
-                    arg0->unk_10C[4]++;
+                    arg0->userVariables[2] = BOOKS_PULL_ARMS_IN;
+                } else if (arg0->userVariables[2] == BOOKS_ARM_ATTACK) {
+                    arg0->userVariables[2] = BOOKS_ARM_ATTACK_COPY;
+                    arg0->userVariables[4]++;
                     if ((Random(0, 65336) % 256) < (arg0->unk_164 * 256.0f)) {
                         arg0->unk_134[7] = 2.0f;
                     } else {
@@ -1280,8 +1280,8 @@ void ActorTick_GhostBoss_Hook(Actor* arg0) {
                     }
                     playSoundEffect(0xB4, &arg0->pos.x, &arg0->pos.y, &arg0->pos.z, 0, 0);
                 } else {
-                    arg0->unk_10C[2] = BOOKS_ARM_ATTACK;
-                    arg0->unk_10C[4]++;
+                    arg0->userVariables[2] = BOOKS_ARM_ATTACK;
+                    arg0->userVariables[4]++;
                     if ((Random(0, 65336) % 256) < (arg0->unk_164 * 256.0f)) {
                         arg0->unk_134[7] = 2.0f;
                     } else {
@@ -1293,12 +1293,12 @@ void ActorTick_GhostBoss_Hook(Actor* arg0) {
                 goto block_53;
             }
         } else {
-            if ((arg0->unk_10C[2] - 4) != 0) {
+            if ((arg0->userVariables[2] - 4) != 0) {
                 temp_s0 = &gActors[D_801749D8.armActorIDs[1][0]];
             } else {
                 temp_s0 = &gActors[D_801749D8.armActorIDs[0][0]];
             }
-            if (arg0->unk_124 == arg0->unk_10C[4]) {
+            if (arg0->unk_124 == arg0->userVariables[4]) {
                 sp118 = (s32) (arg0->unk_134[7] * 2.0f);
             } else {
                 sp118 = (s32) arg0->unk_134[7];
@@ -1307,7 +1307,7 @@ void ActorTick_GhostBoss_Hook(Actor* arg0) {
             if (sp118 > 0) {
                 sp8C = &temp_s0->unk_90;
 loop_48:
-                if (func_80044E80(arg0, arg0->unk_10C[2] - 4) < 9) {
+                if (func_80044E80(arg0, arg0->userVariables[2] - 4) < 9) {
                     temp_f0_3 = temp_s0->pos.y;
                     temp_s0->pos.y = temp_f0_3 - (temp_f0_3 / 10.0f);
                     var_f2 = 6.0f / sp118;
@@ -1317,9 +1317,9 @@ loop_48:
                 func_8002D36C(sp8C, CalcAngleBetween2DPoints(temp_s0->pos.x, temp_s0->pos.z, PlayerPointer->pos.x, PlayerPointer->pos.z), var_f2);
                 temp_s0->pos.x += 20.0f * __cosf((f32) (((f64) (temp_s0->unk_90 * 2.0f) * PI) / 360.0));
                 temp_s0->pos.z += 20.0f * -__sinf((f32) (((f64) (temp_s0->unk_90 * 2.0f) * PI) / 360.0));
-                func_80044C30(arg0, arg0->unk_10C[2] - 4);
-                func_80044D58(arg0, 5 - arg0->unk_10C[2]);
-                if (func_80044E80(arg0, 5 - arg0->unk_10C[2]) != 0) {
+                func_80044C30(arg0, arg0->userVariables[2] - 4);
+                func_80044D58(arg0, 5 - arg0->userVariables[2]);
+                if (func_80044E80(arg0, 5 - arg0->userVariables[2]) != 0) {
                     sp11C++;
                     if (sp11C != sp118) {
                         goto loop_48;
@@ -1347,15 +1347,15 @@ block_53:
         }
         func_800448C0(arg0);
         if ((temp_s0_3 == 0) && (sp100 == 0)) {
-            if (arg0->unk_10C[3] == 0) {
-                arg0->unk_10C[2] = BOOKS_KILL_ARMS;
-                arg0->unk_10C[4] = 0;
-            } else if (arg0->unk_10C[2] == BOOKS_PULL_ARMS_IN_COPY) {
-                arg0->unk_10C[2] = BOOKS_PHASE1_WALK_BEFORE_ARM_PLANT;
+            if (arg0->userVariables[3] == 0) {
+                arg0->userVariables[2] = BOOKS_KILL_ARMS;
+                arg0->userVariables[4] = 0;
+            } else if (arg0->userVariables[2] == BOOKS_PULL_ARMS_IN_COPY) {
+                arg0->userVariables[2] = BOOKS_PHASE1_WALK_BEFORE_ARM_PLANT;
                 arg0->unk_EC = 2;
                 arg0->unk_F0 = 0;
             } else if (((SQ(temp_f20_4)) + (SQ(temp_f22_4))) < arg0->position._f32.x) {
-                arg0->unk_10C[2] = BOOKS_SEND_OUT_ARMS;
+                arg0->userVariables[2] = BOOKS_SEND_OUT_ARMS;
                 playSoundEffect(0xB4, &arg0->pos.x, &arg0->pos.y, &arg0->pos.z, 0, 0);
             }
         } else if (((s32) D_8017499C % 24) == 0) { //every 24 frames play books regen noise if regenerating health
@@ -1384,8 +1384,8 @@ block_53:
                 arg0->unk_134[5] = -1.0f;
             }
             arg0->unk_16C = ((Random(0, 99999) % 2) * 2) - 1;
-            arg0->unk_10C[2] = BOOKS_PLANT_ARM;
-            arg0->unk_10C[arg0->unk_120] = -1;
+            arg0->userVariables[2] = BOOKS_PLANT_ARM;
+            arg0->userVariables[arg0->unk_120] = -1;
             func_80044C30(arg0, arg0->unk_120);
             temp_f12 = (f32) (((f64) ((((f32) (1 - (arg0->unk_120 * 2)) * arg0->unk_134[5] * 90.0f) + CalcAngleBetween2DPoints(PlayerPointer->pos.x, PlayerPointer->pos.z, arg0->pos.x, arg0->pos.z)) * 2.0f) * PI) / 360.0);
             arg0->unk_134[3] = CalcAngleBetween2DPoints(arg0->pos.x, arg0->pos.z, (__cosf(temp_f12) * 300.0f) + PlayerPointer->pos.x, PlayerPointer->pos.z - (__sinf(temp_f12) * 300.0f));
@@ -1416,25 +1416,25 @@ block_53:
         }
         
         func_800448C0(arg0);
-        arg0->unk_10C[4]++;
+        arg0->userVariables[4]++;
         
-        if (arg0->unk_10C[4] < 20) {
+        if (arg0->userVariables[4] < 20) {
             arg0->unk_134[4] += 1.0f;
             temp_s0_2->pos.z += 10.0f;
         }
         if (func_80044E80(arg0, arg0->unk_120) == 15) {
-            arg0->unk_10C[2] = BOOKS_ARM_SPIN;
-            arg0->unk_10C[4] = 0;
+            arg0->userVariables[2] = BOOKS_ARM_SPIN;
+            arg0->userVariables[4] = 0;
             arg0->unk_134[0] = 0.0f;
             playSoundEffect(0xB5, &arg0->pos.x, &arg0->pos.y, &arg0->pos.z, 0, 0);
         }
         break;
     case BOOKS_ARM_SPIN:
-        arg0->unk_10C[4]++;
+        arg0->userVariables[4]++;
         var_f20 = arg0->unk_16C * (arg0->position._f32.y * (f32) ((arg0->unk_120 * 2) - 1) * arg0->unk_134[5]);
-        if (arg0->unk_10C[4] < 8) {
-            var_f20 *= (f32) ((s32) (arg0->unk_10C[4] + 1) / 8);
-        } else if (arg0->unk_10C[4] == 8) {
+        if (arg0->userVariables[4] < 8) {
+            var_f20 *= (f32) ((s32) (arg0->userVariables[4] + 1) / 8);
+        } else if (arg0->userVariables[4] == 8) {
             playSoundEffect(0xB5, &arg0->pos.x, &arg0->pos.y, &arg0->pos.z, 0, 0);
         }
         
@@ -1457,8 +1457,8 @@ block_53:
         temp_f0_6 = arg0->unk_134[0];
         
         if ((temp_f0_6 >= 360.0f) || (temp_f0_6 <= -360.0f)) {
-            arg0->unk_10C[2] = BOOKS_PHASE1_WALK_AFTER_ARM_PLANT;
-            arg0->unk_10C[4] = 0;
+            arg0->userVariables[2] = BOOKS_PHASE1_WALK_AFTER_ARM_PLANT;
+            arg0->userVariables[4] = 0;
             arg0->unk_90 = arg0->unk_134[2];
             arg0->unk_134[6] = 0.0f;
         }
@@ -1471,13 +1471,13 @@ block_53:
         func_800448C0(arg0);
         temp_s0 = &gActors[D_801749D8.armActorIDs[arg0->unk_120][0]];
         
-        if (arg0->unk_10C[4]++ < 0x14) {
+        if (arg0->userVariables[4]++ < 0x14) {
             arg0->unk_134[4] -= 1.0f;
             temp_s0->pos.z -= 10.0f;
         }
         if (func_80044E80(arg0, arg0->unk_120) == 0) {
-            arg0->unk_10C[2] = BOOKS_WALK_TO_HOME;
-            arg0->unk_10C[4] = 0;
+            arg0->userVariables[2] = BOOKS_WALK_TO_HOME;
+            arg0->userVariables[4] = 0;
             arg0->unk_134[4] = 0.0f;
         }
         break;
@@ -1491,14 +1491,14 @@ block_53:
         
         if (arg0->pos.z <= temp_f2_4) {
             arg0->pos.z = temp_f2_4;
-            if (arg0->unk_10C[3] == 0) {
-                arg0->unk_10C[4] = 0;
-                arg0->unk_10C[2] = BOOKS_KILL_ARMS;
+            if (arg0->userVariables[3] == 0) {
+                arg0->userVariables[4] = 0;
+                arg0->userVariables[2] = BOOKS_KILL_ARMS;
             } else {
-                arg0->unk_10C[2] = BOOKS_SEND_OUT_ARMS;
+                arg0->userVariables[2] = BOOKS_SEND_OUT_ARMS;
                 playSoundEffect(0xB4, &arg0->pos.x, &arg0->pos.y, &arg0->pos.z, 0, 0);
-                arg0->unk_10C[4] = 0;
-                arg0->unk_10C[arg0->unk_120] = -1;
+                arg0->userVariables[4] = 0;
+                arg0->userVariables[arg0->unk_120] = -1;
                 func_80044C30(arg0, arg0->unk_120);
                 arg0->unk_EC = 0;
                 arg0->unk_F0 = 0xB3;
@@ -1516,18 +1516,18 @@ block_53:
         }
         break;
     case BOOKS_KILL_ARMS:
-        arg0->unk_10C[4]++;
-        if (arg0->unk_10C[4] == 1) {
+        arg0->userVariables[4]++;
+        if (arg0->userVariables[4] == 1) {
             func_800313BC(D_801749D8.armActorIDs[0][0], 180.0f);
             func_800313BC(D_801749D8.armActorIDs[1][0], 0.0f);
             for (i = 0; i < 4; i++) {
                 func_80031518(&gActors[D_801749D8.armActorIDs[0][i]]);
                 func_80031518(&gActors[D_801749D8.armActorIDs[1][i]]);
             }
-        } else if (arg0->unk_10C[4] == 0x1E) {
-            arg0->unk_10C[4] = 0;
-            arg0->unk_10C[2] = BOOKS_TRANSFORM_PHASE2;
-            arg0->unk_10C[0] = 0;
+        } else if (arg0->userVariables[4] == 0x1E) {
+            arg0->userVariables[4] = 0;
+            arg0->userVariables[2] = BOOKS_TRANSFORM_PHASE2;
+            arg0->userVariables[0] = 0;
             arg0->unk_EC = 1;
             arg0->unk_F0 = 0;
             playSoundEffect(0xB2, NULL, NULL, NULL, 0, 0x10);
@@ -1543,7 +1543,7 @@ block_53:
         arg0->unk_F0++;
         
         if (arg0->unk_F0 == 0xC7) {
-            arg0->unk_10C[2] = BOOKS_CHOOSE_INITIAL_PHASE2_ANGLE;
+            arg0->userVariables[2] = BOOKS_CHOOSE_INITIAL_PHASE2_ANGLE;
             arg0->unknownPositionThings[0].unk_10 = 350.0f;
             arg0->tYPos = 350.0f;
             arg0->unk_120 = Random(0, 99999999) % MAX_MOVES;
@@ -1561,7 +1561,7 @@ block_53:
             }
             break;
         }
-        arg0->unk_10C[2] = DO_PHASE2_MOVEMENT; //actor state
+        arg0->userVariables[2] = DO_PHASE2_MOVEMENT; //actor state
         break;
     case DO_PHASE2_MOVEMENT:
         temp_f2_6 = arg0->pos.x - arg0->unk_134[3];
@@ -1571,9 +1571,9 @@ block_53:
             arg0->unk_120--;
             arg0->unk_94 = 0.0f;
             if (arg0->unk_120 != 0) {
-                arg0->unk_10C[2] = BOOKS_CHOOSE_INITIAL_PHASE2_ANGLE;
+                arg0->userVariables[2] = BOOKS_CHOOSE_INITIAL_PHASE2_ANGLE;
             } else {
-                arg0->unk_10C[2] = BOOKS_FACE_CENTER_FOR_SHOT;
+                arg0->userVariables[2] = BOOKS_FACE_CENTER_FOR_SHOT;
                 if ((Random(0, 99999) % 100) < 50) {
                     arg0->unk_120 = STRAIGHT_SHOT;
                 } else {
@@ -1596,28 +1596,28 @@ block_53:
         func_8002F6DC(&arg0->unk_90, arg0->unk_134[5]);
         if (arg0->unk_90 == arg0->unk_134[5]) {
             if (arg0->unk_120 == 0) {
-                arg0->unk_10C[2] = BOOKS_DO_STRAIGHT_SHOT;
-                arg0->unk_10C[4] = Random(arg0->unk_12C, arg0->unk_130);
+                arg0->userVariables[2] = BOOKS_DO_STRAIGHT_SHOT;
+                arg0->userVariables[4] = Random(arg0->unk_12C, arg0->unk_130);
             } else {
-                arg0->unk_10C[2] = BOOKS_DO_CURVED_SHOT;
-                arg0->unk_10C[4] = 0;
+                arg0->userVariables[2] = BOOKS_DO_CURVED_SHOT;
+                arg0->userVariables[4] = 0;
             }
         }
         break;
     case BOOKS_DO_STRAIGHT_SHOT:
         spAC = arg0->pos.x - PlayerPointer->pos.x;
         spA8 = arg0->pos.z - PlayerPointer->pos.z;
-        if ((PlayerPointer->shootLeft != 0) && (arg0->unk_10C[4] >= 4)) {
+        if ((PlayerPointer->shootLeft != 0) && (arg0->userVariables[4] >= 4)) {
             func_8002F6DC(&arg0->unk_90, CalcAngleBetween2DPoints(arg0->pos.x, arg0->pos.z, PlayerPointer->pos.x, PlayerPointer->pos.z));
         }
         if (!(arg0->globalTimer & 3)) {
             if (Actor_Init(0x40, (__cosf(arg0->unk_90 * 2.0f * PI / 360.0) * 280.0f) + arg0->pos.x, arg0->pos.y + 100.0f, arg0->pos.z - (__sinf(arg0->unk_90 * 2.0f * PI / 360.0) * 280.0f), arg0->unk_90, arg0->unk_F4, arg0->unk_F8, arg0->unk_FC, arg0->unk_100, arg0->unk_104, arg0->unk_108, 80.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0, 0, 0, 0) != -1) {
                 playSoundEffect(0xBB, NULL, NULL, NULL, 0, 0x10);
-                arg0->unk_10C[4] -= 1;
+                arg0->userVariables[4] -= 1;
             }
         }
-        if ((arg0->unk_10C[4] == 0) || (((SQ(spAC)) + (SQ(spA8))) < 640000.0f)) {
-            arg0->unk_10C[2] = BOOKS_CHOOSE_INITIAL_PHASE2_ANGLE;
+        if ((arg0->userVariables[4] == 0) || (((SQ(spAC)) + (SQ(spA8))) < 640000.0f)) {
+            arg0->userVariables[2] = BOOKS_CHOOSE_INITIAL_PHASE2_ANGLE;
             arg0->unk_120 = Random(0, 99999999) % MAX_MOVES;
         }
         break;
@@ -1631,9 +1631,9 @@ block_53:
         }
         arg0->unk_90 += 0.803571f;
         wrapDegrees(&arg0->unk_90);
-        arg0->unk_10C[4]++;
-        if ((arg0->unk_10C[4] == 0x70) || (PlayerPointer->shootLeft != 0) || ((SQ(spA4) + SQ(spA0)) < 640000.0f)) {
-            arg0->unk_10C[2] = BOOKS_CHOOSE_INITIAL_PHASE2_ANGLE;
+        arg0->userVariables[4]++;
+        if ((arg0->userVariables[4] == 0x70) || (PlayerPointer->shootLeft != 0) || ((SQ(spA4) + SQ(spA0)) < 640000.0f)) {
+            arg0->userVariables[2] = BOOKS_CHOOSE_INITIAL_PHASE2_ANGLE;
             arg0->unk_120 = Random(0, 99999999) % MAX_MOVES;
         }
         break;
