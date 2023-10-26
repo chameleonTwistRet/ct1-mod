@@ -422,7 +422,7 @@ void videoproc_Hook(s32 arg0) {
             osSetTimer(&D_801B3148, 0x8F184, 0, &D_801B3120, (void*) 6);
             if (sp54 != 0) {
                 if (osSendMesg(&D_801192E8, NULL, 0) == -1) {
-                    DummiedPrintf(D_8010D530);
+                    DummiedPrintf("Gfx送信失敗\n");
                 } else {
                     var_s2 ^= 1;
                 }
@@ -433,17 +433,17 @@ void videoproc_Hook(s32 arg0) {
             continue;
         case 1:
             if (D_800FF5F0 == 2) {
-                DummiedPrintf(D_8010D540);
+                DummiedPrintf("Ae");
                 func_8008C6D4();
                 D_800FF5F0 = 0;
                 osSendMesg(&D_801192B8, (void* )1, 0);
             } else if (D_800FF5F0 == (s16) 1) {
-                DummiedPrintf(D_8010D544);
+                DummiedPrintf("Gy");
                 func_8008C464();
                 D_800FF5EC = 0;
                 osSendMesg(&D_801192B8, (void* )1, 0);
             } else {
-                DummiedPrintf(D_8010D548);
+                DummiedPrintf("Ge");
                 func_8008C464();
                 D_800FF5EC = 0;
             }
@@ -452,7 +452,7 @@ void videoproc_Hook(s32 arg0) {
             }
             continue;
         case 2:
-            DummiedPrintf(D_8010D54C);
+            DummiedPrintf("D");
             if (D_800FF5CC != 0) {
                 D_800FF5CC -= 1;
                 if (D_800FF5CC == 0) {
@@ -467,12 +467,12 @@ void videoproc_Hook(s32 arg0) {
             continue;
         case 3:
             if (D_800FF5C4 != 0) {
-                DummiedPrintf(D_8010D550);
+                DummiedPrintf("Res ");
             } else if (D_800FF5F0 != 0) {
                 D_800FF5C8 = 1;
-                DummiedPrintf(D_8010D558);
+                DummiedPrintf("Sw ");
             } else {
-                DummiedPrintf(D_8010D55C);
+                DummiedPrintf("Gs ");
                 D_800FF5C8 = 0;
                 osWritebackDCacheAll();
                 osSpTaskLoad(D_801B3138);
@@ -487,7 +487,7 @@ void videoproc_Hook(s32 arg0) {
         case 5:
             if (D_800FF5C4 == 0) {
                 osRecvMesg(&D_801192B8, NULL, 0);
-                DummiedPrintf(D_8010D560);
+                DummiedPrintf("As");
                 D_800FF5F0 = 2;
                 osWritebackDCacheAll();
                 osSpTaskLoad((OSTask* ) D_801B3140);
@@ -507,7 +507,7 @@ void videoproc_Hook(s32 arg0) {
         if (osSendMesg(&D_801B35A0, NULL, 0) != -1) {
             continue;
         }
-        DummiedPrintf(D_8010D564);
+        DummiedPrintf("Audio送信失敗\n");
         continue;   
     }
 }
@@ -528,7 +528,7 @@ s32 SaveData_ReadFile(SaveFile*);
 void func_8002CE54(void);
 void func_800546F0(void);
 void func_8008800C(s32);
-void func_8008BE14(void);
+s32 func_8008BE14(void);
 void func_8008FD68(void);
 void func_8008FE00(void);
 void func_8008FEA8(s32, u8);

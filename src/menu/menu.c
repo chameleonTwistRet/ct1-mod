@@ -5,7 +5,7 @@
 #include "../../lib/cart.h"
 #include "../../lib/ff.h"
 #include "../../lib/ffconf.h"
-#include "../../include/sd_toggle.h"
+#include "mod.h"
 
 typedef s32 (*menuProc) (void);
 

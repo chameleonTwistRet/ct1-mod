@@ -2,7 +2,7 @@
 #include "lib/cart.h"
 #include "lib/ff.h"
 #include "lib/ffconf.h"
-#include "include/sd_toggle.h"
+#include "mod.h"
 #include "include/menu.h"
 
 //in assets/ you'll find an example of replacing an image
