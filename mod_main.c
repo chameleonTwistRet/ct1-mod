@@ -19,7 +19,7 @@ u32* storedIGT = (u32*)0x80109DD8;
 u64* prevDoorEntryCount = (u64*)0x80109DA8;
 u32* prevCurrentStageCountRTA = (u32*)0x80109DD4;
 u32* startingCount = (u32*)0x80109DC8;
-extern u8 gLevelAccessBitfeild;
+//extern u8 gLevelAccessBitfeild;
 extern u8 gLevelClearBitfeild;
 extern u8 D_80200B68;
 s32 recordingErrorMessageStick = 0;
@@ -404,7 +404,7 @@ void mod_main_per_frame(void) {
     char textBuffer[8];
     char convertedVersionBuffer[sizeof(pracTwistVersionString) * 2];
     f32* acceleration = (f32*)0x80168DEC;
-    gLevelAccessBitfeild = 0xFF;
+    gGameState.stageAccess = 0xFF;
     gLevelClearBitfeild = 0xFF;
     D_80200B68 = 0xFF; //unlock all levels
     gGameRecords.flags[1] = 0x04; //give white
