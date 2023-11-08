@@ -7,6 +7,276 @@ s32 zoneExitID = 0;
 s32 freezeTimer = 0;
 s32 timerParametersBool = 0;
 
+#define CAKE_INIT 0
+#define CAKE_CHOCO_KIDS_ENTER 1
+#define CAKE_CHOCO_KIDS_ENTER_PHASE_2 2
+
+#define CAKE_SPIN 4
+#define CAKE_MOVE_AND_LAUNCH_BERRIES 5
+#define CAKE_SHOW_CHOCO_KIDS 6
+#define CAKE_DEATH 7
+
+#define CAKE_STATE actor->userVariables[0]
+#define CAKE_MOVE_TIMER actor->userVariables[1]
+#define CHOCO_KID_COUNT actor->userVariables[2]
+
+#define PI 3.141592653589793
+
+s32 secondPhase = 0;
+s32 chocokidSpawnTimer = 0;
+s32 cakePhase3Hits = 0;
+s32 hasEnteredPhase3 = 0;
+s32 soundEffect =  0;
+
+void ActorInit_CakeBoss_Hook(Actor* actor) {
+    actor->tongueCollision = 3;
+    CHOCO_KID_COUNT = 8; 
+    secondPhase = 0;
+    actor->unknownPositionThings[1].unk_0C = actor->tScale;
+    actor->unknownPositionThings[1].unk_04 = 250;
+    actor->unknownPositionThings[1].unk_10 = actor->tYPos;
+    actor->unknownPositionThings[1].unk_08 = 0.0f;
+    actor->unknownPositionThings[1].unk_00 = 0.0f;
+    actor->unknownPositionThings[2].unk_08 = 0.0f;
+    actor->unknownPositionThings[2].unk_04 = 0.0f;
+    actor->unknownPositionThings[2].unk_00 = 0.0f;
+    actor->unknownPositionThings[2].unk_0C = 200;
+    actor->unknownPositionThings[2].unk_10 = actor->tYPos * 2;
+    chocokidSpawnTimer = 90; //spawn choco kid every 3 seconds
+    cakePhase3Hits = 0;
+    hasEnteredPhase3 = 0;
+    soundEffect = 0;
+}
+
+void incrementCakeHitCounter(void) {
+    if (hasEnteredPhase3 == 1) {
+        cakePhase3Hits++;
+        playSoundEffect(0xB9, 0, 0, 0, 0, 0x0010); //books phase 2 getting hit by cue ball noise
+    }
+}
+
+
+void ActorTick_CakeBoss_Hook(Actor* actor) {
+    f32 temp_f12;
+    f32 temp_f20;
+    f32 xDistFromDestination;
+    f32 zDistFromDestination;
+    f32 temp_f26;
+    f32 temp_f30;
+    f32 temp_f6;
+    f32 var_f30;
+    u32 var;
+    s32 i;
+
+    temp_f20 = CalcAngleBetween2DPoints(actor->pos.x, actor->pos.z, PlayerPointer->pos.x, PlayerPointer->pos.z);
+    if (CHOCO_KID_COUNT == 4) {
+        if (secondPhase == 0) {
+            secondPhase = 1;
+            actor->unk_F0 = 0x0E;
+            actor->globalTimer = 0x77;
+            CAKE_STATE = CAKE_INIT;
+            actor->vel.z = 0.0f;
+            actor->vel.x = 0.0f;
+            actor->unk_15C = 35.0f; //double cake speed when running from player before opening
+            actor->unk_128 = 65; //how long cake is vulnerable
+        }
+    } else if (CHOCO_KID_COUNT == 0) {
+        if (hasEnteredPhase3 == 0) {
+            hasEnteredPhase3 = 1;
+            CAKE_STATE = CAKE_SPIN;
+            CAKE_MOVE_TIMER = 0;
+            for (i = 0; i < 6; i++) {
+                Actor_Init(Cake_Boss_Strawberry, actor->pos.x, actor->pos.y + 450.0f, actor->pos.z, 0.0f, -10000.0f, 10000.0f, -10000.0f, 10000.0f, -10000.0f, 10000.0f, ((f32) i * 60.0f) + 30.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, actor->actorIndex, i, actor->unk_12C, 0);
+            }
+            Actor_Init(Cake_Boss_Strawberry, actor->pos.x, actor->pos.y + 450.0f, actor->pos.z, 0.0f, -10000.0f, 10000.0f, -10000.0f, 10000.0f, -10000.0f, 10000.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, actor->actorIndex, 6, actor->unk_12C, 0);
+        }
+    }
+
+    if (hasEnteredPhase3  == 1) {
+        if ((actor->unk_F0 -1) != 0) {
+            actor->unk_F0--;
+        }
+    }
+
+    if (hasEnteredPhase3 == 1 && cakePhase3Hits == 5) {
+        CAKE_STATE = CAKE_DEATH;
+        func_80087358(actor->userVariables[3]); //kill sounds
+        actor->vel.z = 0.0f;
+        actor->vel.x = 0.0f;       
+    }
+    if (secondPhase == 1) {
+        if (actor->globalTimer == 0xD1) {
+            actor->globalTimer = 0x128;
+            for (i = 0; i < 6; i++) {
+                Actor_Init(Cake_Boss_Strawberry, actor->pos.x, actor->pos.y + 450.0f, actor->pos.z, 0.0f, -10000.0f, 10000.0f, -10000.0f, 10000.0f, -10000.0f, 10000.0f, ((f32) i * 60.0f) + 30.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, actor->actorIndex, i, actor->unk_12C, 0);
+            }
+            Actor_Init(Cake_Boss_Strawberry, actor->pos.x, actor->pos.y + 450.0f, actor->pos.z, 0.0f, -10000.0f, 10000.0f, -10000.0f, 10000.0f, -10000.0f, 10000.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, actor->actorIndex, 6, actor->unk_12C, 0);
+        }
+    }
+
+    if (CAKE_STATE == CAKE_SPIN || CAKE_STATE == CAKE_MOVE_AND_LAUNCH_BERRIES) {
+        if (secondPhase == 1) {
+            if (gActorCount < 50) {
+                if (--chocokidSpawnTimer == 0) {
+                    Actor_Init(Choco_Kid, actor->pos.x - 300.0f, actor->pos.y, actor->pos.z, 0 + 180.0f, -10000.0f, 10000.0f, -10000.0f, 10000.0f, -10000.0f, 10000.0f, 0, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0, 0, 0, 0);   
+                    chocokidSpawnTimer = 90;
+                }
+            }
+        }
+    }
+
+    switch (CAKE_STATE) {
+    case CAKE_INIT:
+        if (actor->globalTimer >= 0x78U) {
+            if (actor->globalTimer == 0xC) {
+                actor->userVariables[3] = playSoundEffect(0x9A, &actor->pos.x, &actor->pos.y, &actor->pos.z, 0, 0);
+            }
+            actor->unk_F0++;
+            if (actor->unk_F0 == 0xF) {
+                actor->unk_F0 = 0xE;
+                CAKE_STATE = CAKE_CHOCO_KIDS_ENTER;
+                for (i = 0; i < 4; i++) {
+                    temp_f26 = (f32) i * 90.0f;
+                    temp_f12 = (temp_f26 * 2) * PI / 360.0;
+                    Actor_Init(Cake_Boss_Choco_Kid, (__cosf(temp_f12) * 800.0f) + actor->pos.x, actor->pos.y + 1500.0f, (-__sinf(temp_f12) * 800.0f) + actor->pos.z, temp_f26 + 180.0f, -10000.0f, 10000.0f, -10000.0f, 10000.0f, -10000.0f, 10000.0f, temp_f26, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, actor->actorIndex, 0, 0, 0);                    
+                }
+            }
+        }
+        break;
+    case CAKE_CHOCO_KIDS_ENTER:
+        var = 0x136 - actor->globalTimer;
+        var_f30 = var;
+        if (var_f30 == 15.0f) {
+            for (i = 0; i < 6; i++) {
+                Actor_Init(Cake_Boss_Strawberry, actor->pos.x, actor->pos.y + 450.0f, actor->pos.z, 0.0f, -10000.0f, 10000.0f, -10000.0f, 10000.0f, -10000.0f, 10000.0f, ((f32) i * 60.0f) + 30.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, actor->actorIndex, i, actor->unk_12C, 0);
+            }
+            Actor_Init(Cake_Boss_Strawberry, actor->pos.x, actor->pos.y + 450.0f, actor->pos.z, 0.0f, -10000.0f, 10000.0f, -10000.0f, 10000.0f, -10000.0f, 10000.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, actor->actorIndex, 6, actor->unk_12C, 0);
+            playSoundEffect(0x9D, &actor->pos.x, &actor->pos.y, &actor->pos.z, 0, 0);
+        }
+        if ((actor->globalTimer >= 0xE2U) && ((u32) (actor->globalTimer % 15U) < 6U)) {
+            actor->unk_134[3] += actor->unk_164;
+            WrapDegrees(&actor->unk_134[3]);
+        }
+        if (var_f30 < 15.0f) {
+            actor->unk_F0 = (u32) var_f30;
+            func_800410B4(actor);
+            if (var_f30 == 0.0f) {
+                CAKE_STATE = CAKE_SPIN;
+                actor->userVariables[3] = playSoundEffect(0x9A, &actor->pos.x, &actor->pos.y, &actor->pos.z, 0, 0);
+                actor->unk_134[4] = (f32) (((Random(0, 0x270F) & 1) * 2) - 1) * actor->position._f32.y;
+            }
+        }
+        break;
+    case CAKE_SPIN: //4
+        CAKE_MOVE_TIMER++;
+        if (actor->unk_124 == CAKE_MOVE_TIMER) {
+            temp_f6 = CalcAngleBetween2DPoints(actor->pos.x, actor->pos.z, actor->unk_168, actor->unk_16C);
+            temp_f6 = temp_f6 * 2;
+            CAKE_STATE = CAKE_MOVE_AND_LAUNCH_BERRIES;
+            CAKE_MOVE_TIMER = 0;
+            actor->vel.z = 0;
+            actor->vel.x = 0;
+            //decide cake X and Z position before opening up
+            //X
+            actor->unk_134[0] = (__cosf(((temp_f6 * PI) / 360.0)) * (actor->unk_170 * 0.6f)) + actor->unk_168;
+            //Z
+            actor->unk_134[1] = (-__sinf((((temp_f6 * 2) * PI) / 360.0)) * (actor->unk_170 * 0.6f)) + actor->unk_16C;
+            //yaw
+            actor->unk_134[2] = CalcAngleBetween2DPoints(PlayerPointer->pos.x, PlayerPointer->pos.z, actor->pos.x, actor->pos.z);
+            func_80087358(actor->userVariables[3]);
+            playSoundEffect(0x9B, &actor->pos.x, &actor->pos.y, &actor->pos.z, 0, 0);
+        } else {
+            if (CAKE_MOVE_TIMER < (actor->unk_124 - 30)) {
+                s32 var = CHOCO_KID_COUNT;
+                if (var >= 4){
+                    var = 4;
+                }
+                actor->unk_90 += actor->unk_134[4];
+                WrapDegrees(&actor->unk_90);
+                actor->unk_94 = ((((8 - var) * actor->position._f32.x) / 4) * (180.0f - ReflectAngleToUpperQuadrants(actor->unk_90 - temp_f20))) / 180.0f;
+            } else {
+                actor->unk_90 += actor->unk_134[4] * 2;
+                WrapDegrees(&actor->unk_90);
+                actor->unk_94 = 0;
+            }
+            func_800382F4(actor);
+        }
+        break;
+    case CAKE_MOVE_AND_LAUNCH_BERRIES: //5
+        xDistFromDestination = actor->pos.x - actor->unk_134[0]; //X destination
+        zDistFromDestination = actor->pos.z - actor->unk_134[1]; //Z destination
+        CAKE_MOVE_TIMER++;
+        actor->vel.x = __cosf((((actor->unk_134[2] * 2) * PI) / 360.0)) * actor->unk_15C;
+        actor->vel.z = -__sinf((((actor->unk_134[2] * 2) * PI) / 360.0)) * actor->unk_15C;
+        func_8002D36C(&actor->unk_134[2], CalcAngleBetween2DPoints(actor->pos.x, actor->pos.z, actor->unk_134[0], actor->unk_134[1]), actor->unk_160);
+        if ((actor->unk_12C * 8) < CAKE_MOVE_TIMER) {
+            if (SQ(xDistFromDestination) + SQ(zDistFromDestination) < (actor->unk_15C * 8.0f) || (actor->unk_170 / actor->unk_15C) == (f32) CAKE_MOVE_TIMER) {
+                if (hasEnteredPhase3 == 1) {
+                    CAKE_STATE = CAKE_SPIN;
+                    CAKE_MOVE_TIMER = 0;
+                    for (i = 0; i < 6; i++) {
+                        Actor_Init(Cake_Boss_Strawberry, actor->pos.x, actor->pos.y + 450.0f, actor->pos.z, 0.0f, -10000.0f, 10000.0f, -10000.0f, 10000.0f, -10000.0f, 10000.0f, ((f32) i * 60.0f) + 30.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, actor->actorIndex, i, actor->unk_12C, 0);
+                    }
+                    Actor_Init(Cake_Boss_Strawberry, actor->pos.x, actor->pos.y + 450.0f, actor->pos.z, 0.0f, -10000.0f, 10000.0f, -10000.0f, 10000.0f, -10000.0f, 10000.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, actor->actorIndex, 6, actor->unk_12C, 0);
+                } else {
+                    CAKE_STATE = CAKE_SHOW_CHOCO_KIDS;
+                    CAKE_MOVE_TIMER = 0;
+                    actor->vel.z = 0.0f;
+                    actor->vel.x = 0.0f;
+                }
+            }
+        }
+        break;
+    case CAKE_SHOW_CHOCO_KIDS:
+        CAKE_MOVE_TIMER++;
+        temp_f30 = (f32) (actor->unk_128 - CAKE_MOVE_TIMER);
+        if (temp_f30 == 15.0f) {
+            for (i = 0; i < 6; i++) {
+                Actor_Init(Cake_Boss_Strawberry, actor->pos.x, actor->pos.y + 450.0f, actor->pos.z, 0.0f, -10000.0f, 10000.0f, -10000.0f, 10000.0f, -10000.0f, 10000.0f, ((f32) i * 60.0f) + 30.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, actor->actorIndex, i, actor->unk_12C, 0);
+            }
+            Actor_Init(Cake_Boss_Strawberry, actor->pos.x, actor->pos.y + 450.0f, actor->pos.z, 0.0f, -10000.0f, 10000.0f, -10000.0f, 10000.0f, -10000.0f, 10000.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, actor->actorIndex, 6, actor->unk_12C, 0);
+            if (hasEnteredPhase3 == 0) {
+                playSoundEffect(0x9D, &actor->pos.x, &actor->pos.y, &actor->pos.z, 0, 0);
+            }
+        }
+        if (temp_f30 < 15.0f) {
+            actor->unk_F0 = (s32) (u32) temp_f30;
+            func_800410B4(actor);
+            if (temp_f30 == 0.0f) {
+                CAKE_STATE = CAKE_SPIN;
+                CAKE_MOVE_TIMER = 0;
+                //if (hasEnteredPhase3 == 0) {
+                    actor->userVariables[3] = playSoundEffect(0x9A, &actor->pos.x, &actor->pos.y, &actor->pos.z, 0, 0);
+                //}
+                actor->unk_134[4] = (f32) (((Random(0, 9999) & 1) * 2) - 1) * actor->position._f32.y;
+            } else {
+                goto block_46;
+            }
+        } else {
+            if ((u32) actor->unk_F0 < 0xEU) {
+                if (actor->unk_F0 == 0) {
+                    playSoundEffect(0x9D, &actor->pos.x, &actor->pos.y, &actor->pos.z, 0, 0);
+                }
+                actor->unk_F0++;
+                func_800410B4(actor);
+            } else if ((CAKE_MOVE_TIMER % 14) == 0) {
+                playSoundEffect(0x9E, &actor->pos.x, &actor->pos.y, &actor->pos.z, 0, 0);
+            }
+block_46:
+            if (actor->globalTimer % 15U < 6U) {
+                actor->unk_134[3] += actor->unk_164;
+                WrapDegrees(&actor->unk_134[3]);
+            }
+        }
+        break;
+    case CAKE_DEATH:
+        func_800313BC(actor->actorIndex, actor->unk_90);
+        D_80174980 = 3;
+        break;
+    }
+    func_800360E4(actor);
+}
+
 void debugMain_Hook(void) {
     volatile s32 sp64;
     unk80174880* var_s0;
@@ -1091,7 +1361,6 @@ extern f64 D_8010C080;
 extern f64 D_8010C088;
 extern f32 D_8010C090;
 extern f32 D_8010C094;
-void func_800360E4(Actor*);
 void func_800382B4(f32*, f32);
 void func_800448C0(Actor*);
 void func_80044C30(Actor*, s32);
@@ -1452,7 +1721,7 @@ block_53:
         
         arg0->unk_134[0] = var_f2_3;
         arg0->unk_90 += var_f20;
-        wrapDegrees(&arg0->unk_90);
+        WrapDegrees(&arg0->unk_90);
         func_80044EA4(arg0, var_f20);
         temp_f0_6 = arg0->unk_134[0];
         
@@ -1583,7 +1852,7 @@ block_53:
                     arg0->unk_134[5] = CalcAngleBetween2DPoints(arg0->pos.x, arg0->pos.z, PlayerPointer->pos.x, PlayerPointer->pos.z);
                 } else {
                     arg0->unk_134[5] = CalcAngleBetween2DPoints(arg0->pos.x, arg0->pos.z, PlayerPointer->pos.x, PlayerPointer->pos.z) - 30.0f;
-                    wrapDegrees(&arg0->unk_134[5]);
+                    WrapDegrees(&arg0->unk_134[5]);
                 }
             }
         } else {
@@ -1630,7 +1899,7 @@ block_53:
             }
         }
         arg0->unk_90 += 0.803571f;
-        wrapDegrees(&arg0->unk_90);
+        WrapDegrees(&arg0->unk_90);
         arg0->userVariables[4]++;
         if ((arg0->userVariables[4] == 0x70) || (PlayerPointer->shootLeft != 0) || ((SQ(spA4) + SQ(spA0)) < 640000.0f)) {
             arg0->userVariables[2] = BOOKS_CHOOSE_INITIAL_PHASE2_ANGLE;

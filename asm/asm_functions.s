@@ -139,3 +139,23 @@ MFLO $t7
 J 0x800C10CC
 NOP
 
+
+glabel getActorHitWithSpatActor
+addiu $sp, $sp, -0x20
+swc1 $f12, 0x0010 ($sp)
+swc1 $f14, 0x0014 ($sp)
+
+LW $t0, 0x0000 ($a0)
+ORI $t1, $zero, 0x0026
+BNE $t0, $t1, didntHitCake
+NOP
+
+jal incrementCakeHitCounter
+nop
+
+didntHitCake:
+lwc1 $f12, 0x0010 ($sp)
+lwc1 $f14, 0x0014 ($sp)
+neg.s $f14, $f14
+j 0x80037914
+addiu $sp, $sp, 0x20

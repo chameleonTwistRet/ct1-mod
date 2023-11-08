@@ -77,6 +77,7 @@ void endStageCode(void) {
     *storedIGT = gCurrentStageTime;
 }
 //mod_boot_func: runs a single time on boot before main game loop starts
+void getActorHitWithSpatActor(void);
 void mod_boot_func(void) {
     UINT filebytesread;
     char testString[] = "Testing f_write() call\n";
@@ -115,6 +116,12 @@ void mod_boot_func(void) {
     hookCode((s32*)0x80037160, &endStageCodeAsm); //snake boss
     hookCode((s32*)0x8004B46C, &endStageCodeAsm2); //jungle land boss
     hookCode((s32*)0x800C10C4, &storeFirstEntry);
+    hookCode((s32*)&ActorTick_CakeBoss, &ActorTick_CakeBoss_Hook);
+    hookCode((s32*)&ActorInit_CakeBoss, &ActorInit_CakeBoss_Hook);
+
+    hookCode((s32*)0x8003790C, &getActorHitWithSpatActor);
+
+    
     //hookCode((s32*)&ActorTick_GhostBoss, &ActorTick_GhostBoss_Hook); (currently, function isn't equivalent)
     //
 
