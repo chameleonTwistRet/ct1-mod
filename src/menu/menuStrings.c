@@ -89,6 +89,7 @@ char** page1Strings[] = {
     NULL, //Adv Rng
     NULL, //Rev Rng
     ONAndOFF, //Set BL RNG Seed
+    ONAndOFF, //Set BL IL RNG Seed
     ONAndOFF, //Set KL RNG Seed
     ONAndOFF, //Set GC RNG Seed
 };

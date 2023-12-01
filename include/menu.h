@@ -40,6 +40,7 @@ s32 NoCompressionToggle(void);
 s32 advanceGuRNG(void);
 s32 revGuRNG(void);
 s32 setBLSeed(void);
+s32 setBLILSeed(void);
 s32 setKLSeed(void);
 s32 setGCSeed(void);
 s32 toggleYoloPillarPractice(void);
@@ -89,6 +90,7 @@ enum Toggles {
     TOGGLE_ADV_RNG,
     TOGGLE_REV_RNG,
     TOGGLE_SET_SEED_BL,
+    TOGGLE_SET_SEED_IL_BL,
     TOGGLE_SET_SEED_KL,
     TOGGLE_SET_SEED_GC,
     //TOGGLE_SPEED,

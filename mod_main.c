@@ -7,7 +7,7 @@
 
 //in assets/ you'll find an example of replacing an image
 
-char pracTwistVersionString[] = "Practwist v1.1.8";
+char pracTwistVersionString[] = "Practwist v1.1.9";
 char textBuffer[0x100] = {'\0'};    // Text buffer set to empty string
 void gVideoThreadProcessHook(void);
 void videoproc_Hook(s32);
@@ -108,7 +108,7 @@ void mod_boot_func(void) {
     hookCode((s32*)&debugMain, &debugMain_Hook);
     hookCode((s32*)&guRandom, &guRandom_Hook);
     hookCode((s32*)&Porocess_Mode0, Porocess_Mode0_Hook);
-    hookCode((s32*)&func_80089BA0, &DisplayTimer);
+    hookCode((s32*)&func_80089BA0, &DisplayTimerWrapper);
     hookCode((s32*)&ChameleonFromDoor, &ChameleonFromDoor_Hook);
     hookCode((s32*)&func_800C54F8, &func_800C54F8_Hook);
     hookCode((s32*)0x800C11C8, &setTimerParametersBool);
@@ -116,10 +116,10 @@ void mod_boot_func(void) {
     hookCode((s32*)0x80037160, &endStageCodeAsm); //snake boss
     hookCode((s32*)0x8004B46C, &endStageCodeAsm2); //jungle land boss
     hookCode((s32*)0x800C10C4, &storeFirstEntry);
-    hookCode((s32*)&ActorTick_CakeBoss, &ActorTick_CakeBoss_Hook);
-    hookCode((s32*)&ActorInit_CakeBoss, &ActorInit_CakeBoss_Hook);
+    //hookCode((s32*)&ActorTick_CakeBoss, &ActorTick_CakeBoss_Hook);
+    //hookCode((s32*)&ActorInit_CakeBoss, &ActorInit_CakeBoss_Hook);
 
-    hookCode((s32*)0x8003790C, &getActorHitWithSpatActor);
+    //hookCode((s32*)0x8003790C, &getActorHitWithSpatActor);
 
     
     //hookCode((s32*)&ActorTick_GhostBoss, &ActorTick_GhostBoss_Hook); (currently, function isn't equivalent)
@@ -452,9 +452,7 @@ void mod_main_per_frame(void) {
     }
 
     if (toggles[TOGGLE_DISPLAY_IGT] > 0) {
-        if (gIsPaused == 0) {
-            DisplayTimer();
-        }
+        DisplayTimerNew();
     }
 
     if (toggles[TOGGLE_CUSTOM_DEBUG_TEXT] != 0) {

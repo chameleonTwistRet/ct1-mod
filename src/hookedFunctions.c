@@ -875,7 +875,42 @@ u64 BLZoneExitTimesTAS[] = {
     0x00000000010C2300, //snake death
 };
 
-void DisplayTimer(void) { //displays IGT
+void DisplayTimerWrapper(void) {
+    s32 minutes;
+    s32 xPos;
+    s32 seconds;
+    s32 unk;
+
+    if (toggles[TOGGLE_DISPLAY_IGT] == 0) {
+        if ((gameModeCurrent == 0 || gameModeCurrent == 15) && (gCurrentStage != 8)) {
+            minutes = gCurrentStageTime / 1800; //(30 frames * 60 seconds)
+            seconds = (gCurrentStageTime % 1800) / 30;
+            func_800610A8();
+            SetTextGradient(0xFF, 0xFF, 0U, 0xFF, 0xFF, 0, 0, 0xFF, 0xFF, 0xFF, 0, 0xFF, 0xFF, 0, 0, 0xFF);
+            //print ' character
+            PrintText(220.0f, 208.0f, 0.0f, 0.5f, 0.0f, 0.0f, D_8010D8E8, 1);
+            xPos = 220;
+            if (minutes > 99) {
+                minutes = 99;
+                seconds = 59;
+            }
+            if (minutes < 10) {
+                PrintText(0xDC, 0xD0, 0.0f, 0.5f, 0.0f, 0.0f, D_8010D8F8, 1);
+                xPos = 228;
+            }
+            //var_v1_2 = ParseIntToBase10(minutes, &unk);
+            PrintText((f32) xPos, 0xD0, 0.0f, 0.5f, 0.0f, 0.0f, ParseIntToBase10(minutes, &unk), 1);
+            xPos = 244;
+            if (seconds < 10) {
+                PrintText((f32) 0xF4, 0xD0, 0.0f, 0.5f, 0.0f, 0.0f, D_8010D8FC, 1);
+                xPos = 252;
+            }
+            PrintText((f32) xPos, 0xD0, 0.0f, 0.5f, 0.0f, 0.0f, ParseIntToBase10(seconds, &unk), 1);
+        }
+    }
+}
+
+void DisplayTimerNew(void) { //displays IGT in many different ways, and RTA time
     UINT filebytesread;
     char testString[] = "Testing f_write() call\n";
     FRESULT fileres;
@@ -897,6 +932,34 @@ void DisplayTimer(void) { //displays IGT
     s32 xPos;
     char* var_v1_2;
     s32 frames;
+
+                count = osGetCount();
+                currentCount = 0;
+
+                if (freezeTimer != 0) {
+                    colorTextWrapper(textCyanColor);
+                } else {
+                    colorTextWrapper(textPurpleColor);
+                }
+
+                currentCount = count;
+                if (*prevCurrentStageCountRTA > currentCount) {
+                    currentCount += 0x100000000;
+                }
+
+                *elapsedCount += (currentCount - *prevCurrentStageCountRTA);
+
+                if (freezeTimer != 0) {
+                    displayTime = *storedCount;
+                } else {
+                    displayTime = *elapsedCount;
+                }
+                
+                elapsedMicroSeconds = OS_CYCLES_TO_USEC(displayTime);
+                milliseconds = (elapsedMicroSeconds / 1000) % 1000;
+                seconds = (elapsedMicroSeconds / 1000000) % 60;
+                minutes = (elapsedMicroSeconds / 1000000) / 60;
+                *prevCurrentStageCountRTA = count;
 
     switch (toggles[TOGGLE_DISPLAY_IGT]) {
         case 0:
@@ -984,33 +1047,6 @@ void DisplayTimer(void) { //displays IGT
 
         case 4: //calculate real time, not igt
             //if ((gameModeCurrent == 0) && (gCurrentStage != 8)) {
-                count = osGetCount();
-                currentCount = 0;
-
-                if (freezeTimer != 0) {
-                    colorTextWrapper(textCyanColor);
-                } else {
-                    colorTextWrapper(textPurpleColor);
-                }
-
-                currentCount = count;
-                if (*prevCurrentStageCountRTA > currentCount) {
-                    currentCount += 0x100000000;
-                }
-
-                *elapsedCount += (currentCount - *prevCurrentStageCountRTA);
-
-                if (freezeTimer != 0) {
-                    displayTime = *storedCount;
-                } else {
-                    displayTime = *elapsedCount;
-                }
-                
-                elapsedMicroSeconds = OS_CYCLES_TO_USEC(displayTime);
-                milliseconds = (elapsedMicroSeconds / 1000) % 1000;
-                seconds = (elapsedMicroSeconds / 1000000) % 60;
-                minutes = (elapsedMicroSeconds / 1000000) / 60;
-                *prevCurrentStageCountRTA = count;
 
                 _sprintf(timeString, "%02d\'%02d\"%03d", minutes, seconds, milliseconds);
                 convertAsciiToText(&convertedBuffer, (char*)&timeString);
@@ -1043,7 +1079,8 @@ void DisplayTimer(void) { //displays IGT
                     colorTextWrapper(textGreenMatColor);
                     PrintText(220.0f, 194.0f, 0.0f, 0.5f, 0.0f, 0.0f, convertedBuffer, 1);
                 } else if (freezeTimer != 0 && toggles[TOGGLE_TAS_COMPARISON])  {
-                    if (gCurrentStage == 2 || gCurrentStage == 0x0B) {
+                    //if BL, KL, GC, and snake boss room, show time differences
+                    if (gCurrentStage == 2 || gCurrentStage == 5 || gCurrentStage == 6 || gCurrentStage == 0x0B) {
                         s64 timeDifference;
                         if (gCurrentStage == 0x0B) {
                             if (elapsedMicroSeconds < snakeTime) {
@@ -1126,6 +1163,13 @@ void Porocess_Mode0_Hook(void) {
             //so we set it to what we want - 4
             *seed = 0x14B0B9CB;
             *calls = 702;
+        } else if (gCurrentStage == 2 && toggles[TOGGLE_SET_SEED_IL_BL]) { 
+            u32* seed = (u32*)0x80109DC0;
+            u32* calls = (u32*)0x80109DC4;
+            //the game will advance the seed 4 times after we set it
+            //so we set it to what we want - 4
+            *seed = 0x1B684D09;
+            *calls = 60;
         } else if (gCurrentStage == 4 && toggles[TOGGLE_SET_SEED_KL]) {
             u32* seed = (u32*)0x80109DC0;
             u32* calls = (u32*)0x80109DC4;

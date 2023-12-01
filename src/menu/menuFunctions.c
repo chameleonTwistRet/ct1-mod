@@ -40,6 +40,11 @@ s32 setBLSeed(void) {
     return 0;
 }
 
+s32 setBLILSeed(void) {
+    toggles[TOGGLE_SET_SEED_IL_BL] ^= 1;
+    return 0;
+}
+
 s32 setKLSeed(void) {
     toggles[TOGGLE_SET_SEED_KL] ^= 1;
     return 0;
