@@ -933,33 +933,33 @@ void DisplayTimerNew(void) { //displays IGT in many different ways, and RTA time
     char* var_v1_2;
     s32 frames;
 
-                count = osGetCount();
-                currentCount = 0;
+    count = osGetCount();
+    currentCount = 0;
 
-                if (freezeTimer != 0) {
-                    colorTextWrapper(textCyanColor);
-                } else {
-                    colorTextWrapper(textPurpleColor);
-                }
+    if (freezeTimer != 0) {
+        colorTextWrapper(textCyanColor);
+    } else {
+        colorTextWrapper(textPurpleColor);
+    }
 
-                currentCount = count;
-                if (*prevCurrentStageCountRTA > currentCount) {
-                    currentCount += 0x100000000;
-                }
+    currentCount = count;
+    if (*prevCurrentStageCountRTA > currentCount) {
+        currentCount += 0x100000000;
+    }
 
-                *elapsedCount += (currentCount - *prevCurrentStageCountRTA);
+    *elapsedCount += (currentCount - *prevCurrentStageCountRTA);
 
-                if (freezeTimer != 0) {
-                    displayTime = *storedCount;
-                } else {
-                    displayTime = *elapsedCount;
-                }
-                
-                elapsedMicroSeconds = OS_CYCLES_TO_USEC(displayTime);
-                milliseconds = (elapsedMicroSeconds / 1000) % 1000;
-                seconds = (elapsedMicroSeconds / 1000000) % 60;
-                minutes = (elapsedMicroSeconds / 1000000) / 60;
-                *prevCurrentStageCountRTA = count;
+    if (freezeTimer != 0) {
+        displayTime = *storedCount;
+    } else {
+        displayTime = *elapsedCount;
+    }
+    
+    elapsedMicroSeconds = OS_CYCLES_TO_USEC(displayTime);
+    milliseconds = (elapsedMicroSeconds / 1000) % 1000;
+    seconds = (elapsedMicroSeconds / 1000000) % 60;
+    minutes = (elapsedMicroSeconds / 1000000) / 60;
+    *prevCurrentStageCountRTA = count;
 
     switch (toggles[TOGGLE_DISPLAY_IGT]) {
         case 0:
@@ -1079,8 +1079,9 @@ void DisplayTimerNew(void) { //displays IGT in many different ways, and RTA time
                     colorTextWrapper(textGreenMatColor);
                     PrintText(220.0f, 194.0f, 0.0f, 0.5f, 0.0f, 0.0f, convertedBuffer, 1);
                 } else if (freezeTimer != 0 && toggles[TOGGLE_TAS_COMPARISON])  {
-                    //if BL, KL, GC, and snake boss room, show time differences
-                    if (gCurrentStage == 2 || gCurrentStage == 5 || gCurrentStage == 6 || gCurrentStage == 0x0B) {
+                    //if AL, BL, KL, GC, and snake boss room, show time differences
+                    if (gCurrentStage == 1 || gCurrentStage == 2 ||
+                        gCurrentStage == 5 || gCurrentStage == 6 || gCurrentStage == 0x0B) {
                         s64 timeDifference;
                         if (gCurrentStage == 0x0B) {
                             if (elapsedMicroSeconds < snakeTime) {
