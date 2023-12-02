@@ -40,6 +40,20 @@ char* InGameTimerText[] = {
     string_RTA_MS
 };
 
+char manip1Text[] = {
+    "MANIP 1"
+};
+
+char manip2Text[] = {
+    "MANIP 2"
+};
+
+char* manipTexts[] = {
+    string_OFF,
+    manip1Text,
+    manip2Text
+};
+
 char variousStatsText[] = {
     "VARIOUS"
 };
@@ -88,7 +102,7 @@ char** page4Strings[] = {
 char** page1Strings[] = {
     NULL, //Adv Rng
     NULL, //Rev Rng
-    ONAndOFF, //Set BL RNG Seed
+    manipTexts, //Set BL RNG Seed
     ONAndOFF, //Set BL IL RNG Seed
     ONAndOFF, //Set KL RNG Seed
     ONAndOFF, //Set GC RNG Seed
