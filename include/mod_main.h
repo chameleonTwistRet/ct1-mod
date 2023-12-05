@@ -36,6 +36,14 @@ void Debug_ChangeView(void);                               /* extern */
 void Debug_MovePlayer(void);                               /* extern */
 s32 func_80080C28(f32, f32, f32, f32, f32, f32, s32, s32, s32, s32); /* extern */
 
+extern s32 freezeTimer;
+extern u32 prevCount;
+extern u64 displayTimeRTA;
+extern u64 displayTimeIGT;
+extern u64 elapsedMicroSeconds;
+extern u64 storedElapsedTimeState1;
+extern u64 storedElapsedTimeState2;
+extern u64 storedElapsedTimeStateBackup;
 extern s32 isFirstZoneCopy;
 extern s32 loadEnemiesBool; //used by `func_8002D644_patch.s`
 extern s32 freezeTimer;
@@ -149,6 +157,7 @@ void debugMain_Hook(void);
 int guRandom_Hook(void);
 void Porocess_Mode0_Hook(void);
 void DisplayTimerNew(void);
+void TrackElapsedTimeFromLastFrame(void);
 void DisplayTimerWrapper(void);
 void ChameleonFromDoor_Hook(playerActor* player, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 void func_800C54F8_Hook(Vec2s*, s32* arg1);
@@ -165,6 +174,7 @@ extern s32 currOptionNo;
 void func_80089BA0(void);
 void func_8004E784(contMain* arg0, s32 arg1, s32* arg2, contMain* arg3);
 void loadBossDeadEyes(s32);
+void PrintElapsedTimeRTA(void);
 extern s32 inFrameAdvance;
 extern char pathTimes[];
 #define ALIGN4(val) (((val) + 0x3) & ~0x3)
@@ -196,6 +206,9 @@ extern s32 sDebugMultiplayer;
 extern s8 D_800FF8DC;
 extern u8 D_800FF8E0[];
 extern u8 D_800FF8E4[];
+extern s32 textOrangeColor[];
+extern s32 textGreenColor[];
+extern s32 textPurpleColor[];
 extern s32 D_80174980;
 extern s32 D_801749AC;
 extern u64* storedCount;
@@ -203,6 +216,7 @@ extern u64* elapsedCount;
 extern u32* storedIGT;
 extern u64* prevDoorEntryCount;
 extern u32* prevCurrentStageCountRTA;
-extern u32* startingCount;
+
+extern s32 zoneExitID;
 
 #endif // _MOD_MAIN_H_

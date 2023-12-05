@@ -4,10 +4,37 @@
 #include "common.h"
 #include "../lib/ff.h"
 
+typedef s32 (*menuProc) (void);
+
+// shift x value per print per length of string (8px per letter) then print
+#define X_COORD_PER_LETTER 4.5
+#define FUNCS_PER_PAGE 6
+#define ARRAY_COUNT(arr) (s32)(sizeof(arr) / sizeof(arr[0]))
+#define ARRAY_COUNT_INDEX(arr) ARRAY_COUNT(arr) - 1
+
 typedef struct InputRecording {
     u32 totalFrameCount;
     contMain recordingBuffer[1200];
 } InputRecording;
+
+typedef struct menuPage {
+    /* 0x00 */ s32 optionCount;
+    /* 0x04 */ s32 pageIndex;
+    /* 0x08 */ char* options[FUNCS_PER_PAGE];
+    /* 0x28 */ s32 (*menuProc[FUNCS_PER_PAGE]) (void);
+    /* 0x48 */ s8 flags[FUNCS_PER_PAGE];
+    /* 0x50 */ char*** selectionText;
+} menuPage;
+
+extern menuPage page0;
+extern menuPage page1;
+extern menuPage page2;
+extern menuPage page3;
+extern menuPage page4;
+extern s32 isMenuActive;
+extern volatile s32 savestateCurrentSlot;
+extern u64 totalElapsedCounts;
+extern u64 prevDoorEntryTime;
 
 extern void _sprintf(void* destination, void* fmt, ...);
 extern void convertAsciiToText(void* buffer, char* source);
@@ -18,11 +45,16 @@ s32 menuProcFunc(void);
 s32 teleportToStageBoss(void);
 void colorTextWrapper(s32* color);
 void updateCustomInputTracking(void);
+void func_8004E784_Hook(contMain* arg0, s32 arg1, s32* arg2, contMain* arg3);
 extern s32 recordingMode;
 extern volatile s32 isSaveOrLoadActive;
 extern s32 savestateRecordingSize;
 extern s32 currentlyPressedButtons;
 extern s32 previouslyPressedButtons;
+extern s32 currPageNo;
+extern s32 currOptionNo;
+extern s32 pageListTotal;
+extern menuPage* pageList[];
 extern s8 toggles[];
 extern InputRecording inputRecordingBuffer;
 extern u32 recordingInputIndex;

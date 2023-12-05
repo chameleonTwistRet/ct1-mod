@@ -2,8 +2,6 @@
 #include "../include/mod_main.h"
 #include "../include/menu.h"
 
-u64 snakeTime = 0x00000000010C2300;
-s32 zoneExitID = 0;
 s32 freezeTimer = 0;
 s32 timerParametersBool = 0;
 
@@ -583,88 +581,6 @@ void func_800C0CDC_Hook(playerActor* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg
     func_800BFCD0();
 }
 
-void func_8004E784_Hook(contMain* arg0, s32 arg1, s32* arg2, contMain* arg3) {
-    contMain* var_s0;
-    contMain* var_s1;
-    s32 i;
-
-    osRecvMesg(&gEepromMsgQ, NULL, 1);
-    osContGetReadData(&D_80175650[0]);
-
-    i = 0;
-
-    // if (toggles[TOGGLE_PLAYBACK] == 1) {
-    //     if (recordingInputIndex > inputRecordingBuffer.totalFrameCount) {
-    //         toggles[TOGGLE_PLAYBACK] ^= 1; //turn recording off as it has reached the end
-    //     } else {
-    //         gContMain[0] = inputRecordingBuffer.recordingBuffer[recordingInputIndex];
-    //         arg0[0] = inputRecordingBuffer.recordingBuffer[recordingInputIndex];
-    //         recordingInputIndex++;
-    //         i = 1; //skip player 0
-    //     }
-    // }
-
-    // for each controller
-    for (i; i < arg1; i++) {
-        if ((arg2 == NULL) || (arg2[i] == 0)) {
-            if (D_80175668[i] == -1) {
-                Controller_Zero(&gContMain[i]);
-                continue;
-            }
-            gContMain[i].buttons0 = D_80175650[D_80175668[i]].button;
-            gContMain[i].stickx = D_80175650[D_80175668[i]].stick_x;
-            gContMain[i].sticky = D_80175650[D_80175668[i]].stick_y;
-        } else {
-            gContMain[i].buttons0 = arg3[i].buttons0;
-            gContMain[i].stickx = arg3[i].stickx;
-            gContMain[i].sticky = arg3[i].sticky;
-        }
-
-        gContMain[i].stickAngle = CalculateAngleOfVector((f32) gContMain[i].stickx, (f32) gContMain[i].sticky);
-        gContMain[i].buttons1 = (gContMain[i].buttons0 ^ D_80175678[i]) & gContMain[i].buttons0;
-        gContMain[i].buttons2 = (gContMain[i].buttons0 ^ D_801756C0[i]) & gContMain[i].buttons0;
-        D_801756C0[i] = gContMain[i].buttons0;
-        if ((gContMain[i].stickx >= -6) && (gContMain[i].stickx < 7)) {
-            gContMain[i].stickx = 0;
-        }
-        
-        if ((gContMain[i].sticky >= -6) && (gContMain[i].sticky < 7)) {
-            gContMain[i].sticky = 0;
-        }
-
-        if (toggles[TOGGLE_RECORDING] == 1 && i == 0) {
-            inputRecordingBuffer.recordingBuffer[0] = gContMain[0];
-            if ((s32)gContMain[0].stickAngle == 0xFFFFFFFF) {
-                recordingErrorMessageStick = 1;
-            }
-        }
-
-        if (i == 0) {
-            updateCustomInputTracking();
-            if (isMenuActive == 1) {
-                updateMenuInput();
-                gContMain[0].buttons0 &= ~A_BUTTON;
-                gContMain[0].buttons0 &= ~B_BUTTON;
-                gContMain[0].buttons1 &= ~A_BUTTON;
-                gContMain[0].buttons1 &= ~B_BUTTON;
-                gContMain[0].buttons2 &= ~A_BUTTON;
-                gContMain[0].buttons2 &= ~B_BUTTON;
-            }
-            if ((gContMain[0].buttons0 & R_TRIG) && (currentlyPressedButtons & CONT_UP)) {
-                sDebugInt ^= 1;
-            } else if ((gContMain[0].buttons0 & R_TRIG) && (currentlyPressedButtons & CONT_DOWN)) {
-                isMenuActive ^= 1;
-            } else if (currentlyPressedButtons & CONT_DOWN) {
-                if (!(isMenuActive)) {
-                    savestateCurrentSlot ^= 1; //flip from 0 to 1 or vice versa (2 saveslots)
-                }
-            }
-        }
-
-        arg0[i] = gContMain[i];
-    }
-}
-
 void videoproc_Hook(s32 arg0) {
     s32 sp54;
     OSMesg sp58;
@@ -812,9 +728,6 @@ extern char D_8010D8E8[];
 extern char D_8010D8F8[];
 extern char D_8010D8FC[];
 s32 func_80080430(f32, f32, f32, f32, f32, f32, char*, s32);
-extern s32 textOrangeColor[];
-extern s32 textGreenColor[];
-extern s32 textPurpleColor[];
 extern u32 gNextZone;
 s32 saveTimeBool = 0;
 //gCurrentStage, gCurrentZone, 
@@ -827,8 +740,8 @@ void setFreezeTimerC(void) {
         timerParametersBool = 0;
         freezeTimer = 60; //2 seconds
         zoneExitID = gCurrentZone;
-        *storedCount = *elapsedCount;
-        *storedIGT = gCurrentStageTime;
+        displayTimeRTA = totalElapsedCounts;
+        displayTimeIGT = gCurrentStageTime;
         saveTimeBool = 1;
     }
 }
@@ -838,9 +751,10 @@ void func_800C54F8_Hook(Vec2s* arg0, s32* arg1) {
     arg0->y = 0;
     *arg1 = 0;
     freezeTimer = 0;
-    if (*storedCount != 0) {
-        *prevDoorEntryCount = *storedCount;
-    }
+    prevDoorEntryTime = displayTimeRTA;
+    // if (*storedCount != 0) {
+    //     *prevDoorEntryCount = *storedCount;
+    // }
 }
 
 // f32 calculate_and_update_fps(void) {
@@ -856,24 +770,6 @@ void func_800C54F8_Hook(Vec2s* arg0, s32* arg1) {
 //     return ( (f32)FRAMETIME_COUNT * 1000000.0f) / (s32) OS_CYCLES_TO_USEC(newTime - oldTime);
 // }
 extern s32 gPrevZone;
-
-u64 BLZoneExitTimesTAS[] = {
-    0x00000000001F3B48, //first room exit
-    0x0000000000653180, //second room exit
-    0x0000000000497480, //third room exit
-    0x000000000065B500, //pillar 1 exit
-    0x000000000063A700, //lava 1 exit
-    0x00000000002BA980, //spin room exit
-    0x00000000004F9E80, //room before cannon 1
-    0x000000000062A000, //cannon 1 exit
-    0x0000000000A98300, //pillar 2 exit
-    0x0000000000621C80, //lava 2 exit
-    0x000000000030CC80, //bomb jump exit
-    0x000000000052B380, //door clip 1 exit
-    0x00000000005D7D00, //cannon 2
-    0x0000000000621C80, //boss door exit
-    0x00000000010C2300, //snake death
-};
 
 void DisplayTimerWrapper(void) {
     s32 minutes;
@@ -910,222 +806,104 @@ void DisplayTimerWrapper(void) {
     }
 }
 
-void DisplayTimerNew(void) { //displays IGT in many different ways, and RTA time
-    UINT filebytesread;
-    char testString[] = "Testing f_write() call\n";
-    FRESULT fileres;
-    u32 count;
-    u64 currentCount = 0;
-    u64 elapsedMicroSeconds;
-    u64 prevDoorEntryMicroSeconds;
-    u64 temp;
-    u64 displayTime;
-    s32 unk;
-    s32 sp78;
-    s32 seconds;
-    s32 milliseconds; // Added milliseconds variable
-    char timeString[16]; // Assuming a maximum of 99:59.999
-    char convertedBuffer[32];    
-    s32 sp64;
-    f32 sp5C;
+void DisplayNormalIGT(void) {
     s32 minutes;
     s32 xPos;
-    char* var_v1_2;
+    s32 seconds;
+    s32 unk;
+
+    if ((gameModeCurrent == 0 || gameModeCurrent == 15) && (gCurrentStage != 8)) {
+        minutes = gCurrentStageTime / 1800; //(30 frames * 60 seconds)
+        seconds = (gCurrentStageTime % 1800) / 30;
+        func_800610A8();
+        SetTextGradient(0xFF, 0xFF, 0U, 0xFF, 0xFF, 0, 0, 0xFF, 0xFF, 0xFF, 0, 0xFF, 0xFF, 0, 0, 0xFF);
+        //print ' character
+        PrintText(220.0f, 208.0f, 0.0f, 0.5f, 0.0f, 0.0f, D_8010D8E8, 1);
+        xPos = 220;
+        if (minutes > 99) {
+            minutes = 99;
+            seconds = 59;
+        }
+        if (minutes < 10) {
+            PrintText(0xDC, 0xD0, 0.0f, 0.5f, 0.0f, 0.0f, D_8010D8F8, 1);
+            xPos = 228;
+        }
+        //var_v1_2 = ParseIntToBase10(minutes, &unk);
+        PrintText((f32) xPos, 0xD0, 0.0f, 0.5f, 0.0f, 0.0f, ParseIntToBase10(minutes, &unk), 1);
+        xPos = 244;
+        if (seconds < 10) {
+            PrintText((f32) 0xF4, 0xD0, 0.0f, 0.5f, 0.0f, 0.0f, D_8010D8FC, 1);
+            xPos = 252;
+        }
+        PrintText((f32) xPos, 0xD0, 0.0f, 0.5f, 0.0f, 0.0f, ParseIntToBase10(seconds, &unk), 1);
+    }
+
+}
+
+void DisplayTimerWithMilliseconds(void) { //display IGT with milliseconds
+    s32 seconds;
+    s32 milliseconds; // Added milliseconds variable
+    s32 minutes;
+    char timeString[16]; // Assuming a maximum of 99:59.999
+    char convertedBuffer[32];  
+
+    if ((gameModeCurrent == 0 || gameModeCurrent == 15) && (gCurrentStage != 8)) {
+        s32 totalFrames;
+        totalFrames = gCurrentStageTime;
+        if (freezeTimer != 0) {
+            colorTextWrapper(textCyanColor);
+            // totalFrames = gCurrentStageTime;
+        } else {
+            colorTextWrapper(textOrangeColor);
+            // totalFrames = gCurrentStageTime;
+        }
+        minutes = totalFrames / 1800; // (30 frames * 60 seconds)
+        seconds = (totalFrames % 1800) / 30;
+        milliseconds = (totalFrames % 30) * 33; // Assuming 30 frames per second
+        func_800610A8();
+        //SetTextGradient(0xFF, 0xFF, 0U, 0xFF, 0xFF, 0, 0, 0xFF, 0xFF, 0xFF, 0, 0xFF, 0xFF, 0, 0, 0xFF);
+
+        // Use sprintf to format the time components into a single string
+        _sprintf(timeString, "%02d\'%02d\"%03d", minutes, seconds, milliseconds);
+        convertAsciiToText(&convertedBuffer, (char*)&timeString);
+
+        // Print the formatted time string
+        PrintText(220.0f, 208.0f, 0.0f, 0.5f, 0.0f, 0.0f, convertedBuffer, 1);
+    }
+}
+
+void DisplayTimerWithFrames(void) {
+    s32 seconds;
+    s32 milliseconds; // Added milliseconds variable
+    s32 minutes;
     s32 frames;
+    char timeString[16]; // Assuming a maximum of 99:59.999
+    char convertedBuffer[32];
 
-    count = osGetCount();
-    currentCount = 0;
+    if ((gameModeCurrent == 0 || gameModeCurrent == 15) && (gCurrentStage != 8)) {
+        s32 totalFrames;
+        if (freezeTimer != 0) {
+            colorTextWrapper(textCyanColor);
+            totalFrames = gCurrentStageTime;
+        } else {
+            colorTextWrapper(textOrangeColor);
+            totalFrames = gCurrentStageTime;
+        }
+        totalFrames = gCurrentStageTime;
+        frames = totalFrames % 30;
+        minutes = totalFrames / 1800; // (30 frames * 60 seconds)
+        seconds = (totalFrames % 1800) / 30;
+        milliseconds = (totalFrames % 30) * 33; // Assuming 30 frames per second
+        func_800610A8();
+        
+        //SetTextGradient(0xFF, 0xFF, 0U, 0xFF, 0xFF, 0, 0, 0xFF, 0xFF, 0xFF, 0, 0xFF, 0xFF, 0, 0, 0xFF);
 
-    if (freezeTimer != 0) {
-        colorTextWrapper(textCyanColor);
-    } else {
-        colorTextWrapper(textPurpleColor);
-    }
+        // Use sprintf to format the time components into a single string
+        _sprintf(timeString, "%02d\'%02d\"%02d", minutes, seconds, frames);
+        convertAsciiToText(&convertedBuffer, (char*)&timeString);
 
-    currentCount = count;
-    if (*prevCurrentStageCountRTA > currentCount) {
-        currentCount += 0x100000000;
-    }
-
-    *elapsedCount += (currentCount - *prevCurrentStageCountRTA);
-
-    if (freezeTimer != 0) {
-        displayTime = *storedCount;
-    } else {
-        displayTime = *elapsedCount;
-    }
-    
-    elapsedMicroSeconds = OS_CYCLES_TO_USEC(displayTime);
-    milliseconds = (elapsedMicroSeconds / 1000) % 1000;
-    seconds = (elapsedMicroSeconds / 1000000) % 60;
-    minutes = (elapsedMicroSeconds / 1000000) / 60;
-    *prevCurrentStageCountRTA = count;
-
-    switch (toggles[TOGGLE_DISPLAY_IGT]) {
-        case 0:
-            break;
-        case 1: //original IGT display
-            if ((gameModeCurrent == 0 || gameModeCurrent == 15) && (gCurrentStage != 8)) {
-                minutes = gCurrentStageTime / 1800; //(30 frames * 60 seconds)
-                seconds = (gCurrentStageTime % 1800) / 30;
-                func_800610A8();
-                SetTextGradient(0xFF, 0xFF, 0U, 0xFF, 0xFF, 0, 0, 0xFF, 0xFF, 0xFF, 0, 0xFF, 0xFF, 0, 0, 0xFF);
-                //print ' character
-                PrintText(220.0f, 208.0f, 0.0f, 0.5f, 0.0f, 0.0f, D_8010D8E8, 1);
-                xPos = 220;
-                if (minutes > 99) {
-                    minutes = 99;
-                    seconds = 59;
-                }
-                if (minutes < 10) {
-                    PrintText(0xDC, 0xD0, 0.0f, 0.5f, 0.0f, 0.0f, D_8010D8F8, 1);
-                    xPos = 228;
-                }
-                //var_v1_2 = ParseIntToBase10(minutes, &unk);
-                PrintText((f32) xPos, 0xD0, 0.0f, 0.5f, 0.0f, 0.0f, ParseIntToBase10(minutes, &unk), 1);
-                xPos = 244;
-                if (seconds < 10) {
-                    PrintText((f32) 0xF4, 0xD0, 0.0f, 0.5f, 0.0f, 0.0f, D_8010D8FC, 1);
-                    xPos = 252;
-                }
-                PrintText((f32) xPos, 0xD0, 0.0f, 0.5f, 0.0f, 0.0f, ParseIntToBase10(seconds, &unk), 1);
-            }
-            break;
-        case 2: //modified IGT display (displays milliseconds not frames)
-            if ((gameModeCurrent == 0 || gameModeCurrent == 15) && (gCurrentStage != 8)) {
-                s32 totalFrames;
-                totalFrames = gCurrentStageTime;
-                if (freezeTimer != 0) {
-                    colorTextWrapper(textCyanColor);
-                    totalFrames = *storedIGT;
-                } else {
-                    colorTextWrapper(textOrangeColor);
-                    totalFrames = gCurrentStageTime;
-                }
-                minutes = totalFrames / 1800; // (30 frames * 60 seconds)
-                seconds = (totalFrames % 1800) / 30;
-                milliseconds = (totalFrames % 30) * 33; // Assuming 30 frames per second
-                func_800610A8();
-                //SetTextGradient(0xFF, 0xFF, 0U, 0xFF, 0xFF, 0, 0, 0xFF, 0xFF, 0xFF, 0, 0xFF, 0xFF, 0, 0, 0xFF);
-
-                // Use sprintf to format the time components into a single string
-                _sprintf(timeString, "%02d\'%02d\"%03d", minutes, seconds, milliseconds);
-                convertAsciiToText(&convertedBuffer, (char*)&timeString);
-
-                // Print the formatted time string
-                PrintText(220.0f, 208.0f, 0.0f, 0.5f, 0.0f, 0.0f, convertedBuffer, 1);
-            }
-            break;
-
-        case 3: //modified IGT display 2 (displays frames not milliseconds)
-            if ((gameModeCurrent == 0 || gameModeCurrent == 15) && (gCurrentStage != 8)) {
-                s32 totalFrames;
-                if (freezeTimer != 0) {
-                    colorTextWrapper(textCyanColor);
-                    totalFrames = *storedIGT;
-                } else {
-                    colorTextWrapper(textOrangeColor);
-                    totalFrames = gCurrentStageTime;
-                }
-                totalFrames = gCurrentStageTime;
-                frames = totalFrames % 30;
-                minutes = totalFrames / 1800; // (30 frames * 60 seconds)
-                seconds = (totalFrames % 1800) / 30;
-                milliseconds = (totalFrames % 30) * 33; // Assuming 30 frames per second
-                func_800610A8();
-                
-                //SetTextGradient(0xFF, 0xFF, 0U, 0xFF, 0xFF, 0, 0, 0xFF, 0xFF, 0xFF, 0, 0xFF, 0xFF, 0, 0, 0xFF);
-
-                // Use sprintf to format the time components into a single string
-                _sprintf(timeString, "%02d\'%02d\"%02d", minutes, seconds, frames);
-                convertAsciiToText(&convertedBuffer, (char*)&timeString);
-
-                // Print the formatted time string
-                PrintText(220.0f, 208.0f, 0.0f, 0.5f, 0.0f, 0.0f, convertedBuffer, 1);
-            }
-            break;
-
-        case 4: //calculate real time, not igt
-            //if ((gameModeCurrent == 0) && (gCurrentStage != 8)) {
-
-                _sprintf(timeString, "%02d\'%02d\"%03d", minutes, seconds, milliseconds);
-                convertAsciiToText(&convertedBuffer, (char*)&timeString);
-                PrintText(220.0f, 208.0f, 0.0f, 0.5f, 0.0f, 0.0f, convertedBuffer, 1);
-
-                prevDoorEntryMicroSeconds = OS_CYCLES_TO_USEC(*prevDoorEntryCount);
-                elapsedMicroSeconds = elapsedMicroSeconds - prevDoorEntryMicroSeconds;
-
-                if (saveTimeBool) {
-                    if (BestRTATimes[gCurrentStage][gCurrentZone][gNextZone][isFirstZoneCopy] == 0) {
-                        BestRTATimes[gCurrentStage][gCurrentZone][gNextZone][isFirstZoneCopy] = elapsedMicroSeconds;
-                        //fileres = f_open(&sdsavefileTimes, pathTimes, FA_OPEN_ALWAYS | FA_WRITE | FA_READ);
-                        //f_write(&sdsavefileTimes, BestRTATimes, ALIGN4(sizeof(BestRTATimes)), &filebytesread);
-                        //f_close(&sdsavefileTimes);
-                    } else if (elapsedMicroSeconds < BestRTATimes[gCurrentStage][gCurrentZone][gNextZone][isFirstZoneCopy]) {
-                        BestRTATimes[gCurrentStage][gCurrentZone][gNextZone][isFirstZoneCopy] = elapsedMicroSeconds;
-                        //fileres = f_open(&sdsavefileTimes, pathTimes, FA_OPEN_ALWAYS | FA_WRITE | FA_READ);
-                        //f_write(&sdsavefileTimes, BestRTATimes, ALIGN4(sizeof(BestRTATimes)), &filebytesread);
-                        //f_close(&sdsavefileTimes);
-                    }
-                    saveTimeBool = 0;
-                }
-
-                if (freezeTimer != 0 && toggles[TOGGLE_DISPLAY_INDIVIDUAL_ROOM_TIME]) {
-                    milliseconds = (elapsedMicroSeconds / 1000) % 1000;
-                    seconds = (elapsedMicroSeconds / 1000000) % 60;
-                    minutes = (elapsedMicroSeconds / 1000000) / 60;
-                    _sprintf(timeString, "%02d\'%02d\"%03d", minutes, seconds, milliseconds);
-                    convertAsciiToText(&convertedBuffer, (char*)&timeString);
-                    colorTextWrapper(textGreenMatColor);
-                    PrintText(220.0f, 194.0f, 0.0f, 0.5f, 0.0f, 0.0f, convertedBuffer, 1);
-                } else if (freezeTimer != 0 && toggles[TOGGLE_TAS_COMPARISON])  {
-                    //if AL, BL, KL, GC, and snake boss room, show time differences
-                    if (gCurrentStage == 1 || gCurrentStage == 2 ||
-                        gCurrentStage == 5 || gCurrentStage == 6 || gCurrentStage == 0x0B) {
-                        s64 timeDifference;
-                        if (gCurrentStage == 0x0B) {
-                            if (elapsedMicroSeconds < snakeTime) {
-                                timeDifference = snakeTime - elapsedMicroSeconds;
-                            } else {
-                                timeDifference = elapsedMicroSeconds - snakeTime;
-                            }
-                        } else {
-                            if (elapsedMicroSeconds < BLZoneExitTimesTAS[zoneExitID]) {
-                                timeDifference = BLZoneExitTimesTAS[zoneExitID] - elapsedMicroSeconds;
-                            } else {
-                                timeDifference = elapsedMicroSeconds - BLZoneExitTimesTAS[zoneExitID];
-                            }
-                            
-                        }
-                        
-                        milliseconds = (timeDifference / 1000) % 1000;
-                        seconds = (timeDifference / 1000000) % 60;
-                        minutes = (timeDifference / 1000000) / 60;
-                        if (gCurrentStage == 2) {
-                            if (elapsedMicroSeconds < BLZoneExitTimesTAS[zoneExitID]) {
-                                colorTextWrapper(textGreenMatColor);
-                                _sprintf(timeString, "-%02d\'%02d\"%03d", minutes, seconds, milliseconds);
-                            } else {
-                                colorTextWrapper(textOrangeColor);
-                                _sprintf(timeString, "+%02d\'%02d\"%03d", minutes, seconds, milliseconds);
-                            }
-                        } else if (gCurrentStage == 0x0B) {
-                            if (elapsedMicroSeconds < snakeTime) {
-                                colorTextWrapper(textGreenMatColor);
-                                _sprintf(timeString, "-%02d\'%02d\"%03d", minutes, seconds, milliseconds);
-                            } else {
-                                colorTextWrapper(textOrangeColor);
-                                _sprintf(timeString, "+%02d\'%02d\"%03d", minutes, seconds, milliseconds);
-                            }
-                        }
-                        convertAsciiToText(&convertedBuffer, (char*)&timeString);
-
-                        PrintText(220.0f, 194.0f, 0.0f, 0.5f, 0.0f, 0.0f, convertedBuffer, 1);       
-                    }
-                }
-                
-            //}
-            break;
+        // Print the formatted time string
+        PrintText(220.0f, 208.0f, 0.0f, 0.5f, 0.0f, 0.0f, convertedBuffer, 1);
     }
 }
 
@@ -1148,11 +926,12 @@ void Porocess_Mode0_Hook(void) {
         D_80174878 = loadStageByIndex(D_80174878);
 
         if (gCurrentStage == 8 || toggles[TOGGLE_RTA_TIMER_RESET]) {
-            *prevCurrentStageCountRTA = osGetCount();
-            *startingCount =*prevCurrentStageCountRTA;
-            *elapsedCount = 0;
-            *prevDoorEntryCount = 0;
-            *storedCount = 0;
+            prevCount = osGetCount();
+            prevDoorEntryTime = 0;
+            totalElapsedCounts = 0;
+            elapsedMicroSeconds = 0;
+            displayTimeRTA = 0;
+            displayTimeIGT = 0;
         }
 
         //new code to set rng manip stuff

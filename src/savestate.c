@@ -16,9 +16,7 @@ int __osPiDeviceBusy(void) {
     return 0;
 }
 
-void loadstateMainBackup(void) {
-    // u32* prevCurrentStageCountRTA = (u32*)0x80109DD4;
-    u32 saveMask;
+void wait_on_hardware(void) {
     //wait on rsp
     while (__osSpDeviceBusy() == 1) {}
 
@@ -34,10 +32,18 @@ void loadstateMainBackup(void) {
     //invalidate caches
     osInvalICache((void*)0x80000000, 0x2000);
 	osInvalDCache((void*)0x80000000, 0x2000);
+}
+
+void loadstateMainBackup(void) {
+    // u32* prevCurrentStageCountRTA = (u32*)0x80109DD4;
+    u32 saveMask;
+    wait_on_hardware();
     saveMask = __osDisableInt();
 
     decompress_lz4_ct_default(ramEndAddr - ramStartAddr, saveStateBackupSize, savestateBackup);
-    *prevCurrentStageCountRTA = osGetCount();
+    totalElapsedCounts = storedElapsedTimeStateBackup;
+    //TODO: fix *prevCurrentStageCountRTA = osGetCount();
+    prevCount = osGetCount();
     __osRestoreInt(saveMask);
     isSaveOrLoadActive = 0; //allow thread 3 to continue
 }
@@ -46,21 +52,8 @@ void loadstateMain(void) {
     // u32* prevCurrentStageCountRTA = (u32*)0x80109DD4;
     u32 saveMask;
 
-    //wait on rsp
-    while (__osSpDeviceBusy() == 1) {}
+    wait_on_hardware();
 
-    //wait on rdp
-    while ( __osDpDeviceBusy() == 1) {}
-
-    //wait on SI
-    while (__osSiDeviceBusy() == 1) {}
-
-    //wait on PI
-    while (__osPiDeviceBusy() == 1) {}
-
-    //invalidate caches
-    osInvalICache((void*)0x80000000, 0x2000);
-	osInvalDCache((void*)0x80000000, 0x2000);
     saveMask = __osDisableInt();
     if (toggles[TOGGLE_NO_COMPRESSION_SAVESTATES]) {
         if (*(u32*)ramAddrSavestateDataSlot1 == 0x09000419) {
@@ -70,42 +63,37 @@ void loadstateMain(void) {
     } else {
         switch (savestateCurrentSlot) {
             case 0: //dpad left
-                if (savestate1Size != 0 || savestate1Size != -1) {
-                    decompress_lz4_ct_default(ramEndAddr - ramStartAddr, savestate1Size, ramAddrSavestateDataSlot1);
-                }
+                decompress_lz4_ct_default(ramEndAddr - ramStartAddr, savestate1Size, ramAddrSavestateDataSlot1);
+                totalElapsedCounts = storedElapsedTimeState1;
+                // if (savestate1Size != 0 || savestate1Size != -1) {
+                //     decompress_lz4_ct_default(ramEndAddr - ramStartAddr, savestate1Size, ramAddrSavestateDataSlot1);
+                // }
             break;
             case 1:
-                if (savestate2Size != 0 || savestate2Size != -1) {
-                    decompress_lz4_ct_default(ramEndAddr - ramStartAddr, savestate2Size, ramAddrSavestateDataSlot2);
-                }
+                decompress_lz4_ct_default(ramEndAddr - ramStartAddr, savestate2Size, ramAddrSavestateDataSlot2);
+                totalElapsedCounts = storedElapsedTimeState2;
+                // if (savestate2Size != 0 || savestate2Size != -1) {
+                //     decompress_lz4_ct_default(ramEndAddr - ramStartAddr, savestate2Size, ramAddrSavestateDataSlot2);
+                // }
             break;
         }
     }
 
-    *prevCurrentStageCountRTA = osGetCount();
+    
     __osRestoreInt(saveMask);
+    prevCount = osGetCount();
     
     isSaveOrLoadActive = 0; //allow thread 3 to continue
 }
     
 void savestateMain(void) {
     u32 saveMask;
+    u32 countBeforeSavestate = osGetCount();
+    u32 countAfterSavestate;
+    u64 countTemp;
     
-    //wait on rsp
-    while (__osSpDeviceBusy() == 1) {}
-
-    //wait on rdp
-    while ( __osDpDeviceBusy() == 1) {}
-
-    //wait on SI
-    while (__osSiDeviceBusy() == 1) {}
-
-    //wait on PI
-    while (__osPiDeviceBusy() == 1) {}
-
-    //invalidate caches
-    osInvalICache((void*)0x80000000, 0x2000);
-	osInvalDCache((void*)0x80000000, 0x2000);
+    wait_on_hardware();
+    
     saveMask = __osDisableInt();
     if (toggles[TOGGLE_NO_COMPRESSION_SAVESTATES]) {
         optimized_memcpy(ramAddrSavestateDataSlot1, (void*)ramStartAddr, ramEndAddr - ramStartAddr);
@@ -115,15 +103,20 @@ void savestateMain(void) {
                 if (savestate1Size == 0) {
                     if (savestate2Size == 0) {
                         //both states blank, create state
+                        storedElapsedTimeState1 = totalElapsedCounts;
                         savestate1Size = compress_lz4_ct_default((void*)ramStartAddr, ramEndAddr - ramStartAddr, ramAddrSavestateDataSlot1);
                     } else {
                         //savestate 1 isn't initialized but savestate 2 is, therefore backup state 2
+                        storedElapsedTimeStateBackup = storedElapsedTimeState2;
+                        storedElapsedTimeState1 = totalElapsedCounts;
                         optimized_memcpy(savestateBackup, ramAddrSavestateDataSlot2, savestate2Size);
                         saveStateBackupSize = savestate2Size;
                         savestate1Size = compress_lz4_ct_default((void*)ramStartAddr, ramEndAddr - ramStartAddr, ramAddrSavestateDataSlot1);
                     }
                 } else {
                     //savestate 1 is already created, therefore backup state 1
+                    storedElapsedTimeStateBackup = storedElapsedTimeState1;
+                    storedElapsedTimeState1 = totalElapsedCounts;
                     optimized_memcpy(savestateBackup, ramAddrSavestateDataSlot1, savestate1Size);
                     saveStateBackupSize = savestate1Size;
                     savestate1Size = compress_lz4_ct_default((void*)ramStartAddr, ramEndAddr - ramStartAddr, ramAddrSavestateDataSlot1);                
@@ -134,15 +127,20 @@ void savestateMain(void) {
                 if (savestate2Size == 0) {
                     if (savestate1Size == 0) {
                         //both states blank, create state
+                        storedElapsedTimeState2 = totalElapsedCounts;
                         savestate2Size = compress_lz4_ct_default((void*)ramStartAddr, ramEndAddr - ramStartAddr, ramAddrSavestateDataSlot2);
                     } else {
                         //savestate 2 isn't initialized but savestate 1 is, therefore backup state 1
+                        storedElapsedTimeStateBackup = storedElapsedTimeState1;
+                        storedElapsedTimeState2 = totalElapsedCounts;
                         optimized_memcpy(savestateBackup, ramAddrSavestateDataSlot1, savestate1Size);
                         saveStateBackupSize = savestate1Size;
                         savestate2Size = compress_lz4_ct_default((void*)ramStartAddr, ramEndAddr - ramStartAddr, ramAddrSavestateDataSlot2);
                     }
                 } else {
                     //savestate 2 is already created, therefore backup state 2
+                    storedElapsedTimeStateBackup = storedElapsedTimeState2;
+                    storedElapsedTimeState2 = totalElapsedCounts;
                     optimized_memcpy(savestateBackup, ramAddrSavestateDataSlot2, savestate2Size);
                     saveStateBackupSize = savestate2Size;
                     savestate2Size = compress_lz4_ct_default((void*)ramStartAddr, ramEndAddr - ramStartAddr, ramAddrSavestateDataSlot2);                
@@ -151,6 +149,11 @@ void savestateMain(void) {
         }
     }
     __osRestoreInt(saveMask);
+
+    //to prevent savestate time from being calculated
+    countAfterSavestate = osGetCount();
+    prevCount = countAfterSavestate;
+
     isSaveOrLoadActive = 0; //allow thread 3 to continue
 }
 

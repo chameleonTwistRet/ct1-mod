@@ -9,16 +9,18 @@
 
 char pracTwistVersionString[] = "Practwist v1.1.9";
 char textBuffer[0x100] = {'\0'};    // Text buffer set to empty string
+
+void func_8004E784_Hook(contMain* arg0, s32 arg1, s32* arg2, contMain* arg3);
 void gVideoThreadProcessHook(void);
 void videoproc_Hook(s32);
 u32 xSeed2 = 174823885;
 u32 calls = 0;
-u64* storedCount = (u64*)0x80109EA8;
-u64* elapsedCount = (u64*)0x80109DF8;
-u32* storedIGT = (u32*)0x80109DD8;
-u64* prevDoorEntryCount = (u64*)0x80109DA8;
-u32* prevCurrentStageCountRTA = (u32*)0x80109DD4;
-u32* startingCount = (u32*)0x80109DC8;
+// u64* storedCount = (u64*)0x80109EA8;
+// u64* elapsedCount = (u64*)0x80109DF8;
+// u32* storedIGT = (u32*)0x80109DD8;
+// u64* prevDoorEntryCount = (u64*)0x80109DA8;
+// u32* prevCurrentStageCountRTA = (u32*)0x80109DD4;
+// u32* startingCount = (u32*)0x80109DC8;
 //extern u8 gLevelAccessBitfeild;
 extern u8 gLevelClearBitfeild;
 extern u8 D_80200B68;
@@ -44,6 +46,9 @@ s32 previousVault = 0;
 f32 previousVaultSpeed = 0;
 InputRecording inputRecordingBuffer; //1200 frames
 u32 recordingInputIndex = 0;
+void DisplayTimerWithFrames(void);
+void DisplayTimerWithMilliseconds(void);
+void DisplayNormalIGT(void);
 
 // Patches work the same way as 81 and 80 GameShark Codes
 void s16patch(void* patchAddr, s16 patchInstruction) {
@@ -73,8 +78,8 @@ void checkIfRecordInputs(void) {
 
 void endStageCode(void) {
     freezeTimer = 60; //2 seconds
-    *storedCount = *elapsedCount;
-    *storedIGT = gCurrentStageTime;
+    displayTimeRTA = totalElapsedCounts;
+    displayTimeIGT = gCurrentStageTime;
 }
 //mod_boot_func: runs a single time on boot before main game loop starts
 void getActorHitWithSpatActor(void);
@@ -84,7 +89,7 @@ void mod_boot_func(void) {
     FRESULT fileres;
     s32 instructionBuffer[2];
     crash_screen_init();
-    *startingCount = osGetCount();
+    totalElapsedCounts = osGetCount();
 
     #if USE_SD_CARD == TRUE
         //initialize SD card from everdrive, create test file, close
@@ -404,7 +409,6 @@ s32 caveSkipPractice(void) {
     return 1;
 }
 
-
 //mod_main_per_frame: where to add code that runs every frame before main game loop
 void mod_main_per_frame(void) {
     s32 index = 0;
@@ -451,10 +455,6 @@ void mod_main_per_frame(void) {
         }
     }
 
-    if (toggles[TOGGLE_DISPLAY_IGT] > 0) {
-        DisplayTimerNew();
-    }
-
     if (toggles[TOGGLE_CUSTOM_DEBUG_TEXT] != 0) {
         printCustomDebugText();
     }
@@ -472,10 +472,28 @@ void mod_main_per_frame(void) {
     if (freezeTimer > 0) {
         freezeTimer--;
         if (freezeTimer == 0) {
-            *prevDoorEntryCount = *storedCount;
+            prevDoorEntryTime = displayTimeRTA;
         }
     }
 
+    TrackElapsedTimeFromLastFrame();
+    switch (toggles[TOGGLE_DISPLAY_IGT]) {
+    case 0:
+        break;
+    case 1:
+        DisplayNormalIGT();
+        break;
+    case 2:
+        DisplayTimerWithMilliseconds();
+        break;
+    case 3:
+        DisplayTimerWithFrames();
+        break;
+    case 4:
+        PrintElapsedTimeRTA();
+        break;
+    }
+    
     if (toggles[TOGGLE_BACKVAULT_PRACTICE]) {
         if (gTongues[0].tongueMode == 0 && gPlayerActors[0].canJump == 0) { //if 0, update variables
             previousVault = gTongues[0].vaulting;
@@ -487,8 +505,6 @@ void mod_main_per_frame(void) {
     }
 
 
-
-    
     // if (toggles[TOGGLE_SPEED] == 1) {
     //     *acceleration = 1.66f;
     // } else {
