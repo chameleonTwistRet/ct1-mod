@@ -7,7 +7,7 @@
 
 //in assets/ you'll find an example of replacing an image
 
-char pracTwistVersionString[] = "Practwist v1.1.9";
+char pracTwistVersionString[] = "Practwist v1.1.9.1";
 char textBuffer[0x100] = {'\0'};    // Text buffer set to empty string
 
 void func_8004E784_Hook(contMain* arg0, s32 arg1, s32* arg2, contMain* arg3);
@@ -82,7 +82,6 @@ void endStageCode(void) {
     displayTimeIGT = gCurrentStageTime;
 }
 //mod_boot_func: runs a single time on boot before main game loop starts
-void getActorHitWithSpatActor(void);
 void mod_boot_func(void) {
     UINT filebytesread;
     char testString[] = "Testing f_write() call\n";
@@ -121,6 +120,7 @@ void mod_boot_func(void) {
     hookCode((s32*)0x80037160, &endStageCodeAsm); //snake boss
     hookCode((s32*)0x8004B46C, &endStageCodeAsm2); //jungle land boss
     hookCode((s32*)0x800C10C4, &storeFirstEntry);
+    hookCode((s32*)&func_80091A38, &func_80091A38_Hook);
     //hookCode((s32*)&ActorTick_CakeBoss, &ActorTick_CakeBoss_Hook);
     //hookCode((s32*)&ActorInit_CakeBoss, &ActorInit_CakeBoss_Hook);
 

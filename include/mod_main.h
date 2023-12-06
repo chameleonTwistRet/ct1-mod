@@ -219,4 +219,16 @@ extern u32* prevCurrentStageCountRTA;
 
 extern s32 zoneExitID;
 
+typedef struct unkArg0 {
+    /* 0x00 */ char unk_00[0x60];
+    /* 0x60 */ s16 unk_60;
+    /* 0x62 */ s16 unk_62;
+    /* 0x64 */ char unk64[4];
+    /* 0x68 */ s16 unk68;
+} unkArg0;
+
+void getActorHitWithSpatActor(void);
+void func_80091A38_Hook(unkArg0* arg0);
+void func_80091A38(unkArg0* arg0);
+
 #endif // _MOD_MAIN_H_

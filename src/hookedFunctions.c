@@ -2,6 +2,13 @@
 #include "../include/mod_main.h"
 #include "../include/menu.h"
 
+char* ParseIntToBase10(s32, s32*);
+s32 PrintText(f32, f32, f32, f32, f32, f32, char*, s32);
+extern s32 currentStageCrowns;
+extern s32 gCurrentStage;
+extern s32 gCurrentStageTime;
+extern s16 sStageCrownTotals[];
+
 s32 freezeTimer = 0;
 s32 timerParametersBool = 0;
 
@@ -1740,4 +1747,124 @@ block_53:
     }
     func_800382F4(arg0);
     func_800360E4(arg0);
+}
+
+void func_80091A38_Hook(unkArg0* arg0) {
+    s32 milliseconds;
+    char pad[4];
+    s32 minutes;
+    s32 seconds;
+    s32 sp7C;
+    s16 xPos;
+    s16 sp6C;
+    s16 sp6A;
+    s32 sp64;
+    f32 sp5C; //(should be s32?)                                       /* compiler-managed */
+    f32 sp58;
+    s32 var_v0;
+    char* temp_v0;
+    
+    var_v0 = 0;
+    if (D_801FC9AC == 1) {
+        sp6C = 0xA0;
+        sp6A = -0x78;
+    } else {
+        sp6C = 0;
+        sp6A = 0;
+    }
+    
+    switch (gCurrentStage) {
+    case 10:
+        var_v0 = 1;
+        break;
+    case 11:
+        var_v0 = 2;
+        break;
+    case 12:
+        var_v0 = 3;
+        break;
+    case 13:
+        var_v0 = 4;
+        break;
+    case 14:
+        var_v0 = 5;
+        break;
+    case 9:
+        var_v0 = 0;
+    }
+    
+    func_800610A8();
+    
+    if (arg0->unk_60 > 0) {
+        SetTextGradient(0xFFU, 0xC8U, 0xAU, 0xFFU, 0xC8, 0xA, 0, 0xFF, 0xFF, 0xC8, 0xA, 0xFF, 0xC8, 0xA, 0, 0xFF);
+        sp5C = (f32) (sp6A + 0x40);
+        PrintText((sp6C + 0x50), sp5C, 0.0f, 1.0f, 0.0f, 0.0f, "ＳＴＡＧＥ", 1);
+        PrintText((sp6C + 0x90), (sp6A + 0x60), 0.0f, 1.0f, 0.0f, 0.0f, "ＣＬＥＡＲ", 1);
+        PrintText((sp6C + 0xA8), sp5C, 0.0f, 1.0f, 0.0f, 0.0f, ParseIntToBase10(var_v0 + 1, &sp7C), 1);
+    }
+    
+    if (arg0->unk_60 >= 2) {
+        sp5C = (sp6C + 0x50);
+        
+        SetTextGradient(0xFF, 0xFF, 0, 0xFF, 0, 0, 0xC8, 0xFF, 0xFF, 0xFF, 0, 0xFF, 0, 0, 0xC8, 0xFF);
+        if ((arg0->unk_60 >= 4) && (arg0->unk_62 != 0) && (D_80174998 & 1)) {
+            SetTextGradient(0, 0, 0xC8, 0xFF, 0xFF, 0xFF, 0, 0xFF, 0, 0, 0xC8, 0xFF, 0xFF, 0xFF, 0, 0xFF);
+        }
+        
+        sp58 = (f32) (sp6A + 0x80);
+        seconds = (s32) (gCurrentStageTime % 1800) / 30;
+        minutes = (s32) gCurrentStageTime / 1800;
+        milliseconds = (gCurrentStageTime % 30) * 33; // Assuming 30 frames per second
+        PrintText(sp5C, sp58, 0.0f, 0.5f, 0.0f, 0.0f, "ＣＬＥＡＲ  ＴＩＭＥ", 1);
+        PrintText((sp6C + 0xB0), sp58, 0.0f, 0.5f, 0.0f, 0.0f, "        ’    ”", 1);
+        
+        if (minutes >= 100) {
+            minutes = 99;
+            seconds = 59;
+        }
+        xPos = 0xC0;
+        
+        if (minutes < 10) {
+            PrintText((sp6C + 0xC0), sp58, 0.0f, 0.5f, 0.0f, 0.0f, "０", 1);
+            xPos = 0xC8;
+        }
+        
+        PrintText((xPos + sp6C), sp58, 0.0f, 0.5f, 0.0f, 0.0f, ParseIntToBase10(minutes, &sp7C), 1);
+        xPos = 0xD8;
+        
+        if (seconds < 0xA) {
+            PrintText((sp6C + 0xD8), sp58, 0.0f, 0.5f, 0.0f, 0.0f, "０", 1);
+            xPos = 0xE0;
+        }
+        
+        PrintText((xPos + sp6C), sp58, 0.0f, 0.5f, 0.0f, 0.0f, ParseIntToBase10(seconds, &sp7C), 1);
+
+        xPos = 0xF0;
+        PrintText((xPos + sp6C), sp58, 0.0f, 0.5f, 0.0f, 0.0f, ParseIntToBase10(milliseconds, &sp7C), 1);
+    }
+    if (arg0->unk_60 >= 3) {
+        sp5C = (sp6C + 0x50);
+        SetTextGradient(0xFFU, 0xFFU, 0U, 0xFFU, 0, 0, 0xC8, 0xFF, 0xFF, 0xFF, 0, 0xFF, 0, 0, 0xC8, 0xFF);
+        
+        if ((arg0->unk_60 >= 4) && (arg0->unk68 != 0) && (D_80174998 & 1)) {
+            SetTextGradient(0U, 0U, 0xC8U, 0xFFU, 0xFF, 0xFF, 0, 0xFF, 0, 0, 0xC8, 0xFF, 0xFF, 0xFF, 0, 0xFF);
+        }
+        
+        sp58 = (sp6A + 0x98);
+        PrintText(sp5C, sp58, 0.0f, 0.5f, 0.0f, 0.0f, "ＣＲＯＷＮ", 1);
+        xPos = 0x88;
+        
+        if (currentStageCrowns < 10) {
+            PrintText((sp6C + 0x90), sp58, 0.0f, 0.5f, 0.0f, 0.0f, "０", 1);
+            xPos = 0x90;
+        }
+        
+        temp_v0 = ParseIntToBase10(currentStageCrowns, &sp7C);
+        sp5C = xPos + sp6C;
+        PrintText((sp5C + 8), sp58, 0.0f, 0.5f, 0.0f, 0.0f, temp_v0, 1);
+        PrintText((sp5C + 0x18), sp58, 0.0f, 0.5f, 0.0f, 0.0f, "／", 1);
+        temp_v0 = ParseIntToBase10(sStageCrownTotals[var_v0], &sp7C);
+        PrintText((sp5C + 0x28), sp58, 0.0f, 0.5f, 0.0f, 0.0f, temp_v0, 1);
+    }
+    func_800610B8();
 }
