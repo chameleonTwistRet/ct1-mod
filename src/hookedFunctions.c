@@ -73,7 +73,7 @@ void ActorTick_CakeBoss_Hook(Actor* actor) {
     u32 var;
     s32 i;
 
-    temp_f20 = CalcAngleBetween2DPoints(actor->pos.x, actor->pos.z, gPlayerOnePointer->pos.x, gPlayerOnePointer->pos.z);
+    temp_f20 = CalcAngleBetween2DPoints(actor->pos.x, actor->pos.z, gCurrentActivePlayerPointer->pos.x, gCurrentActivePlayerPointer->pos.z);
     if (CHOCO_KID_COUNT == 4) {
         if (secondPhase == 0) {
             secondPhase = 1;
@@ -187,7 +187,7 @@ void ActorTick_CakeBoss_Hook(Actor* actor) {
             //Z
             actor->unk_134[1] = (-__sinf((((temp_f6 * 2) * PI) / 360.0)) * (actor->unk_170 * 0.6f)) + actor->unk_16C;
             //yaw
-            actor->unk_134[2] = CalcAngleBetween2DPoints(gPlayerOnePointer->pos.x, gPlayerOnePointer->pos.z, actor->pos.x, actor->pos.z);
+            actor->unk_134[2] = CalcAngleBetween2DPoints(gCurrentActivePlayerPointer->pos.x, gCurrentActivePlayerPointer->pos.z, actor->pos.x, actor->pos.z);
             func_80087358(actor->userVariables[3]);
             playSoundEffect(0x9B, &actor->pos.x, &actor->pos.y, &actor->pos.z, 0, 0);
         } else {
@@ -505,7 +505,7 @@ void Debug_ChangeRoom_Hook(void) {
     }
 }
 
-void ChameleonFromDoor_Hook(playerActor* player, s32 arg1, s32 arg2, s32 arg3, s32 arg4) {
+void ChameleonFromDoor_Hook(PlayerActor* player, s32 arg1, s32 arg2, s32 arg3, s32 arg4) {
     Door* currentDoor;
     Door* door;
     s32 i;
@@ -534,7 +534,7 @@ void ChameleonFromDoor_Hook(playerActor* player, s32 arg1, s32 arg2, s32 arg3, s
 }
 
 
-void func_800C0CDC_Hook(playerActor* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4) {
+void func_800C0CDC_Hook(PlayerActor* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4) {
     s32* stageFrameCount = (s32*)0x801749A0;
     if (gZoneCollisions[arg1].unk7C != 0) {
         gGameModeState = 3;
@@ -728,7 +728,7 @@ void func_8008FEA8(s32, u8);
 void func_800B4574(u8*, s16*);
 void func_800C1458(s32);
 void func_800C1510(u8, u8);
-void func_800C2820(u8, playerActor*, SaveFile*);
+void func_800C2820(u8, PlayerActor*, SaveFile*);
 
 char* ParseIntToBase10(s32, s32*);                         /* extern */
 extern char D_8010D8E8[];
@@ -1384,8 +1384,8 @@ void ActorTick_GhostBoss_Hook(Actor* arg0) {
         if (func_80044E80(arg0, 5 - arg0->userVariables[2]) == 0) {
             arg0->unk_134[6] += 1.0f;
             if ((arg0->unk_134[6] == 30.0f) || (arg0->unk_124 != arg0->userVariables[4])) {
-                temp_f0_2 = arg0->pos.x - gPlayerOnePointer->pos.x;
-                temp_f2_3 = arg0->pos.z - gPlayerOnePointer->pos.z;
+                temp_f0_2 = arg0->pos.x - gCurrentActivePlayerPointer->pos.x;
+                temp_f2_3 = arg0->pos.z - gCurrentActivePlayerPointer->pos.z;
                 arg0->unk_134[6] = 0;
                 if ((arg0->unk_124 == arg0->userVariables[4]) || (arg0->userVariables[3] == 0)) {
                     arg0->userVariables[4] = 0;
@@ -1436,7 +1436,7 @@ loop_48:
                 } else {
                     var_f2 = 2.0f / sp118;
                 }
-                func_8002D36C(sp8C, CalcAngleBetween2DPoints(temp_s0->pos.x, temp_s0->pos.z, gPlayerOnePointer->pos.x, gPlayerOnePointer->pos.z), var_f2);
+                func_8002D36C(sp8C, CalcAngleBetween2DPoints(temp_s0->pos.x, temp_s0->pos.z, gCurrentActivePlayerPointer->pos.x, gCurrentActivePlayerPointer->pos.z), var_f2);
                 temp_s0->pos.x += 20.0f * __cosf((f32) (((f64) (temp_s0->unk_90 * 2.0f) * PI) / 360.0));
                 temp_s0->pos.z += 20.0f * -__sinf((f32) (((f64) (temp_s0->unk_90 * 2.0f) * PI) / 360.0));
                 func_80044C30(arg0, arg0->userVariables[2] - 4);
@@ -1457,8 +1457,8 @@ block_53:
         break;
     case BOOKS_PULL_ARMS_IN:
     case BOOKS_PULL_ARMS_IN_COPY:
-        temp_f20_4 = arg0->pos.x - gPlayerOnePointer->pos.x;
-        temp_f22_4 = arg0->pos.z - gPlayerOnePointer->pos.z;
+        temp_f20_4 = arg0->pos.x - gCurrentActivePlayerPointer->pos.x;
+        temp_f22_4 = arg0->pos.z - gCurrentActivePlayerPointer->pos.z;
         temp_s0_3 = func_80044E80(arg0, 0);
         sp100 = func_80044E80(arg0, 1);
         if (temp_s0_3 != 0) {
@@ -1489,12 +1489,12 @@ block_53:
         gActors[D_801749D8.armActorIDs[0][0]].pos.z += 20.0f;
         gActors[D_801749D8.armActorIDs[1][0]].pos.z += 20.0f;
         if (arg0->pos.z >= 0.0f) {
-            if (arg0->pos.x < gPlayerOnePointer->pos.x) {
+            if (arg0->pos.x < gCurrentActivePlayerPointer->pos.x) {
                 arg0->unk_120 = 1;
             } else {
                 arg0->unk_120 = 0;
             }
-            if (arg0->pos.z < gPlayerOnePointer->pos.z) {
+            if (arg0->pos.z < gCurrentActivePlayerPointer->pos.z) {
                 if ((Random(0, 30000) % 300) < 120) {
                     arg0->unk_134[5] = 0.5f;
                 } else {
@@ -1509,8 +1509,8 @@ block_53:
             arg0->userVariables[2] = BOOKS_PLANT_ARM;
             arg0->userVariables[arg0->unk_120] = -1;
             func_80044C30(arg0, arg0->unk_120);
-            temp_f12 = (f32) (((f64) ((((f32) (1 - (arg0->unk_120 * 2)) * arg0->unk_134[5] * 90.0f) + CalcAngleBetween2DPoints(gPlayerOnePointer->pos.x, gPlayerOnePointer->pos.z, arg0->pos.x, arg0->pos.z)) * 2.0f) * PI) / 360.0);
-            arg0->unk_134[3] = CalcAngleBetween2DPoints(arg0->pos.x, arg0->pos.z, (__cosf(temp_f12) * 300.0f) + gPlayerOnePointer->pos.x, gPlayerOnePointer->pos.z - (__sinf(temp_f12) * 300.0f));
+            temp_f12 = (f32) (((f64) ((((f32) (1 - (arg0->unk_120 * 2)) * arg0->unk_134[5] * 90.0f) + CalcAngleBetween2DPoints(gCurrentActivePlayerPointer->pos.x, gCurrentActivePlayerPointer->pos.z, arg0->pos.x, arg0->pos.z)) * 2.0f) * PI) / 360.0);
+            arg0->unk_134[3] = CalcAngleBetween2DPoints(arg0->pos.x, arg0->pos.z, (__cosf(temp_f12) * 300.0f) + gCurrentActivePlayerPointer->pos.x, gCurrentActivePlayerPointer->pos.z - (__sinf(temp_f12) * 300.0f));
             arg0->unk_134[4] = 0.0f;
         } else {
             arg0->unk_F0++;
@@ -1678,7 +1678,7 @@ block_53:
             temp_f2_5 = CalculateAngleOfVector(arg0->pos.x, -arg0->pos.z) + (temp_s0_5 % 300) + 30.0f;
             arg0->unk_134[3] = __cosf(temp_f2_5 * 2 * PI / 360.0) * 1800.0f;
             arg0->unk_134[4] = -__sinf(temp_f2_5 * 2 * PI / 360.0) * 1800.0f;
-            if (IsAngleWithinTolerance(CalcAngleBetween2DPoints(arg0->pos.x, arg0->pos.z, gPlayerOnePointer->pos.x, gPlayerOnePointer->pos.z), CalcAngleBetween2DPoints(arg0->pos.x, arg0->pos.z, arg0->unk_134[3], arg0->unk_134[4]), 30.0f) == 0) {
+            if (IsAngleWithinTolerance(CalcAngleBetween2DPoints(arg0->pos.x, arg0->pos.z, gCurrentActivePlayerPointer->pos.x, gCurrentActivePlayerPointer->pos.z), CalcAngleBetween2DPoints(arg0->pos.x, arg0->pos.z, arg0->unk_134[3], arg0->unk_134[4]), 30.0f) == 0) {
                 continue;
             }
             break;
@@ -1702,9 +1702,9 @@ block_53:
                     arg0->unk_120 = CURVED_SHOT;
                 }
                 if (arg0->unk_120 == 0) {
-                    arg0->unk_134[5] = CalcAngleBetween2DPoints(arg0->pos.x, arg0->pos.z, gPlayerOnePointer->pos.x, gPlayerOnePointer->pos.z);
+                    arg0->unk_134[5] = CalcAngleBetween2DPoints(arg0->pos.x, arg0->pos.z, gCurrentActivePlayerPointer->pos.x, gCurrentActivePlayerPointer->pos.z);
                 } else {
-                    arg0->unk_134[5] = CalcAngleBetween2DPoints(arg0->pos.x, arg0->pos.z, gPlayerOnePointer->pos.x, gPlayerOnePointer->pos.z) - 30.0f;
+                    arg0->unk_134[5] = CalcAngleBetween2DPoints(arg0->pos.x, arg0->pos.z, gCurrentActivePlayerPointer->pos.x, gCurrentActivePlayerPointer->pos.z) - 30.0f;
                     WrapDegrees(&arg0->unk_134[5]);
                 }
             }
@@ -1727,10 +1727,10 @@ block_53:
         }
         break;
     case BOOKS_DO_STRAIGHT_SHOT:
-        spAC = arg0->pos.x - gPlayerOnePointer->pos.x;
-        spA8 = arg0->pos.z - gPlayerOnePointer->pos.z;
-        if ((gPlayerOnePointer->amountLeftToShoot != 0) && (arg0->userVariables[4] >= 4)) {
-            func_8002F6DC(&arg0->unk_90, CalcAngleBetween2DPoints(arg0->pos.x, arg0->pos.z, gPlayerOnePointer->pos.x, gPlayerOnePointer->pos.z));
+        spAC = arg0->pos.x - gCurrentActivePlayerPointer->pos.x;
+        spA8 = arg0->pos.z - gCurrentActivePlayerPointer->pos.z;
+        if ((gCurrentActivePlayerPointer->amountLeftToShoot != 0) && (arg0->userVariables[4] >= 4)) {
+            func_8002F6DC(&arg0->unk_90, CalcAngleBetween2DPoints(arg0->pos.x, arg0->pos.z, gCurrentActivePlayerPointer->pos.x, gCurrentActivePlayerPointer->pos.z));
         }
         if (!(arg0->globalTimer & 3)) {
             if (Actor_Init(0x40, (__cosf(arg0->unk_90 * 2.0f * PI / 360.0) * 280.0f) + arg0->pos.x, arg0->pos.y + 100.0f, arg0->pos.z - (__sinf(arg0->unk_90 * 2.0f * PI / 360.0) * 280.0f), arg0->unk_90, arg0->unk_F4, arg0->unk_F8, arg0->unk_FC, arg0->unk_100, arg0->unk_104, arg0->unk_108, 80.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0, 0, 0, 0) != -1) {
@@ -1744,8 +1744,8 @@ block_53:
         }
         break;
     case BOOKS_DO_CURVED_SHOT:
-        spA4 = arg0->pos.x - gPlayerOnePointer->pos.x;
-        spA0 = arg0->pos.z - gPlayerOnePointer->pos.z;
+        spA4 = arg0->pos.x - gCurrentActivePlayerPointer->pos.x;
+        spA0 = arg0->pos.z - gCurrentActivePlayerPointer->pos.z;
         if (!(arg0->globalTimer & 3)) {
             if (Actor_Init(0x40, (__cosf(arg0->unk_90 * 2.0f * PI / 360.0) * 280.0f) + arg0->pos.x, arg0->pos.y + 100.0f, arg0->pos.z - (__sinf(arg0->unk_90 * 2.0f * PI / 360.0) * 280.0f), arg0->unk_90, arg0->unk_F4, arg0->unk_F8, arg0->unk_FC, arg0->unk_100, arg0->unk_104, arg0->unk_108, 80.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0, 0, 0, 0) != -1) {
                 playSoundEffect(0xBB, NULL, NULL, NULL, 0, 0x10);
@@ -1754,7 +1754,7 @@ block_53:
         arg0->unk_90 += 0.803571f;
         WrapDegrees(&arg0->unk_90);
         arg0->userVariables[4]++;
-        if ((arg0->userVariables[4] == 0x70) || (gPlayerOnePointer->amountLeftToShoot != 0) || ((SQ(spA4) + SQ(spA0)) < 640000.0f)) {
+        if ((arg0->userVariables[4] == 0x70) || (gCurrentActivePlayerPointer->amountLeftToShoot != 0) || ((SQ(spA4) + SQ(spA0)) < 640000.0f)) {
             arg0->userVariables[2] = BOOKS_CHOOSE_INITIAL_PHASE2_ANGLE;
             arg0->unk_120 = Random(0, 99999999) % MAX_MOVES;
         }

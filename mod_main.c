@@ -127,16 +127,10 @@ void mod_boot_func(void) {
 
     
     //hookCode((s32*)&ActorTick_GhostBoss, &ActorTick_GhostBoss_Hook); (currently, function isn't equivalent)
-    //
 
-    //something broke, and we shifted a TU. These are the correct offsets for this
-    // patchInstruction((void*)0x800A1030, 0x10000002); //add black chameleon to story patch 1
-    // patchInstruction((void*)0x800A1084, 0x10000004); //add black chameleon to story patch 2
+    patchInstruction((void*)0x800A1030, 0x10000002); //add black chameleon to story patch 1
+    patchInstruction((void*)0x800A1084, 0x10000004); //add black chameleon to story patch 2
 
-    //to match shifted TU, we do this
-    //TODO: find out why the TU is shifted
-    patchInstruction((void*)0x800A102C, 0x10000002); //add black chameleon to story patch 1
-    patchInstruction((void*)0x800A1080, 0x10000004); //add black chameleon to story patch 2
 }
 
 f32 fabsf(f32 x) {
