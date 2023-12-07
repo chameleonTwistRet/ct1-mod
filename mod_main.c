@@ -1,5 +1,5 @@
 #include "include/mod_main.h"
-#include "include/sd_toggle.h"
+#include "include/mod.h"
 #include "lib/cart.h"
 #include "lib/ff.h"
 #include "lib/ffconf.h"
@@ -32,16 +32,16 @@ s8 s8Read(void* readAddr) {
 // Print Values from Address (these will be in a new file soon)
 void s8print(void* addr) {
     s8 value = s8Read((void*)addr);
-    _bzero(&stringBuffer, sizeof(stringBuffer));
-    _bzero(&printTextBuffer2, sizeof(printTextBuffer2));
+    _bzero(stringBuffer, sizeof(stringBuffer));
+    _bzero(printTextBuffer2, sizeof(printTextBuffer2));
     _sprintf(&stringBuffer, "%X: %d", addr, value);
     convertAsciiToText(&printTextBuffer2, stringBuffer);
     textPrint(13.0f, 30.0f, 1.0f, &printTextBuffer2, 1);
 }
 void s16print(void* addr) {
     s16 value = s16Read((void*)addr);
-    _bzero(&stringBuffer, sizeof(stringBuffer));
-    _bzero(&printTextBuffer2, sizeof(printTextBuffer2));
+    _bzero(stringBuffer, sizeof(stringBuffer));
+    _bzero(printTextBuffer2, sizeof(printTextBuffer2));
     _sprintf(&stringBuffer, "%X: %d", addr, value);
     convertAsciiToText(&printTextBuffer2, stringBuffer);
     textPrint(13.0f, 30.0f, 1.0f, &printTextBuffer2, 1);
@@ -90,7 +90,7 @@ void mod_boot_func(void) {
     // example of setting up text to print
     _bzero(&printTextBuffer2, sizeof(printTextBuffer2)); // clear text
     _bzero(&stringBuffer, sizeof(stringBuffer)); // clear string buffer
-    strcat(&stringBuffer, "test");
+    strcat((char*)&stringBuffer, "test");
     _sprintfcat(&stringBuffer, " %d", 1);
     convertAsciiToText(&printTextBuffer2, stringBuffer);
 

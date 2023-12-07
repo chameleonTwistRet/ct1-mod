@@ -34,6 +34,9 @@ extern int getStatusRegister(void); //returns status reg
 extern int setStatusRegister(s32); //returns status reg
 void hookCode(s32* patchAddr, void* jumpLocation);
 void patchInstruction(void* patchAddr, s32 patchInstruction);
+void _sprintf(void* destination, void* fmt, ...);
+char* strcat(char* dest, const char* src);
+void _sprintfcat(void* destination, void* fmt, ...);
 
 #define ALIGN4(val) (((val) + 0x3) & ~0x3)
 #define ARRAY_COUNT(arr) (s32)(sizeof(arr) / sizeof(arr[0]))
