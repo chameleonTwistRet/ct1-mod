@@ -94,6 +94,11 @@ s32 toggleInfiniteHealth(void) {
     return 1;
 }
 
+s32 toggleStorage(void) {
+    toggles[TOGGLE_STORAGE] ^= 1;
+    return 1;
+}
+
 // s32 toggleSpeed(void) {
 //     toggles[TOGGLE_SPEED] ^= 1;
 //     return 1;

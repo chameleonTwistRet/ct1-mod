@@ -35,6 +35,11 @@ void Debug_ChangeRoom(void);                               /* extern */
 void Debug_ChangeView(void);                               /* extern */
 void Debug_MovePlayer(void);                               /* extern */
 s32 func_80080C28(f32, f32, f32, f32, f32, f32, s32, s32, s32, s32); /* extern */
+void EraseToungeEatEnemy(Tongue* arg0);
+void EraseToungeEatEnemy_Hook(Tongue* arg0);
+s32 toggleStorage(void);
+s32 IsPickup(Actor* actor);
+void pickup_collide_func(s32);
 
 extern s32 secondarySeedCallsThisFrame;
 extern s32 secondarySeedCallsTotal;
@@ -42,6 +47,7 @@ extern s32 secondarySeedCallsTotalState1;
 extern s32 secondarySeedCallsTotalState2;
 extern s32 secondarySeedCallsTotalStateBackup;
 extern s32 secondarySeedCallsTotalStateUncompressed;
+extern u64 storedElapsedTimeStateUncompressed;
 extern s32 freezeTimer;
 extern u32 prevCount;
 extern u64 displayTimeRTA;

@@ -94,6 +94,7 @@ char** page0Strings[] = {
     InGameTimerText, //In Game Timer Active text
     CustomTextMain, //CustomDebugText
     ONAndOFF, // TOGGLE_INFINITE_HEALTH
+    ONAndOFF, // TOGGLE_STORAGE
 };
 
 char** page4Strings[] = {

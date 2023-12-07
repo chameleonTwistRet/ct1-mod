@@ -42,9 +42,8 @@ void loadstateMainBackup(void) {
     decompress_lz4_ct_default(ramEndAddr - ramStartAddr, saveStateBackupSize, savestateBackup);
     totalElapsedCounts = storedElapsedTimeStateBackup;
     secondarySeedCallsTotal = secondarySeedCallsTotalStateBackup;
-    //TODO: fix *prevCurrentStageCountRTA = osGetCount();
-    prevCount = osGetCount();
     __osRestoreInt(saveMask);
+    prevCount = osGetCount();
     isSaveOrLoadActive = 0; //allow thread 3 to continue
 }
 
@@ -59,6 +58,7 @@ void loadstateMain(void) {
             //has valid uncompressed state, allow load
             secondarySeedCallsTotal = secondarySeedCallsTotalStateUncompressed;
             optimized_memcpy((void*)ramStartAddr,  ramAddrSavestateDataSlot1, ramEndAddr - ramStartAddr);
+            totalElapsedCounts = storedElapsedTimeStateUncompressed;
         }
     } else {
         switch (savestateCurrentSlot) {
@@ -90,15 +90,13 @@ void loadstateMain(void) {
     
 void savestateMain(void) {
     u32 saveMask;
-    u32 countBeforeSavestate = osGetCount();
-    u32 countAfterSavestate;
-    u64 countTemp;
     
     wait_on_hardware();
     
     saveMask = __osDisableInt();
     if (toggles[TOGGLE_NO_COMPRESSION_SAVESTATES]) {
         secondarySeedCallsTotalStateUncompressed = secondarySeedCallsTotal;
+        storedElapsedTimeStateUncompressed = totalElapsedCounts;
         optimized_memcpy(ramAddrSavestateDataSlot1, (void*)ramStartAddr, ramEndAddr - ramStartAddr);
     } else {
         switch (savestateCurrentSlot) {
@@ -164,8 +162,7 @@ void savestateMain(void) {
     __osRestoreInt(saveMask);
 
     //to prevent savestate time from being calculated
-    countAfterSavestate = osGetCount();
-    prevCount = countAfterSavestate;
+    prevCount = osGetCount();
 
     isSaveOrLoadActive = 0; //allow thread 3 to continue
 }

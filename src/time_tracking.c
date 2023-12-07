@@ -12,6 +12,7 @@ u64 elapsedMicroSeconds = 0;
 u64 displayTimeRTA = 0;
 u64 displayTimeIGT = 0;
 
+u64 storedElapsedTimeStateUncompressed = 0;
 u64 storedElapsedTimeState1 = 0;
 u64 storedElapsedTimeState2 = 0;
 u64 storedElapsedTimeStateBackup = 0;

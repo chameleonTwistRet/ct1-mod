@@ -38,6 +38,7 @@ s8 toggles[] = {
     0,  // TOGGLE_DISPLAY_IGT
     0,  // TOGGLE_CUSTOM_DEBUG_TEXT
     0,  // TOGGLE_INFINITE_HEALTH
+    0,  // TOGGLE_STORAGE
 
     // page 4
     0,  // TOGGLE_CAVE_SKIP_PRACTICE

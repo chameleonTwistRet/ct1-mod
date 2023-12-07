@@ -34,28 +34,31 @@ menuPage page2 = {
 };
 
 menuPage page0 = {
-    5, //optionCount
+    6, //optionCount
     PAGE_JL, //pageIndex
     { //options
         "Savestate Text",
         "No compression savestates",
         "In Game Timer",
         "Custom Debug Text",
-        "Infinite Health"
+        "Infinite Health",
+        "Toggle Storage"
     },
     { //menuProc
         &toggleHideSavestateText,
         &NoCompressionToggle,
         &toggleHideIGT,
         &toggleCustomDebugText,
-        &toggleInfiniteHealth
+        &toggleInfiniteHealth,
+        &toggleStorage
     },
     { //flags
         TOGGLE_HIDE_SAVESTATE_TEXT,
         TOGGLE_NO_COMPRESSION_SAVESTATES,
         TOGGLE_DISPLAY_IGT,
         TOGGLE_CUSTOM_DEBUG_TEXT,
-        TOGGLE_INFINITE_HEALTH
+        TOGGLE_INFINITE_HEALTH,
+        TOGGLE_STORAGE
     },
     {
         page0Strings,

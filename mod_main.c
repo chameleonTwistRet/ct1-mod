@@ -118,6 +118,8 @@ void mod_boot_func(void) {
     hookCode((s32*)0x800C10C4, &storeFirstEntry);
     hookCode((s32*)&func_80091A38, &func_80091A38_Hook);
     hookCode((s32*)&Rand, &Rand_Hook);
+    hookCode((s32*)&EraseToungeEatEnemy, &EraseToungeEatEnemy_Hook);
+    
     //hookCode((s32*)&ActorTick_CakeBoss, &ActorTick_CakeBoss_Hook);
     //hookCode((s32*)&ActorInit_CakeBoss, &ActorInit_CakeBoss_Hook);
 

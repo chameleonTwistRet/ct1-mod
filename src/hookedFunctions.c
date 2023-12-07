@@ -996,7 +996,6 @@ void Porocess_Mode0_Hook(void) {
             //should enter JL with 28 calls
         }
 
-        
         if (gCurrentStage == 7) {
             D_80168DA0 = (u32) gControllerNo;
             D_801749AC = 2;
@@ -1894,4 +1893,53 @@ s32 Rand_Hook(void) {
     secondarySeedCallsThisFrame++;
     secondarySeedCallsTotal++;
     return rngSeed;
+}
+void func_800BE474(Tongue*);
+
+void EraseToungeEatEnemy_Storage(Tongue* arg0) {
+    s32 i;
+
+    arg0->vaulting = 0;
+    arg0->tongueMode = 0;
+    arg0->segments = 0;
+
+    for (i = 0; i < MAX_ACTORS; i++) {
+        if (gActors[i].actorState == 1) {
+            gActors[i].actorState = 2;
+            arg0->inMouth[arg0->amountInMouth] = i;
+            arg0->amountInMouth++;
+            arg0->amountOnTongue--;
+        }
+    }
+
+    func_800BE474(arg0);
+}
+
+void EraseToungeEatEnemy_NoStorage(Tongue* arg0) {
+    s32 i;
+
+    arg0->vaulting = 0;
+    arg0->tongueMode = 0;
+    arg0->segments = 0;
+
+    for (i = 0; i < MAX_ACTORS; i++) {
+        if ((gActors[i].actorID != 0) && (gActors[i].actorState == 1)) {
+            if (IsPickup(&gActors[i]) != 0) {
+                pickup_collide_func(i);
+            } else {
+                gActors[i].actorState = 2;
+                arg0->inMouth[arg0->amountInMouth] = i;
+                arg0->amountInMouth++;
+            }
+            arg0->amountOnTongue--;  
+        }
+    }
+    func_800BE474(arg0);
+}
+void EraseToungeEatEnemy_Hook(Tongue* arg0) {
+    if (toggles[TOGGLE_STORAGE] == 0) {
+        EraseToungeEatEnemy_NoStorage(arg0);
+    } else {
+        EraseToungeEatEnemy_Storage(arg0);
+    }
 }
