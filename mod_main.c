@@ -4,7 +4,7 @@
 #include "lib/ff.h"
 #include "lib/ffconf.h"
 
-char pracTwistVersionString[] = "Practwist v0.1";
+char kaizoVersionString[] = "Kaizo v0.1";
 char printTextBuffer[0x100] = {'\0'};    // Text buffer set to empty string
 char printTextBuffer2[0x100] = {'\0'};   // Text buffer set to empty string
 char stringBuffer[0x100] = {'\0'};       // String buffer set to empty for string manipulation
@@ -78,55 +78,33 @@ void mod_boot_func(void) {
     s32 instructionBuffer[2];
     crash_screen_init();
 
-    #if USE_SD_CARD == TRUE
-        //initialize SD card from everdrive, create test file, close
-        cart_init();
-        initFatFs();
-        fileres = f_open(&sdsavefile, path, FA_OPEN_ALWAYS | FA_WRITE | FA_READ);
-        f_write(&sdsavefile, testString, ALIGN4(sizeof(testString)), &filebytesread);
-        f_close(&sdsavefile);
-    #endif
-
-    // example of setting up text to print
-    _bzero(&printTextBuffer2, sizeof(printTextBuffer2)); // clear text
-    _bzero(&stringBuffer, sizeof(stringBuffer)); // clear string buffer
-    strcat((char*)&stringBuffer, "test");
-    _sprintfcat(&stringBuffer, " %d", 1);
-    convertAsciiToText(&printTextBuffer2, stringBuffer);
-
-    //hookCode((s32*)0x8002D660, &loadEnemyObjectsHook); //example of hooking code
+    patchInstruction((void*)0x800A1030, 0x10000002); //add black chameleon to story patch 1
+    patchInstruction((void*)0x800A1084, 0x10000004); //add black chameleon to story patch 2
 }
 
 //mod_main_per_frame: where to add code that runs every frame before main game loop
 void mod_main_per_frame(void) {
+    char convertedVersionBuffer[sizeof(kaizoVersionString) * 2];
     s32 index = 0;
     char printTextBuffer[8];
+    gGameState.stageAccess = 0xFF;
+    gLevelClearBitfeild = 0xFF;
+    D_80200B68 = 0xFF; //unlock all levels
+    gGameRecords.flags[1] = 0x04; //give white
+
+    if (sDebugInt == -1) {
+        sDebugInt = 0;
+    }
+
+    if (gContMain[0].buttons2 & CONT_UP) {
+        sDebugInt ^= 1;
+    }
  
-    //example of printing text
-    textPrint(13.0f, 30.0f, 1.0f, &printTextBuffer2, 1);
-
-    if (stateCooldown == 0 ) {
-        checkInputsForSavestates();
+    if (gameModeCurrent == GAME_MODE_SUPPLY_SYSTEM_LOGO) {
+        colorTextWrapper(textGreenMatColor);
+        convertAsciiToText(&convertedVersionBuffer, (char*)&kaizoVersionString);
+        textPrint(15.0f, 220.0f, 0.5f, &convertedVersionBuffer, 3);
     }
-
-    if (stateCooldown > 0) {
-        stateCooldown--;
-    }
-
-    
-    if (savestateCurrentSlot == 0) {
-        printTextBuffer[index++] =  0xA3;
-        printTextBuffer[index++] = 0xB1; //prints 1
-    } else {
-        printTextBuffer[index++] =  0xA3;
-        printTextBuffer[index++] = 0xB2; //prints 2         
-    }
-
-    printTextBuffer[index++] = 0;
-    textPrint(13.0f, 208.0f, 0.65f, &printTextBuffer, 3);
-
-    //if a savestate is being saved/loaded, stall thread
-    while (isSaveOrLoadActive != 0) {}
 }
 
 //Thread 3 osStartThread function
