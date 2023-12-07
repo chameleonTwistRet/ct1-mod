@@ -49,7 +49,9 @@ s8 toggles[] = {
     //page 1
     -1, // TOGGLE_ADV_RNG
     -1, // TOGGLE_REV_RNG
+    0, // TOGGLE_SET_SEED_JL
     0, // TOGGLE_SET_SEED_BL
+    0, // TOGGLE_SET_SEED_IL_BL
     0, // TOGGLE_SET_SEED_KL
     0, // TOGGLE_SET_SEED_GC
     //0, // TOGGLE_SPEED

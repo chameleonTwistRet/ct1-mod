@@ -66,6 +66,10 @@ char rngSeedText[] = {
     "RNG CALLS/SEED"
 };
 
+char rngSeed2Text[] = {
+    "RNG2 CALLS/SEED"
+};
+
 char quintellaSpinCancelText[] = {
     "SPIN CANCEL TIMER"
 };
@@ -79,6 +83,7 @@ char* CustomTextMain[] = {
     variousStatsText,
     freeCamText,
     rngSeedText,
+    rngSeed2Text,
     quintellaSpinCancelText,
     frameCountText
 };
@@ -102,6 +107,7 @@ char** page4Strings[] = {
 char** page1Strings[] = {
     NULL, //Adv Rng
     NULL, //Rev Rng
+    manipTexts, //Set JL RNG Seed
     manipTexts, //Set BL RNG Seed
     ONAndOFF, //Set BL IL RNG Seed
     ONAndOFF, //Set KL RNG Seed

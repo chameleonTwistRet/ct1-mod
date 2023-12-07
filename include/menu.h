@@ -8,7 +8,7 @@ typedef s32 (*menuProc) (void);
 
 // shift x value per print per length of string (8px per letter) then print
 #define X_COORD_PER_LETTER 4.5
-#define FUNCS_PER_PAGE 6
+#define FUNCS_PER_PAGE 7
 #define ARRAY_COUNT(arr) (s32)(sizeof(arr) / sizeof(arr[0]))
 #define ARRAY_COUNT_INDEX(arr) ARRAY_COUNT(arr) - 1
 
@@ -71,6 +71,7 @@ s32 FrameAdvanceToggle(void);
 s32 NoCompressionToggle(void);
 s32 advanceGuRNG(void);
 s32 revGuRNG(void);
+s32 setJLSeed(void);
 s32 setBLSeed(void);
 s32 setBLILSeed(void);
 s32 setKLSeed(void);
@@ -121,6 +122,7 @@ enum Toggles {
     //page 1
     TOGGLE_ADV_RNG,
     TOGGLE_REV_RNG,
+    TOGGLE_SET_SEED_JL,
     TOGGLE_SET_SEED_BL,
     TOGGLE_SET_SEED_IL_BL,
     TOGGLE_SET_SEED_KL,

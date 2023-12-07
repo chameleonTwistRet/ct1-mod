@@ -16,6 +16,10 @@ u64 storedElapsedTimeState1 = 0;
 u64 storedElapsedTimeState2 = 0;
 u64 storedElapsedTimeStateBackup = 0;
 
+s32 secondarySeedCallsTotalState1 = 0;
+s32 secondarySeedCallsTotalState2 = 0;
+s32 secondarySeedCallsTotalStateBackup = 0;
+
 u64 snakeTime = 0x00000000010C2300;
 s32 zoneExitID = 0;
 u64 BLZoneExitTimesTAS[] = {

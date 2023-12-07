@@ -36,6 +36,12 @@ void Debug_ChangeView(void);                               /* extern */
 void Debug_MovePlayer(void);                               /* extern */
 s32 func_80080C28(f32, f32, f32, f32, f32, f32, s32, s32, s32, s32); /* extern */
 
+extern s32 secondarySeedCallsThisFrame;
+extern s32 secondarySeedCallsTotal;
+extern s32 secondarySeedCallsTotalState1;
+extern s32 secondarySeedCallsTotalState2;
+extern s32 secondarySeedCallsTotalStateBackup;
+extern s32 secondarySeedCallsTotalStateUncompressed;
 extern s32 freezeTimer;
 extern u32 prevCount;
 extern u64 displayTimeRTA;
@@ -230,5 +236,7 @@ typedef struct unkArg0 {
 void getActorHitWithSpatActor(void);
 void func_80091A38_Hook(unkArg0* arg0);
 void func_80091A38(unkArg0* arg0);
+s32 Rand(void);
+s32 Rand_Hook(void);
 
 #endif // _MOD_MAIN_H_

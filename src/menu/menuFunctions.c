@@ -35,6 +35,14 @@ s32 revGuRNG(void) {
     return 0;
 }
 
+s32 setJLSeed(void) {
+    toggles[TOGGLE_SET_SEED_JL]++;
+    if (toggles[TOGGLE_SET_SEED_JL] >= 3) {
+        toggles[TOGGLE_SET_SEED_JL] = 0;
+    }
+    return 0;
+}
+
 s32 setBLSeed(void) {
     toggles[TOGGLE_SET_SEED_BL]++;
     if (toggles[TOGGLE_SET_SEED_BL] >= 3) {
@@ -93,7 +101,7 @@ s32 toggleInfiniteHealth(void) {
 
 s32 toggleCustomDebugText(void) {
     toggles[TOGGLE_CUSTOM_DEBUG_TEXT]++;
-    if (toggles[TOGGLE_CUSTOM_DEBUG_TEXT] >= 6) {
+    if (toggles[TOGGLE_CUSTOM_DEBUG_TEXT] >= 7) {
         toggles[TOGGLE_CUSTOM_DEBUG_TEXT] = 0;
     }
     return 1;

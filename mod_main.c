@@ -7,7 +7,10 @@
 
 //in assets/ you'll find an example of replacing an image
 
-char pracTwistVersionString[] = "Practwist v1.1.9.1";
+s32 secondarySeedCallsThisFrame = 0;
+s32 secondarySeedCallsTotal = 0;
+s32 secondarySeedCallsTotalStateUncompressed = 0;
+char pracTwistVersionString[] = "Practwist v1.2.0";
 char textBuffer[0x100] = {'\0'};    // Text buffer set to empty string
 
 void func_8004E784_Hook(contMain* arg0, s32 arg1, s32* arg2, contMain* arg3);
@@ -15,13 +18,6 @@ void gVideoThreadProcessHook(void);
 void videoproc_Hook(s32);
 u32 xSeed2 = 174823885;
 u32 calls = 0;
-// u64* storedCount = (u64*)0x80109EA8;
-// u64* elapsedCount = (u64*)0x80109DF8;
-// u32* storedIGT = (u32*)0x80109DD8;
-// u64* prevDoorEntryCount = (u64*)0x80109DA8;
-// u32* prevCurrentStageCountRTA = (u32*)0x80109DD4;
-// u32* startingCount = (u32*)0x80109DC8;
-//extern u8 gLevelAccessBitfeild;
 extern u8 gLevelClearBitfeild;
 extern u8 D_80200B68;
 s32 recordingErrorMessageStick = 0;
@@ -121,6 +117,7 @@ void mod_boot_func(void) {
     hookCode((s32*)0x8004B46C, &endStageCodeAsm2); //jungle land boss
     hookCode((s32*)0x800C10C4, &storeFirstEntry);
     hookCode((s32*)&func_80091A38, &func_80091A38_Hook);
+    hookCode((s32*)&Rand, &Rand_Hook);
     //hookCode((s32*)&ActorTick_CakeBoss, &ActorTick_CakeBoss_Hook);
     //hookCode((s32*)&ActorInit_CakeBoss, &ActorInit_CakeBoss_Hook);
 
@@ -130,9 +127,14 @@ void mod_boot_func(void) {
     //hookCode((s32*)&ActorTick_GhostBoss, &ActorTick_GhostBoss_Hook); (currently, function isn't equivalent)
     //
 
-    patchInstruction((void*)0x800A1030, 0x10000002); //add black chameleon to story patch 1
-    patchInstruction((void*)0x800A1084, 0x10000004); //add black chameleon to story patch 2
-    
+    //something broke, and we shifted a TU. These are the correct offsets for this
+    // patchInstruction((void*)0x800A1030, 0x10000002); //add black chameleon to story patch 1
+    // patchInstruction((void*)0x800A1084, 0x10000004); //add black chameleon to story patch 2
+
+    //to match shifted TU, we do this
+    //TODO: find out why the TU is shifted
+    patchInstruction((void*)0x800A102C, 0x10000002); //add black chameleon to story patch 1
+    patchInstruction((void*)0x800A1080, 0x10000004); //add black chameleon to story patch 2
 }
 
 f32 fabsf(f32 x) {
@@ -238,6 +240,31 @@ s32 printCustomDebugText(void) {
         textPrint(13.0f, 194.0f, 0.5f, &convertedMessageBuffer, 1);
         break;
     case 4:
+        //print call count of rng2Seed
+        colorTextWrapper(textWhiteColor);
+        _bzero(messageBuffer, sizeof(messageBuffer)); //clear buffer
+        _sprintf(messageBuffer, "%08X", *(u32*)0x800f6884);
+        _bzero(convertedMessageBuffer, sizeof(convertedMessageBuffer)); //clear buffer
+        convertAsciiToText(&convertedMessageBuffer, (char*)&messageBuffer);
+        textPrint(13.0f, 182.0f, 0.5f, &convertedMessageBuffer, 1);
+
+        //print calls this frame
+        colorTextWrapper(textWhiteColor);
+        _bzero(messageBuffer, sizeof(messageBuffer)); //clear buffer
+        _sprintf(messageBuffer, "%d", secondarySeedCallsThisFrame);
+        _bzero(convertedMessageBuffer, sizeof(convertedMessageBuffer)); //clear buffer
+        convertAsciiToText(&convertedMessageBuffer, (char*)&messageBuffer);
+        textPrint(13.0f, 194.0f, 0.5f, &convertedMessageBuffer, 1);
+
+        //print total calls of secondary seed
+        colorTextWrapper(textWhiteColor);
+        _bzero(messageBuffer, sizeof(messageBuffer)); //clear buffer
+        _sprintf(messageBuffer, "%d", secondarySeedCallsTotal);
+        _bzero(convertedMessageBuffer, sizeof(convertedMessageBuffer)); //clear buffer
+        convertAsciiToText(&convertedMessageBuffer, (char*)&messageBuffer);
+        textPrint(13.0f, 170.0f, 0.5f, &convertedMessageBuffer, 1);
+        break;
+    case 5:
         //print quintella spin frames
         if (*(s32*)0x8016AD80 >= 92) {
             colorTextWrapper(textGreenMatColor);
@@ -250,7 +277,7 @@ s32 printCustomDebugText(void) {
         convertAsciiToText(&convertedMessageBuffer, (char*)&messageBuffer);
         textPrint(13.0f, 194.0f, 0.5f, &convertedMessageBuffer, 1);
         break;
-    case 5:
+    case 6:
         _bzero(messageBuffer, sizeof(messageBuffer)); //clear buffer
         _sprintf(messageBuffer, "%d", *(s32*)0x8017499C);
         _bzero(convertedMessageBuffer, sizeof(convertedMessageBuffer)); //clear buffer
@@ -369,7 +396,7 @@ s32 caveSkipPractice(void) {
         f32 xPos = 20.0f;
         f32 yPos = 35.0f;
         f32 scale = 0.5f;
-        s32 style = 3;
+        s32 style = 1;
 
         // Data Needed
         if (gTongues[0].vaultTime == 1) {
@@ -403,7 +430,7 @@ s32 caveSkipPractice(void) {
             _sprintf(messageBuffer, "Z OFF BY: %.4f\n", caveZDiffAbs);
 			_bzero(&convertedMessageBuffer, sizeof(convertedMessageBuffer)); //clear buffer
 			convertAsciiToText(&convertedMessageBuffer, (char*)&messageBuffer);
-			PrintText(xPos, (yPos += 10.0f), 0, scale, 0, 0, convertedMessageBuffer, style);
+			PrintText(xPos, (yPos += 12.0f), 0, scale, 0, 0, convertedMessageBuffer, style);
         }
     }
     return 1;
@@ -543,6 +570,7 @@ void mod_main_func(void) {
     //step current game mode
     loop:
     mod_main_per_frame();
+    secondarySeedCallsThisFrame = 0;
     switch(gameModeCurrent) {
         case GAME_MODE_OVERWORLD:
             if (stateCooldown == 5) {

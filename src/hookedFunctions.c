@@ -978,6 +978,22 @@ void Porocess_Mode0_Hook(void) {
             //so we set it to what we want - 4
             *seed = 0x0C89505D;
             *calls = 10384;
+        } else if (gCurrentStage == 0 && toggles[TOGGLE_SET_SEED_JL] == 1) {
+            u32* seed = (u32*)0x80109DC0;
+            u32* calls = (u32*)0x80109DC4;
+            //the game will advance the seed 4 times after we set it
+            //so we set it to what we want - 4
+            *seed = 0x2B0625F1;
+            *calls = 36;
+            //should enter JL with 40 calls
+        } else if (gCurrentStage == 0 && toggles[TOGGLE_SET_SEED_JL] == 2) {
+            u32* seed = (u32*)0x80109DC0;
+            u32* calls = (u32*)0x80109DC4;
+            //the game will advance the seed 4 times after we set it
+            //so we set it to what we want - 4
+            *seed = 0x10A790E5;
+            *calls = 24;
+            //should enter JL with 28 calls
         }
 
         
@@ -1867,4 +1883,15 @@ void func_80091A38_Hook(unkArg0* arg0) {
         PrintText((sp5C + 0x28), sp58, 0.0f, 0.5f, 0.0f, 0.0f, temp_v0, 1);
     }
     func_800610B8();
+}
+
+s32 Rand_Hook(void) {
+    u32 y, z;
+    y = rngSeed * 4 + 2;
+    z = y + 1;
+    y = y * z;
+    rngSeed = y / 4;
+    secondarySeedCallsThisFrame++;
+    secondarySeedCallsTotal++;
+    return rngSeed;
 }

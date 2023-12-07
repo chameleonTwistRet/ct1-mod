@@ -92,11 +92,12 @@ menuPage page4 = {
 };
 
 menuPage page1 = {
-    6, //optionCount
+    7, //optionCount
     PAGE_MAIN, //pageIndex
     { //options
         "Adv RNG\n",
         "Rev RNG\n",
+        "Set JL RNG Seed",
         "Set BL RNG Seed",
         "Set BL IL RNG Seed",
         "Set KL RNG Seed",
@@ -106,6 +107,7 @@ menuPage page1 = {
     { //menuProc
         &advanceGuRNG,
         &revGuRNG,
+        &setJLSeed,
         &setBLSeed,
         &setBLILSeed,
         &setKLSeed,
@@ -115,6 +117,7 @@ menuPage page1 = {
     { //flags
         -1,
         -1,
+        TOGGLE_SET_SEED_JL,
         TOGGLE_SET_SEED_BL,
         TOGGLE_SET_SEED_IL_BL,
         TOGGLE_SET_SEED_KL,

@@ -35,13 +35,13 @@ void wait_on_hardware(void) {
 }
 
 void loadstateMainBackup(void) {
-    // u32* prevCurrentStageCountRTA = (u32*)0x80109DD4;
     u32 saveMask;
     wait_on_hardware();
     saveMask = __osDisableInt();
 
     decompress_lz4_ct_default(ramEndAddr - ramStartAddr, saveStateBackupSize, savestateBackup);
     totalElapsedCounts = storedElapsedTimeStateBackup;
+    secondarySeedCallsTotal = secondarySeedCallsTotalStateBackup;
     //TODO: fix *prevCurrentStageCountRTA = osGetCount();
     prevCount = osGetCount();
     __osRestoreInt(saveMask);
@@ -49,7 +49,6 @@ void loadstateMainBackup(void) {
 }
 
 void loadstateMain(void) {
-    // u32* prevCurrentStageCountRTA = (u32*)0x80109DD4;
     u32 saveMask;
 
     wait_on_hardware();
@@ -58,6 +57,7 @@ void loadstateMain(void) {
     if (toggles[TOGGLE_NO_COMPRESSION_SAVESTATES]) {
         if (*(u32*)ramAddrSavestateDataSlot1 == 0x09000419) {
             //has valid uncompressed state, allow load
+            secondarySeedCallsTotal = secondarySeedCallsTotalStateUncompressed;
             optimized_memcpy((void*)ramStartAddr,  ramAddrSavestateDataSlot1, ramEndAddr - ramStartAddr);
         }
     } else {
@@ -65,6 +65,7 @@ void loadstateMain(void) {
             case 0: //dpad left
                 decompress_lz4_ct_default(ramEndAddr - ramStartAddr, savestate1Size, ramAddrSavestateDataSlot1);
                 totalElapsedCounts = storedElapsedTimeState1;
+                secondarySeedCallsTotal = secondarySeedCallsTotalState1;
                 // if (savestate1Size != 0 || savestate1Size != -1) {
                 //     decompress_lz4_ct_default(ramEndAddr - ramStartAddr, savestate1Size, ramAddrSavestateDataSlot1);
                 // }
@@ -72,6 +73,7 @@ void loadstateMain(void) {
             case 1:
                 decompress_lz4_ct_default(ramEndAddr - ramStartAddr, savestate2Size, ramAddrSavestateDataSlot2);
                 totalElapsedCounts = storedElapsedTimeState2;
+                secondarySeedCallsTotal = secondarySeedCallsTotalState2;
                 // if (savestate2Size != 0 || savestate2Size != -1) {
                 //     decompress_lz4_ct_default(ramEndAddr - ramStartAddr, savestate2Size, ramAddrSavestateDataSlot2);
                 // }
@@ -96,6 +98,7 @@ void savestateMain(void) {
     
     saveMask = __osDisableInt();
     if (toggles[TOGGLE_NO_COMPRESSION_SAVESTATES]) {
+        secondarySeedCallsTotalStateUncompressed = secondarySeedCallsTotal;
         optimized_memcpy(ramAddrSavestateDataSlot1, (void*)ramStartAddr, ramEndAddr - ramStartAddr);
     } else {
         switch (savestateCurrentSlot) {
@@ -103,12 +106,15 @@ void savestateMain(void) {
                 if (savestate1Size == 0) {
                     if (savestate2Size == 0) {
                         //both states blank, create state
+                        secondarySeedCallsTotalState1 = secondarySeedCallsTotal;
                         storedElapsedTimeState1 = totalElapsedCounts;
                         savestate1Size = compress_lz4_ct_default((void*)ramStartAddr, ramEndAddr - ramStartAddr, ramAddrSavestateDataSlot1);
                     } else {
                         //savestate 1 isn't initialized but savestate 2 is, therefore backup state 2
                         storedElapsedTimeStateBackup = storedElapsedTimeState2;
                         storedElapsedTimeState1 = totalElapsedCounts;
+                        secondarySeedCallsTotalStateBackup = secondarySeedCallsTotalState2;
+                        secondarySeedCallsTotalState1 = secondarySeedCallsTotal;
                         optimized_memcpy(savestateBackup, ramAddrSavestateDataSlot2, savestate2Size);
                         saveStateBackupSize = savestate2Size;
                         savestate1Size = compress_lz4_ct_default((void*)ramStartAddr, ramEndAddr - ramStartAddr, ramAddrSavestateDataSlot1);
@@ -117,6 +123,8 @@ void savestateMain(void) {
                     //savestate 1 is already created, therefore backup state 1
                     storedElapsedTimeStateBackup = storedElapsedTimeState1;
                     storedElapsedTimeState1 = totalElapsedCounts;
+                    secondarySeedCallsTotalStateBackup = secondarySeedCallsTotalState1;
+                    secondarySeedCallsTotalState1 = secondarySeedCallsTotal;
                     optimized_memcpy(savestateBackup, ramAddrSavestateDataSlot1, savestate1Size);
                     saveStateBackupSize = savestate1Size;
                     savestate1Size = compress_lz4_ct_default((void*)ramStartAddr, ramEndAddr - ramStartAddr, ramAddrSavestateDataSlot1);                
@@ -128,11 +136,14 @@ void savestateMain(void) {
                     if (savestate1Size == 0) {
                         //both states blank, create state
                         storedElapsedTimeState2 = totalElapsedCounts;
+                        secondarySeedCallsTotalState2 = secondarySeedCallsTotal;
                         savestate2Size = compress_lz4_ct_default((void*)ramStartAddr, ramEndAddr - ramStartAddr, ramAddrSavestateDataSlot2);
                     } else {
                         //savestate 2 isn't initialized but savestate 1 is, therefore backup state 1
                         storedElapsedTimeStateBackup = storedElapsedTimeState1;
                         storedElapsedTimeState2 = totalElapsedCounts;
+                        secondarySeedCallsTotalStateBackup = secondarySeedCallsTotalState1;
+                        secondarySeedCallsTotalState2 = secondarySeedCallsTotal;
                         optimized_memcpy(savestateBackup, ramAddrSavestateDataSlot1, savestate1Size);
                         saveStateBackupSize = savestate1Size;
                         savestate2Size = compress_lz4_ct_default((void*)ramStartAddr, ramEndAddr - ramStartAddr, ramAddrSavestateDataSlot2);
@@ -141,6 +152,8 @@ void savestateMain(void) {
                     //savestate 2 is already created, therefore backup state 2
                     storedElapsedTimeStateBackup = storedElapsedTimeState2;
                     storedElapsedTimeState2 = totalElapsedCounts;
+                    secondarySeedCallsTotalStateBackup = secondarySeedCallsTotalState2;
+                    secondarySeedCallsTotalState2 = secondarySeedCallsTotal;
                     optimized_memcpy(savestateBackup, ramAddrSavestateDataSlot2, savestate2Size);
                     saveStateBackupSize = savestate2Size;
                     savestate2Size = compress_lz4_ct_default((void*)ramStartAddr, ramEndAddr - ramStartAddr, ramAddrSavestateDataSlot2);                
