@@ -26,6 +26,7 @@ menuPage* pageList[] = {
     &page4,
     &page1,
     &page3,
+    &page2,
 };
 
 s32 pageListTotal = ARRAY_COUNT(pageList);
@@ -58,13 +59,14 @@ s8 toggles[] = {
     //0, // TOGGLE_SPEED
 
     //page 2
-    0,  // TOGGLE_RECORDING
+    1,  // TOGGLE_RECORDING
     0,  // TOGGLE_PLAYBACK
 
     //page 3
     1, // TOGGLE_RTA_TIMER_RESET
     1, // TOGGLE_DISPLAY_INDIVIDUAL_ROOM_TIME
     1, // TOGGLE_TAS_COMPARISON
+    1, // TOGGLE_RETRACTION_TIME
     0, // TOGGLE_FRAME_ADVANCE
 };
 

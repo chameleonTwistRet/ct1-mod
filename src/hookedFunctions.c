@@ -140,7 +140,7 @@ void ActorTick_CakeBoss_Hook(Actor* actor) {
             if (actor->unk_F0 == 0xF) {
                 actor->unk_F0 = 0xE;
                 CAKE_STATE = CAKE_CHOCO_KIDS_ENTER;
-                for (i = 0; i < 4; i++) {
+                for (i = 0; i < PLAYERS_MAX; i++) {
                     temp_f26 = (f32) i * 90.0f;
                     temp_f12 = (temp_f26 * 2) * PI / 360.0;
                     Actor_Init(Cake_Boss_Choco_Kid, (__cosf(temp_f12) * 800.0f) + actor->pos.x, actor->pos.y + 1500.0f, (-__sinf(temp_f12) * 800.0f) + actor->pos.z, temp_f26 + 180.0f, -10000.0f, 10000.0f, -10000.0f, 10000.0f, -10000.0f, 10000.0f, temp_f26, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, actor->actorIndex, 0, 0, 0);                    
@@ -1011,11 +1011,11 @@ void Porocess_Mode0_Hook(void) {
             gPlayerActors[i].active = 1;
         }
 
-        for (; i < 4; i++) {
+        for (; i < PLAYERS_MAX; i++) {
             gPlayerActors[i].active = 0;
         }
 
-        for (i = 0; i < 4; i++) {
+        for (i = 0; i < PLAYERS_MAX; i++) {
             _bzero(&gTongues[i], sizeof(Tongue));
         }
     
@@ -1091,12 +1091,12 @@ void Porocess_Mode0_Hook(void) {
     default:
         return;
     case 4:
-        for (i = 0; i < 4; i++) {
+        for (i = 0; i < PLAYERS_MAX; i++) {
             _bzero(&gTongues[i], sizeof(Tongue));
         }
         
         gPlayerActors[0].active = 1;
-        for (i = 1; i < 4; i++) {
+        for (i = 1; i < PLAYERS_MAX; i++) {
             gPlayerActors[i].active = 0;
         }
         
@@ -1147,7 +1147,7 @@ void Porocess_Mode0_Hook(void) {
         D_801749AC = 0;
         SaveData_ReadFile(&gSaveFile);
         D_80174878 = gCurrentStage - 1;
-        for (i = 0; i < 4; i++) {
+        for (i = 0; i < PLAYERS_MAX; i++) {
             _bzero(&gTongues[i], sizeof(Tongue));
         }
         func_8008FD68();
@@ -1642,7 +1642,7 @@ block_53:
         if (arg0->userVariables[4] == 1) {
             func_800313BC(D_801749D8.armActorIDs[0][0], 180.0f);
             func_800313BC(D_801749D8.armActorIDs[1][0], 0.0f);
-            for (i = 0; i < 4; i++) {
+            for (i = 0; i < PLAYERS_MAX; i++) {
                 func_80031518(&gActors[D_801749D8.armActorIDs[0][i]]);
                 func_80031518(&gActors[D_801749D8.armActorIDs[1][i]]);
             }
@@ -1855,7 +1855,15 @@ void func_80091A38_Hook(unkArg0* arg0) {
         PrintText((xPos + sp6C), sp58, 0.0f, 0.5f, 0.0f, 0.0f, ParseIntToBase10(seconds, &sp7C), 1);
 
         xPos = 0xF0;
-        PrintText((xPos + sp6C), sp58, 0.0f, 0.5f, 0.0f, 0.0f, ParseIntToBase10(milliseconds, &sp7C), 1);
+
+        {
+            char buffer[8];
+            char convertedMessageBuffer[16];
+            _sprintf(buffer, "%03d", milliseconds);
+            convertAsciiToText(&convertedMessageBuffer, (char*)&buffer);
+            PrintText((xPos + sp6C), sp58, 0.0f, 0.5f, 0.0f, 0.0f, convertedMessageBuffer, 1);
+        }
+        // PrintText((xPos + sp6C), sp58, 0.0f, 0.5f, 0.0f, 0.0f, ParseIntToBase10(milliseconds, &sp7C), 1);
     }
     if (arg0->unk_60 >= 3) {
         sp5C = (sp6C + 0x50);
@@ -1908,6 +1916,10 @@ void EraseToungeEatEnemy_Storage(Tongue* arg0) {
             gActors[i].actorState = 2;
             arg0->inMouth[arg0->amountInMouth] = i;
             arg0->amountInMouth++;
+            freezeTimer = 60; //2 seconds
+            zoneExitID = gCurrentZone;
+            displayTimeRTA = totalElapsedCounts;
+            displayTimeIGT = gCurrentStageTime;
             arg0->amountOnTongue--;
         }
     }
@@ -1931,6 +1943,10 @@ void EraseToungeEatEnemy_NoStorage(Tongue* arg0) {
                 arg0->inMouth[arg0->amountInMouth] = i;
                 arg0->amountInMouth++;
             }
+            freezeTimer = 60; //2 seconds
+            zoneExitID = gCurrentZone;
+            displayTimeRTA = totalElapsedCounts;
+            displayTimeIGT = gCurrentStageTime;
             arg0->amountOnTongue--;  
         }
     }
@@ -1942,4 +1958,19 @@ void EraseToungeEatEnemy_Hook(Tongue* arg0) {
     } else {
         EraseToungeEatEnemy_Storage(arg0);
     }
+}
+
+//we are going to store global variables in this space
+ldiv_t ldiv_Hook(long num, long denom) {
+    ldiv_t ret;
+
+    ret.quot = num / denom;
+    ret.rem = num - denom * ret.quot;
+
+    if (ret.quot < 0 && ret.rem > 0) {
+        ret.quot++;
+        ret.rem -= denom;
+    }
+
+    return ret;
 }

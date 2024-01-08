@@ -54,7 +54,7 @@ void loadstateMain(void) {
 
     saveMask = __osDisableInt();
     if (toggles[TOGGLE_NO_COMPRESSION_SAVESTATES]) {
-        if (*(u32*)ramAddrSavestateDataSlot1 == 0x09000419) {
+        if (*(u32*)ramAddrSavestateDataSlot1 != 0x00000000) {
             //has valid uncompressed state, allow load
             secondarySeedCallsTotal = secondarySeedCallsTotalStateUncompressed;
             optimized_memcpy((void*)ramStartAddr,  ramAddrSavestateDataSlot1, ramEndAddr - ramStartAddr);

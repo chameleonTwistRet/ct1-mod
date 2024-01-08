@@ -14,7 +14,8 @@ typedef s32 (*menuProc) (void);
 
 typedef struct InputRecording {
     u32 totalFrameCount;
-    contMain recordingBuffer[1200];
+    u32 framePlaybackIndex;
+    contMain recordingBuffer[21600];
 } InputRecording;
 
 typedef struct menuPage {
@@ -67,6 +68,7 @@ extern OSContPad D_80175650[MAXCONTROLLERS];
 
 s32 DisplayIndividualRoomTimeToggle(void);
 s32 DisplayTASComparison(void);
+s32 DisplayTongueRetractionTime(void);
 s32 FrameAdvanceToggle(void);
 s32 NoCompressionToggle(void);
 s32 advanceGuRNG(void);
@@ -138,6 +140,7 @@ enum Toggles {
     TOGGLE_RTA_TIMER_RESET,
     TOGGLE_DISPLAY_INDIVIDUAL_ROOM_TIME,
     TOGGLE_TAS_COMPARISON,
+    TOGGLE_RETRACTION_TIME,
     TOGGLE_FRAME_ADVANCE
 };
 
@@ -159,6 +162,7 @@ extern char** page0Strings[];
 extern char** page4Strings[];
 extern char** page1Strings[];
 extern char** page3Strings[];
+extern char** page2Strings[];
 extern FATFS FatFs;
 extern char *path; //"ct1State.bin"; //example file for SD card writing
 extern FIL sdsavefile;

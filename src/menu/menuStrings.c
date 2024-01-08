@@ -78,6 +78,10 @@ char frameCountText[] = {
     "IGT TOTAL FRAMES"
 };
 
+char StickPositionText[] =  {
+    "STICK POSITION"
+};
+
 char* CustomTextMain[] = {
     string_OFF,
     variousStatsText,
@@ -85,7 +89,8 @@ char* CustomTextMain[] = {
     rngSeedText,
     rngSeed2Text,
     quintellaSpinCancelText,
-    frameCountText
+    frameCountText,
+    StickPositionText,
 };
 
 char** page0Strings[] = {
@@ -120,4 +125,12 @@ char** page3Strings[] = {
     ONAndOFF,
     ONAndOFF,
     ONAndOFF,
+    ONAndOFF,
+};
+
+char** page2Strings[] = {
+    ONAndOFF, //Savestate Text Active text
+    ONAndOFF, //Savestate no compression text
+    ONAndOFF, // TOGGLE_INFINITE_HEALTH
+    ONAndOFF, // TOGGLE_STORAGE
 };

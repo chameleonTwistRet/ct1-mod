@@ -1,6 +1,5 @@
 .include "macro.inc"
 .set noreorder
-.set noat
 
 glabel loadEnemyObjectsHook
     LUI $t0, %hi(loadEnemiesBool)
@@ -107,6 +106,59 @@ glabel setTimerParametersBool
 glabel setFreezeTimerAsm
     J setFreezeTimerC
     nop
+
+glabel enemyOnTongueHook
+    lui $t4, %hi(freezeTimer)
+    ori $t5, $zero, 0x28 /*40 frames*/
+    sw $t5, %lo(freezeTimer) ($t4)
+
+
+    lui $t4, %hi(gCurrentZone)
+    lw $t4, %lo(gCurrentZone) ($t4)
+    lui $t5, %hi(zoneExitID)
+    sw $t4, %lo(zoneExitID) ($t5)
+
+    lui $t4, %hi(totalElapsedCounts)
+    ld $t4, %lo(totalElapsedCounts) ($t4)
+    lui $t5, %hi(displayTimeRTA)
+    sd $t4, %lo(displayTimeRTA) ($t5)
+
+    lui $t4, %hi(gCurrentStageTime)
+    lw $t4, %lo(gCurrentStageTime) ($t4)
+    lui $t5, %hi(displayTimeIGT)
+    sd $t4, %lo(displayTimeIGT) ($t5)
+    sw $t8, 0x04B4 ($s1)
+    J 0x80032680
+    sw $t0, 0x0014 ($sp)
+
+glabel removeEnemiesFromMouthHook
+    lui $a0, %hi(freezeTimer)
+    ori $t8, $zero, 0x28 /*40 frames*/
+    sw $t8, %lo(freezeTimer) ($a0)
+
+
+    lui $a0, %hi(gCurrentZone)
+    lw $a0, %lo(gCurrentZone) ($a0)
+    lui $t8, %hi(zoneExitID)
+    sw $a0, %lo(zoneExitID) ($t8)
+
+    lui $a0, %hi(totalElapsedCounts)
+    ld $a0, %lo(totalElapsedCounts) ($a0)
+    lui $t8, %hi(displayTimeRTA)
+    sd $a0, %lo(displayTimeRTA) ($t8)
+
+    lui $a0, %hi(gCurrentStageTime)
+    lw $a0, %lo(gCurrentStageTime) ($a0)
+    lui $t8, %hi(displayTimeIGT)
+    sd $a0, %lo(displayTimeIGT) ($t8)
+
+
+    lui	$a0, 0x8017
+    lw $t8, 0x0000 ($t0)
+    J 0x80035930
+    sw $zero, 0x0004 ($t8)
+
+
 
 glabel osSetCount
 /* BB650 800E0250 40024800 */  mtc0       $a0, $9 # handwritten instruction

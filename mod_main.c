@@ -16,6 +16,10 @@ char textBuffer[0x100] = {'\0'};    // Text buffer set to empty string
 void func_8004E784_Hook(contMain* arg0, s32 arg1, s32* arg2, contMain* arg3);
 void gVideoThreadProcessHook(void);
 void videoproc_Hook(s32);
+void removeEnemiesFromMouthHook(void);
+void enemyOnTongueHook(void);
+ldiv_t ldiv(long num, long denom);
+ldiv_t ldiv_Hook(long num, long denom);
 u32 xSeed2 = 174823885;
 u32 calls = 0;
 extern u8 gLevelClearBitfeild;
@@ -40,7 +44,7 @@ extern s32 gNextZone;
 void storeFirstEntry(void);
 s32 previousVault = 0;
 f32 previousVaultSpeed = 0;
-InputRecording inputRecordingBuffer; //1200 frames
+InputRecording inputRecordingBuffer; //21600 frames (12 min)
 u32 recordingInputIndex = 0;
 void DisplayTimerWithFrames(void);
 void DisplayTimerWithMilliseconds(void);
@@ -119,6 +123,9 @@ void mod_boot_func(void) {
     hookCode((s32*)&func_80091A38, &func_80091A38_Hook);
     hookCode((s32*)&Rand, &Rand_Hook);
     hookCode((s32*)&EraseToungeEatEnemy, &EraseToungeEatEnemy_Hook);
+    hookCode((s32*)0x80035928, &removeEnemiesFromMouthHook);
+    hookCode((s32*)0x80032678, &enemyOnTongueHook);
+    hookCode((s32*)&ldiv, &ldiv_Hook);
     
     //hookCode((s32*)&ActorTick_CakeBoss, &ActorTick_CakeBoss_Hook);
     //hookCode((s32*)&ActorInit_CakeBoss, &ActorInit_CakeBoss_Hook);
@@ -276,6 +283,14 @@ s32 printCustomDebugText(void) {
     case 6:
         _bzero(messageBuffer, sizeof(messageBuffer)); //clear buffer
         _sprintf(messageBuffer, "%d", *(s32*)0x8017499C);
+        _bzero(convertedMessageBuffer, sizeof(convertedMessageBuffer)); //clear buffer
+        convertAsciiToText(&convertedMessageBuffer, (char*)&messageBuffer);
+        textPrint(13.0f, 194.0f, 0.5f, &convertedMessageBuffer, 1);
+        break;
+
+    case 7:
+        _bzero(messageBuffer, sizeof(messageBuffer)); //clear buffer
+        _sprintf(messageBuffer, "X: %d Y: %d", D_80175650[0].stick_x, D_80175650[0].stick_y);
         _bzero(convertedMessageBuffer, sizeof(convertedMessageBuffer)); //clear buffer
         convertAsciiToText(&convertedMessageBuffer, (char*)&messageBuffer);
         textPrint(13.0f, 194.0f, 0.5f, &convertedMessageBuffer, 1);
@@ -449,7 +464,7 @@ void mod_main_per_frame(void) {
 
     if (toggles[TOGGLE_INFINITE_HEALTH] == 1) {gPlayerActors[0].hp = 0x0A;}
 
-    checkIfRecordInputs();
+    //checkIfRecordInputs();
     caveSkipPractice();
     backvaultPractice();
     yoloPillarPractice();

@@ -2,6 +2,8 @@
 #include "../include/menu.h"
 #include "../include/mod_main.h"
 
+//800EE140 - 800EE1C0 global variables to be saved in savestate
+
 #define BOMBLAND_STAGE_ID 2
 #define BOMBLAND_SNAKE_BOSS_ID 0xB
 
@@ -71,6 +73,10 @@ void PrintElapsedTimeInRoomRTA(u64 timeDiffInRoom) {
         convertAsciiToText(&convertedBuffer, (char*)&timeString);
         PrintText(220.0f, 194.0f, 0.0f, 0.5f, 0.0f, 0.0f, convertedBuffer, 1);
     }
+}
+
+void PrintTimeComparison(void) {
+
 }
 
 void PrintTimeComparisonToTAS(u64 timeDiffInRoom) {

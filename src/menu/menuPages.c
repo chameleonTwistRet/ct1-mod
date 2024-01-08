@@ -29,7 +29,7 @@ menuPage page2 = {
         TOGGLE_PLAYBACK
     },
     {
-        page0Strings, //update when implemented
+        page2Strings, //update when implemented
     },
 };
 
@@ -40,7 +40,7 @@ menuPage page0 = {
         "Savestate Text",
         "No compression savestates",
         "In Game Timer",
-        "Custom Debug Text",
+        "Misc",
         "Infinite Health",
         "Toggle Storage"
     },
@@ -133,24 +133,27 @@ menuPage page1 = {
 };
 
 menuPage page3 = {
-    4, // optionCount
+    5, // optionCount
     PAGE_MISC, // pageIndex
     { // options
         "STAGE START RESET TIMER",
         "DISPLAY RTA TIME IN ROOM",
         "DISPLAY TAS COMPARISON",
+        "DISPLAY TIME OF RETRACTION",
         "FRAME ADVANCE ON P2",
     },
     { // menuProc
         &ResetTimerToggle,
         &DisplayIndividualRoomTimeToggle,
         &DisplayTASComparison,
-        &FrameAdvanceToggle
+        &FrameAdvanceToggle,
+        &DisplayTongueRetractionTime
     },
     { // flags
         TOGGLE_RTA_TIMER_RESET,
         TOGGLE_DISPLAY_INDIVIDUAL_ROOM_TIME,
         TOGGLE_TAS_COMPARISON,
+        TOGGLE_RETRACTION_TIME,
         TOGGLE_FRAME_ADVANCE
     },
     {

@@ -13,6 +13,11 @@ s32 DisplayTASComparison(void) {
     return 0;
 }
 
+s32 DisplayTongueRetractionTime(void) {
+    toggles[TOGGLE_TAS_COMPARISON] ^= 1;
+    return 0;
+}
+
 s32 FrameAdvanceToggle(void) {
     toggles[TOGGLE_FRAME_ADVANCE] ^= 1;
     return 0;
@@ -106,7 +111,7 @@ s32 toggleStorage(void) {
 
 s32 toggleCustomDebugText(void) {
     toggles[TOGGLE_CUSTOM_DEBUG_TEXT]++;
-    if (toggles[TOGGLE_CUSTOM_DEBUG_TEXT] >= 7) {
+    if (toggles[TOGGLE_CUSTOM_DEBUG_TEXT] >= 8) {
         toggles[TOGGLE_CUSTOM_DEBUG_TEXT] = 0;
     }
     return 1;
@@ -145,55 +150,36 @@ s32 teleportToStageBoss(void) {
     
     return 1;
 }
-
+extern s32 saveStateBackupSize;
 void savestateMainStartRecording(void) {
-    // u32 saveMask;
-    // //wait on rsp
-    // while (__osSpDeviceBusy() == 1) {}
+    u32 saveMask;
+    wait_on_hardware();
+    saveMask = __osDisableInt();
 
-    // //wait on rdp
-    // while ( __osDpDeviceBusy() == 1) {}
+    // save uncompressed state
+    optimized_memcpy(ramAddrSavestateDataSlot1,  (void*)ramStartAddr, ramEndAddr - ramStartAddr);
 
-    // //wait on SI
-    // while (__osSiDeviceBusy() == 1) {}
+    //save compressed state
+    //saveStateBackupSize = compress_lz4_ct_default((void*)ramStartAddr, ramEndAddr - ramStartAddr, savestateBackup);
 
-    // //wait on PI
-    // while (__osPiDeviceBusy() == 1) {}
-
-    // //invalidate caches
-    // osInvalICache((void*)0x80000000, 0x2000);
-	// osInvalDCache((void*)0x80000000, 0x2000);
-
-    // saveMask = __osDisableInt();
-
-    // savestateRecordingSize = compress_lz4_ct_default((void*)ramStartAddr, ramEndAddr - ramStartAddr, ramAddrSavestateRecording);
-    
-    // __osRestoreInt(saveMask);
-    isSaveOrLoadActive = 0; //allow thread to continue
+    __osRestoreInt(saveMask);
+    prevCount = osGetCount();
+    isSaveOrLoadActive = 0; //allow thread 3 to continue
 }
 
 void loadstateRecordingMain(void) {
-    // u32 saveMask;
-    // //wait on rsp
-    // while (__osSpDeviceBusy() == 1) {}
+    u32 saveMask;
+    wait_on_hardware();
+    saveMask = __osDisableInt();
 
-    // //wait on rdp
-    // while ( __osDpDeviceBusy() == 1) {}
+    // load uncompressed state
+    optimized_memcpy((void*)ramStartAddr,  ramAddrSavestateDataSlot1, ramEndAddr - ramStartAddr);
 
-    // //wait on SI
-    // while (__osSiDeviceBusy() == 1) {}
+    // load compressed state
+    //decompress_lz4_ct_default(ramEndAddr - ramStartAddr, saveStateBackupSize, savestateBackup);
 
-    // //wait on PI
-    // while (__osPiDeviceBusy() == 1) {}
-
-    // //invalidate caches
-    // osInvalICache((void*)0x80000000, 0x2000);
-	// osInvalDCache((void*)0x80000000, 0x2000);
-    // saveMask = __osDisableInt();
-
-    // decompress_lz4_ct_default(ramEndAddr - ramStartAddr, savestateRecordingSize, ramAddrSavestateRecording);
-
-    // __osRestoreInt(saveMask);
+    __osRestoreInt(saveMask);
+    prevCount = osGetCount();
     isSaveOrLoadActive = 0; //allow thread 3 to continue
 }
 
@@ -204,11 +190,18 @@ s32 ResetTimerToggle(void) {
 
 s32 StartRecording(void) {
     isMenuActive = 0;
+
     toggles[TOGGLE_RECORDING] ^= 1;
+
+    //if flipped to off, just exit
+    if (toggles[TOGGLE_RECORDING] == 0) {
+        return 1;
+    }
+
+    inputRecordingBuffer.totalFrameCount = 0;
     toggles[TOGGLE_PLAYBACK] = 0; //turn playback off
-    recordingInputIndex = 0;
-        
     isSaveOrLoadActive = 1;
+
     osCreateThread(&gCustomThread.thread, 255, (void*)savestateMainStartRecording, NULL,
             gCustomThread.stack + sizeof(gCustomThread.stack), 255);
     osStartThread(&gCustomThread.thread);
@@ -246,6 +239,9 @@ s32 ImportRecording(void) {
 
 s32 PlayRecording(void) {
     isMenuActive = 0;
+    if (toggles[TOGGLE_PLAYBACK] == 0) {
+        inputRecordingBuffer.framePlaybackIndex = 0;
+    }
     toggles[TOGGLE_PLAYBACK] ^= 1;
     toggles[TOGGLE_RECORDING] = 0; //turn recording off
     recordingInputIndex = 0;

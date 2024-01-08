@@ -191,8 +191,8 @@ extern s32 inFrameAdvance;
 extern char pathTimes[];
 #define ALIGN4(val) (((val) + 0x3) & ~0x3)
 #define ARRAY_COUNT(arr) (s32)(sizeof(arr) / sizeof(arr[0]))
-#define ramStartAddr (u32)0x800EE1C0
-#define ramEndAddr (u32)0x803B5000
+#define ramStartAddr (u32)0x800EE140
+#define ramEndAddr (u32)0x8036F480
 #define KB *(1 <<10)
 #define MB *(1 <<20)
 #define GB *(1U<<30)
