@@ -44,7 +44,7 @@ extern s32 gNextZone;
 void storeFirstEntry(void);
 s32 previousVault = 0;
 f32 previousVaultSpeed = 0;
-InputRecording inputRecordingBuffer; //21600 frames (12 min)
+InputRecording inputRecordingBuffer; //25,000 frames of recording (13 min of recorded inputs)
 u32 recordingInputIndex = 0;
 void DisplayTimerWithFrames(void);
 void DisplayTimerWithMilliseconds(void);

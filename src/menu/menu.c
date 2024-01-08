@@ -35,7 +35,7 @@ s8 toggles[] = {
     2,  // NO_TOGGLE
     //page 0
     1,  // TOGGLE_HIDE_SAVESTATE_TEXT
-    0,  // TOGGLE_NO_COMPRESSION_SAVESTATES
+    1,  // TOGGLE_NO_COMPRESSION_SAVESTATES
     0,  // TOGGLE_DISPLAY_IGT
     0,  // TOGGLE_CUSTOM_DEBUG_TEXT
     0,  // TOGGLE_INFINITE_HEALTH
@@ -59,7 +59,7 @@ s8 toggles[] = {
     //0, // TOGGLE_SPEED
 
     //page 2
-    1,  // TOGGLE_RECORDING
+    0,  // TOGGLE_RECORDING
     0,  // TOGGLE_PLAYBACK
 
     //page 3

@@ -15,7 +15,7 @@ typedef s32 (*menuProc) (void);
 typedef struct InputRecording {
     u32 totalFrameCount;
     u32 framePlaybackIndex;
-    contMain recordingBuffer[21600];
+    contMain recordingBuffer[25000]; //13 min of recording
 } InputRecording;
 
 typedef struct menuPage {

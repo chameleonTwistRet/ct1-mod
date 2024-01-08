@@ -9,6 +9,9 @@ void decompress_lz4_ct_default(int srcSize, int savestateCompressedSize, u8* com
 s32 compress_lz4_ct_default(const u8* srcData, int srcSize, u8* bufferAddr);
 s32 saveStateBackupSize = 0;
 
+s32 inputRecordingIndex;
+s32 inputPlaybackIndex;
+
 int __osPiDeviceBusy(void) {
     register u32 stat = IO_READ(PI_STATUS_REG);
     if (stat & (PI_STATUS_DMA_BUSY | PI_STATUS_IO_BUSY))
@@ -38,6 +41,8 @@ void loadstateMainBackup(void) {
     u32 saveMask;
     wait_on_hardware();
     saveMask = __osDisableInt();
+    inputRecordingBuffer.totalFrameCount = inputRecordingIndex;
+    inputRecordingBuffer.framePlaybackIndex = inputPlaybackIndex;
 
     decompress_lz4_ct_default(ramEndAddr - ramStartAddr, saveStateBackupSize, savestateBackup);
     totalElapsedCounts = storedElapsedTimeStateBackup;
@@ -53,6 +58,9 @@ void loadstateMain(void) {
     wait_on_hardware();
 
     saveMask = __osDisableInt();
+    inputRecordingBuffer.totalFrameCount = inputRecordingIndex;
+    inputRecordingBuffer.framePlaybackIndex = inputPlaybackIndex;
+
     if (toggles[TOGGLE_NO_COMPRESSION_SAVESTATES]) {
         if (*(u32*)ramAddrSavestateDataSlot1 != 0x00000000) {
             //has valid uncompressed state, allow load
@@ -92,8 +100,11 @@ void savestateMain(void) {
     u32 saveMask;
     
     wait_on_hardware();
-    
     saveMask = __osDisableInt();
+
+    inputRecordingIndex = inputRecordingBuffer.totalFrameCount;
+    inputPlaybackIndex = inputRecordingBuffer.framePlaybackIndex;
+    
     if (toggles[TOGGLE_NO_COMPRESSION_SAVESTATES]) {
         secondarySeedCallsTotalStateUncompressed = secondarySeedCallsTotal;
         storedElapsedTimeStateUncompressed = totalElapsedCounts;
