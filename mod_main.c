@@ -4,6 +4,15 @@
 #include "lib/ff.h"
 #include "lib/ffconf.h"
 
+//800EE140 - 800EE1C0 global variables to be saved in savestate
+SaveStateSavedVariables* SaveStateVars = (SaveStateSavedVariables*)0x800EE140;
+
+//hooked function signatures
+void func_8004E784(contMain* arg0, s32 arg1, s32* arg2, contMain* arg3);
+void func_8004E784_Hook(contMain* arg0, s32 arg1, s32* arg2, contMain* arg3);
+ldiv_t ldiv_Hook(long num, long denom);
+
+s32 display_string_frames = 0;
 char pracTwistVersionString[] = "Practwist v0.1";
 char printTextBuffer[0x100] = {'\0'};    // Text buffer set to empty string
 char printTextBuffer2[0x100] = {'\0'};   // Text buffer set to empty string
@@ -12,39 +21,6 @@ char stringBuffer[0x100] = {'\0'};       // String buffer set to empty for strin
 // wrapper for printing text
 void textPrint(f32 xPos, f32 yPos, f32 scale, void *text, s32 num) {
     PrintText(xPos, yPos, 0, scale, 0, 0, text, num);
-}
-
-// Patches work the same way as 81 and 80 GameShark Codes
-void s16patch(void* patchAddr, s16 patchInstruction) {
-    *(s16*)patchAddr = patchInstruction;
-}
-void s8patch(void* patchAddr, s8 patchInstruction) {
-    *(s8*)patchAddr = patchInstruction;
-}
-
-s16 s16Read(void* readAddr) {
-    return *(s16*)readAddr;
-}
-s8 s8Read(void* readAddr) {
-    return *(s8*)readAddr;
-}
-
-// Print Values from Address (these will be in a new file soon)
-void s8print(void* addr) {
-    s8 value = s8Read((void*)addr);
-    _bzero(stringBuffer, sizeof(stringBuffer));
-    _bzero(printTextBuffer2, sizeof(printTextBuffer2));
-    _sprintf(&stringBuffer, "%X: %d", addr, value);
-    convertAsciiToText(&printTextBuffer2, stringBuffer);
-    textPrint(13.0f, 30.0f, 1.0f, &printTextBuffer2, 1);
-}
-void s16print(void* addr) {
-    s16 value = s16Read((void*)addr);
-    _bzero(stringBuffer, sizeof(stringBuffer));
-    _bzero(printTextBuffer2, sizeof(printTextBuffer2));
-    _sprintf(&stringBuffer, "%X: %d", addr, value);
-    convertAsciiToText(&printTextBuffer2, stringBuffer);
-    textPrint(13.0f, 30.0f, 1.0f, &printTextBuffer2, 1);
 }
 
 //in assets/ you'll find an example of replacing an image
@@ -57,34 +33,23 @@ s32 savestate2Size = 0;
 volatile s32 isSaveOrLoadActive = 0;
 s32 stateCooldown = 0;
 
-FATFS FatFs;
-char *path = "ct1State.bin"; //example file for SD card writing
-FIL sdsavefile = {0};
 
-void loadEnemyObjectsHook(void);
-void crash_screen_init(void);
-void checkInputsForSavestates(void);
-
-FRESULT initFatFs(void) {
-	//Mount SD Card
-	return f_mount(&FatFs, "", 0);
-}
+void InitializeSDCard(void);
+extern FATFS FatFs;
+extern FIL sdsavefile;
+extern s32 status;
+extern FRESULT fileres;
 
 //mod_boot_func: runs a single time on boot before main game loop starts
 void mod_boot_func(void) {
-    UINT filebytesread;
-    char testString[] = "Testing f_write() call\n";
-    FRESULT fileres;
-    s32 instructionBuffer[2];
     crash_screen_init();
 
     #if USE_SD_CARD == TRUE
-        //initialize SD card from everdrive, create test file, close
-        cart_init();
-        initFatFs();
-        fileres = f_open(&sdsavefile, path, FA_OPEN_ALWAYS | FA_WRITE | FA_READ);
-        f_write(&sdsavefile, testString, ALIGN4(sizeof(testString)), &filebytesread);
-        f_close(&sdsavefile);
+        _bzero(&sdsavefile, sizeof(FIL));
+        // osCreateThread(&gCustomThread2.thread, 157, (void*)InitializeSDCard, NULL,
+        //         gCustomThread2.stack + sizeof(gCustomThread2.stack), 157);
+        // osStartThread(&gCustomThread2.thread);
+        InitializeSDCard();
     #endif
 
     // example of setting up text to print
@@ -94,39 +59,96 @@ void mod_boot_func(void) {
     _sprintfcat(&stringBuffer, " %d", 1);
     convertAsciiToText(&printTextBuffer2, stringBuffer);
 
+    hookCode((s32*)&func_8004E784, &func_8004E784_Hook); //hook controller reading of overworld gamemode
+    hookCode((s32*)&ldiv, &ldiv_Hook); //move this for our custom ram space that gets saved/loaded with savestates
     //hookCode((s32*)0x8002D660, &loadEnemyObjectsHook); //example of hooking code
 }
+
+void PrintSaveslot(void) {
+    s32 i = 0;
+
+    printTextBuffer[i++] = 0xA3;
+    printTextBuffer[i++] = 0xB0 + savestateCurrentSlot;
+
+    printTextBuffer[i++] = 0;
+    textPrint(13.0f, 208.0f, 0.65f, &printTextBuffer, 3);
+}
+
+void PrintPlaybackInfo(void) {
+    char textBuf1[32];
+    char textBuf2[64];
+
+    if (toggles[TOGGLE_PLAYBACK] == 1) {
+        colorTextWrapper(textGreenMatColor);
+        _sprintf(&textBuf1, "%d / %d", inputRecordingBuffer.framePlaybackIndex, inputRecordingBuffer.totalFrameCount);
+        convertAsciiToText(&textBuf2, textBuf1);
+        textPrint(45.0f, 220.0f, 0.5f, textBuf2, 3);
+    } else if (toggles[TOGGLE_RECORDING] == 1) {
+        colorTextWrapper(textRedColor);
+        _sprintf(&textBuf1, "%d", inputRecordingBuffer.totalFrameCount);
+        convertAsciiToText(&textBuf2, textBuf1);
+        textPrint(45.0f, 220.0f, 0.5f, textBuf2, 3);
+    }
+}
+
+extern s32 prevLoadedState;
 
 //mod_main_per_frame: where to add code that runs every frame before main game loop
 void mod_main_per_frame(void) {
     s32 index = 0;
     char printTextBuffer[8];
- 
-    //example of printing text
-    textPrint(13.0f, 30.0f, 1.0f, &printTextBuffer2, 1);
-
-    if (stateCooldown == 0 ) {
-        checkInputsForSavestates();
-    }
 
     if (stateCooldown > 0) {
         stateCooldown--;
     }
 
-    
-    if (savestateCurrentSlot == 0) {
-        printTextBuffer[index++] =  0xA3;
-        printTextBuffer[index++] = 0xB1; //prints 1
-    } else {
-        printTextBuffer[index++] =  0xA3;
-        printTextBuffer[index++] = 0xB2; //prints 2         
+    if (isMenuActive == 1) {
+        pageMainDisplay(currPageNo, currOptionNo);
     }
 
-    printTextBuffer[index++] = 0;
-    textPrint(13.0f, 208.0f, 0.65f, &printTextBuffer, 3);
+    PrintSaveslot();
+    PrintPlaybackInfo();
+
+    if (display_string_frames > 0) {
+        char buffer[32];
+        char buffer2[64];
+
+        display_string_frames--;
+        // if (val == 0) {
+        //     _sprintf(&buffer, "WRITE CALLED");
+        // } else {
+        //     _sprintf(&buffer, "READ CALLED");
+        // }
+        
+        convertAsciiToText(&buffer2, buffer);
+        textPrint(45.0f, 220.0f, 0.5f, buffer2, 3);
+    }
+
 
     //if a savestate is being saved/loaded, stall thread
     while (isSaveOrLoadActive != 0) {}
+}
+
+void PrintBootInfo(void) {
+    char mountSD[] = "SD MOUNTED";
+    char notMountSD[] = "SD NOT MOUNTED";
+    char fileCreated[] = "FILE CREATED";
+    char fileNotCreated[] = "FILE NOT CREATED";
+    char stringBuf[150];
+    char tempBuf[16];
+    colorTextWrapper(textGreenMatColor);
+    convertAsciiToText(stringBuf, (char*)&pracTwistVersionString);
+    textPrint(15.0f, 220.0f, 0.5f, stringBuf, 3);
+
+    if (fileres == FR_OK) { //file created successfully
+        colorTextWrapper(textGreenMatColor);
+        convertAsciiToText(stringBuf, fileCreated);
+        textPrint(15.0f, 160.0f, 0.5f, stringBuf, 3);     
+    } else {
+        colorTextWrapper(textRedColor);
+        convertAsciiToText(stringBuf, fileNotCreated);
+        textPrint(15.0f, 160.0f, 0.5f, stringBuf, 3);   
+    }
 }
 
 //Thread 3 osStartThread function
@@ -191,6 +213,7 @@ void mod_main_func(void) {
             Process_GameOver();
             goto loop;
         case GAME_MODE_SUPPLY_SYSTEM_LOGO:
+            PrintBootInfo();
             Process_JSSLogo();
             goto loop;
         case GAME_MODE_PRE_CREDITS:
