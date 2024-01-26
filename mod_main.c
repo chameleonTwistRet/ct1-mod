@@ -4,6 +4,9 @@
 #include "lib/ff.h"
 #include "lib/ffconf.h"
 
+//dont initialize data so it persist through resets
+InputRecording inputRecordingBuffer;
+
 //800EE140 - 800EE1C0 global variables to be saved in savestate
 SaveStateSavedVariables* SaveStateVars = (SaveStateSavedVariables*)0x800EE140;
 
@@ -33,22 +36,40 @@ s32 savestate2Size = 0;
 volatile s32 isSaveOrLoadActive = 0;
 s32 stateCooldown = 0;
 
+extern s32 prevLoadedState;
+extern u16 buttons;
+extern u16 prevButtons;
+extern u8 D_80200B68;
+extern u8 gLevelClearBitfeild;
+
 
 void InitializeSDCard(void);
+void crash_screen_init(void);
+void videoproc_Hook(s32 arg0);
 extern FATFS FatFs;
 extern FIL sdsavefile;
 extern s32 status;
 extern FRESULT fileres;
 
+extern Addr mod_BSS_START;
+extern Addr mod_BSS_END;
+
+void gVideoThreadProcessHook(void);
+void gVideoThreadProcessHook2(void);
+
 //mod_boot_func: runs a single time on boot before main game loop starts
 void mod_boot_func(void) {
+    s32 beginningBssToInputBufferSize = 0;
+    s32 inputBufferToBssEndSize = 0;
+    s32 bssThing = 0;
     crash_screen_init();
 
+    //CLEAR BSS TO 0, VERY IMPORTANT FOR LIBCART
+    //note: we need to avoid clearing the input buffer bss.
+    _bzero(mod_BSS_START, (u32)&inputRecordingBuffer - (u32)mod_BSS_START);
+    _bzero((void*)((u32)&inputRecordingBuffer + sizeof(InputRecording)), (u32)mod_BSS_END - (u32)&inputRecordingBuffer);
+
     #if USE_SD_CARD == TRUE
-        _bzero(&sdsavefile, sizeof(FIL));
-        // osCreateThread(&gCustomThread2.thread, 157, (void*)InitializeSDCard, NULL,
-        //         gCustomThread2.stack + sizeof(gCustomThread2.stack), 157);
-        // osStartThread(&gCustomThread2.thread);
         InitializeSDCard();
     #endif
 
@@ -61,6 +82,7 @@ void mod_boot_func(void) {
 
     hookCode((s32*)&func_8004E784, &func_8004E784_Hook); //hook controller reading of overworld gamemode
     hookCode((s32*)&ldiv, &ldiv_Hook); //move this for our custom ram space that gets saved/loaded with savestates
+    //hookCode((s32*)0x80084C00, &videoproc_Hook); //hook video process to pause on loadstate
     //hookCode((s32*)0x8002D660, &loadEnemyObjectsHook); //example of hooking code
 }
 
@@ -91,12 +113,61 @@ void PrintPlaybackInfo(void) {
     }
 }
 
-extern s32 prevLoadedState;
+void CheckSavestateInput(void) {
+    //if savestate
+    if (isMenuActive == 0) {
+        if (buttons & D_JPAD) {
+            savestateCurrentSlot++;
+            if (savestateCurrentSlot >= 10) {
+                savestateCurrentSlot = 0;
+            }
+        }
+        if ( (prevButtons & R_TRIG) && buttons & L_JPAD) {
+            {
+                char buffer[32];
+                _sprintf(buffer, "ct_%02d", savestateCurrentSlot);
+                WriteFileToSDCard((void*)ramAddrSavestateDataSlot1, ramEndAddr - ramStartAddr, buffer);      
+            }
+        }
+        else if ( (prevButtons & R_TRIG) && buttons & R_JPAD) {
+            {
+                char buffer[32];
+                _sprintf(buffer, "ct_%02d", savestateCurrentSlot);
+                ReadFileFromSDCard((void*)ramAddrSavestateDataSlot1, ramEndAddr - ramStartAddr, buffer);  
+            }
+        }
+        else if (buttons & CONT_LEFT) {
+            isSaveOrLoadActive = 1;
+            osCreateThread(&gCustomThread.thread, 255, (void*)savestateMain, NULL,
+                    gCustomThread.stack + sizeof(gCustomThread.stack), 255);
+            osStartThread(&gCustomThread.thread);
+
+            stateCooldown = 3;
+        }
+        else if (buttons & CONT_RIGHT) {
+            isSaveOrLoadActive = 1;
+
+            osCreateThread(&gCustomThread.thread, 255, (void*)loadstateMain, NULL,
+                    gCustomThread.stack + sizeof(gCustomThread.stack), 255);
+            osStartThread(&gCustomThread.thread);
+            stateCooldown = 3;
+        }
+    }
+}
 
 //mod_main_per_frame: where to add code that runs every frame before main game loop
 void mod_main_per_frame(void) {
     s32 index = 0;
     char printTextBuffer[8];
+
+    gGameState.stageAccess = 0xFF;
+    gLevelClearBitfeild = 0xFF;
+    D_80200B68 = 0xFF; //unlock all levels
+    gGameRecords.flags[1] = 0x04; //give white
+
+    if (sDebugInt == -1) {
+        sDebugInt = 0;
+    }
 
     if (stateCooldown > 0) {
         stateCooldown--;
@@ -104,6 +175,9 @@ void mod_main_per_frame(void) {
 
     if (isMenuActive == 1) {
         pageMainDisplay(currPageNo, currOptionNo);
+    } else {
+        //it is important that this is called in `mod_main_per_frame` or savestates will crash a lot
+        CheckSavestateInput();
     }
 
     PrintSaveslot();

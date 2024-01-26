@@ -1,12 +1,14 @@
 #include "common.h"
 #include "xstdio.h"
 
-
+#define OS_MESG_BLOCK 1
 #define SCREEN_WIDTH 320
 #define SCREEN_HEIGHT 240
 
 extern void     osStopThread(OSThread *);
 extern u32	osMemSize;	/* Memory Size */
+extern OSThread *__osActiveQueue;
+extern char pracTwistVersionString[];
 
 typedef struct {
     /* 0x000 */ OSThread thread;
@@ -19,16 +21,13 @@ typedef struct {
 } CrashScreen; // size = 0x9D4
 
 CrashScreen gCrashScreen = { 0 };
+u64 osGetTime();
+void osViRepeatLine(u8);
+
 
 void osSetTime(u64 time) {
     __osCurrentTime = time;
 }
-
-u64 osGetTime();
-//void *memcpy(void *,const void *,unsigned int);
-void osViRepeatLine(u8);
-
-extern OSThread *__osActiveQueue;
 
 OSThread* __osGetActiveQueue(void) {
     return __osActiveQueue;
@@ -84,7 +83,6 @@ const char* gFPCSRFaultCauses[6] = {
     "Inexact operation",
 };
 
-//extern void crash_screen_sleep(s32 ms);
 void crash_screen_sleep(s32 ms) {
     u64 cycles = ms * 1000LL * 46875000LL / 1000000ULL;
 
@@ -230,8 +228,6 @@ void crash_screen_print_fpcsr(u32 value) {
     }
 }
 
-extern char pracTwistVersionString[];
-
 void crash_screen_draw(OSThread* faultedThread) {
     s16 causeIndex;
     __OSThreadContext* ctx;
@@ -293,13 +289,8 @@ void crash_screen_draw(OSThread* faultedThread) {
     crash_screen_print_fpr(30, 220, 30, &ctx->fp30.f.f_even);
 
     crash_screen_printf(210, 220, pracTwistVersionString);
-
     crash_screen_sleep(500);
-
-    // all of these null terminators needed to pad the rodata section for this file
-    // can potentially fix this problem in another way?
     crash_screen_printf(210, 140, "MM:%08XH", *(u32*)ctx->pc);
-
     crash_screen_sleep(3000); //sleep 3 seconds
 }
 
@@ -316,8 +307,6 @@ OSThread* crash_screen_get_faulted_thread(void) {
 
     return NULL;
 }
-
-#define OS_MESG_BLOCK 1
 
 void crash_screen_thread_entry(void* unused) {
     OSMesg mesg;

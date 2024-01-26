@@ -39,6 +39,7 @@ void loadstateMain(void) {
 
     inputRecordingBuffer.framePlaybackIndex = SaveStateVars->playbackIndex;
     inputRecordingBuffer.totalFrameCount = SaveStateVars->recordingFrameCount;
+    osWritebackDCacheAll();
     __osRestoreInt(saveMask);
     isSaveOrLoadActive = 0; //allow thread 3 to continue
 

@@ -6,10 +6,6 @@
 
 FATFS FatFs;
 FIL sdsavefile;
-
-void loadEnemyObjectsHook(void);
-void crash_screen_init(void);
-
 s32 status = FR_OK;
 s32 sdCardWrite = -1;
 FRESULT fileres = -1;
@@ -45,10 +41,6 @@ FRESULT initFatFs(void)
 	return f_mount(&FatFs, "", 0);
 }
 
-// s8 sdsaveinit(void) {
-//     return fileres = f_open(&sdsavefile, path, FA_OPEN_ALWAYS | FA_WRITE | FA_READ);
-// }
-s32 val = -1;
 void ReadFileFromSDCard(void* buffer, s32 size, char* filePath) {
     UINT filebytesread;
 

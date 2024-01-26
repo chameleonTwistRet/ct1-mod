@@ -46,6 +46,12 @@ char* strcat(char* dest, const char* src);
 void _sprintfcat(void* destination, void* fmt, ...);
 void convertAsciiToText(void* buffer, char* source);
 void pageMainDisplay(s32 currPageNo, s32 currOptionNo);
+void savestateMain(void);
+void loadstateMain(void);
+void WriteFileToSDCard(void* buffer, s32 size, char* filePath);
+void ReadFileFromSDCard(void* buffer, s32 size, char* filePath);
+void loadEnemyObjectsHook(void);
+void crash_screen_init(void);
 
 #define ALIGN4(val) (((val) + 0x3) & ~0x3)
 #define ARRAY_COUNT(arr) (s32)(sizeof(arr) / sizeof(arr[0]))

@@ -71,10 +71,3 @@ glabel optimized_memcpy
     end_memcpy:
         jr $ra                   # Return
         nop
-
-glabel test_function
-    move $ra, $t0
-    move $sp, $t1
-    move $fp, $t2
-    jr $ra
-    nop
