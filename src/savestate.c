@@ -41,8 +41,8 @@ void loadstateMainBackup(void) {
     u32 saveMask;
     wait_on_hardware();
     saveMask = __osDisableInt();
-    inputRecordingBuffer.totalFrameCount = inputRecordingIndex;
-    inputRecordingBuffer.framePlaybackIndex = inputPlaybackIndex;
+    inputRecordingBuffer.buffer.totalFrameCount = inputRecordingIndex;
+    inputRecordingBuffer.buffer.framePlaybackIndex = inputPlaybackIndex;
 
     decompress_lz4_ct_default(ramEndAddr - ramStartAddr, saveStateBackupSize, savestateBackup);
     totalElapsedCounts = storedElapsedTimeStateBackup;
@@ -58,8 +58,8 @@ void loadstateMain(void) {
     wait_on_hardware();
 
     saveMask = __osDisableInt();
-    inputRecordingBuffer.totalFrameCount = inputRecordingIndex;
-    inputRecordingBuffer.framePlaybackIndex = inputPlaybackIndex;
+    inputRecordingBuffer.buffer.totalFrameCount = inputRecordingIndex;
+    inputRecordingBuffer.buffer.framePlaybackIndex = inputPlaybackIndex;
 
     if (toggles[TOGGLE_NO_COMPRESSION_SAVESTATES]) {
         if (*(u32*)ramAddrSavestateDataSlot1 != 0x00000000) {
@@ -102,8 +102,8 @@ void savestateMain(void) {
     wait_on_hardware();
     saveMask = __osDisableInt();
 
-    inputRecordingIndex = inputRecordingBuffer.totalFrameCount;
-    inputPlaybackIndex = inputRecordingBuffer.framePlaybackIndex;
+    inputRecordingIndex = inputRecordingBuffer.buffer.totalFrameCount;
+    inputPlaybackIndex = inputRecordingBuffer.buffer.framePlaybackIndex;
     
     if (toggles[TOGGLE_NO_COMPRESSION_SAVESTATES]) {
         secondarySeedCallsTotalStateUncompressed = secondarySeedCallsTotal;

@@ -44,11 +44,13 @@ extern s32 gNextZone;
 void storeFirstEntry(void);
 s32 previousVault = 0;
 f32 previousVaultSpeed = 0;
-InputRecording inputRecordingBuffer; //25,000 frames of recording (13 min of recorded inputs)
+//InputRecording inputRecordingBuffer; //25,000 frames of recording (13 min of recorded inputs)
 u32 recordingInputIndex = 0;
 void DisplayTimerWithFrames(void);
 void DisplayTimerWithMilliseconds(void);
 void DisplayNormalIGT(void);
+
+RecordedInputs inputRecordingBuffer = {0}; //only sets 'dummy' to zero
 
 // Patches work the same way as 81 and 80 GameShark Codes
 void s16patch(void* patchAddr, s16 patchInstruction) {
@@ -72,8 +74,8 @@ void checkIfRecordInputs(void) {
         return;
     }
 
-    inputRecordingBuffer.recordingBuffer[recordingInputIndex++] = gContMain[0]; //copy player 1's inputs
-    inputRecordingBuffer.totalFrameCount = recordingInputIndex;
+    inputRecordingBuffer.buffer.recordingBuffer[recordingInputIndex++] = gContMain[0]; //copy player 1's inputs
+    inputRecordingBuffer.buffer.totalFrameCount = recordingInputIndex;
 }
 
 void endStageCode(void) {
@@ -81,6 +83,10 @@ void endStageCode(void) {
     displayTimeRTA = totalElapsedCounts;
     displayTimeIGT = gCurrentStageTime;
 }
+
+extern Addr mod_BSS_START;
+extern Addr mod_BSS_END;
+
 //mod_boot_func: runs a single time on boot before main game loop starts
 void mod_boot_func(void) {
     UINT filebytesread;
@@ -90,13 +96,16 @@ void mod_boot_func(void) {
     crash_screen_init();
     totalElapsedCounts = osGetCount();
 
+    //CLEAR BSS TO 0, VERY IMPORTANT FOR LIBCART
+    _bzero(mod_BSS_START, mod_BSS_END - mod_BSS_START);
+
     #if USE_SD_CARD == TRUE
         //initialize SD card from everdrive, create test file, close
         cart_init();
-        //initFatFs(); //crashes game...usually but not always?
-        //fileres = f_open(&sdsavefile, path, FA_OPEN_ALWAYS | FA_WRITE | FA_READ);
-        //f_write(&sdsavefile, testString, ALIGN4(sizeof(testString)), &filebytesread);
-        //f_close(&sdsavefile);
+        initFatFs();
+        fileres = f_open(&sdsavefile, path, FA_OPEN_ALWAYS | FA_WRITE | FA_READ);
+        f_write(&sdsavefile, testString, ALIGN4(sizeof(testString)), &filebytesread);
+        f_close(&sdsavefile);
     #endif
 
     // example of setting up text to print
@@ -107,7 +116,7 @@ void mod_boot_func(void) {
     hookCode((s32*)0x8004E784, &func_8004E784_Hook); //hook controller reading of overworld gamemode
     hookCode((s32*)0x800C0CDC, &func_800C0CDC_Hook); //hook load boss function
     //hookCode((s32*)0x80084C08, &gVideoThreadProcessHook); //hook video process to pause on loadstate
-    hookCode((s32*)0x80084b30, &videoproc_Hook); //hook video process to pause on loadstate
+    hookCode((s32*)0x80084b30, &videoproc_Hook); //hook video process to pause on loadstate (this actually does nothing lol)
     hookCode((s32*)&Debug_ChangeRoom, &Debug_ChangeRoom_Hook);
     hookCode((s32*)&debugMain, &debugMain_Hook);
     hookCode((s32*)&guRandom, &guRandom_Hook);

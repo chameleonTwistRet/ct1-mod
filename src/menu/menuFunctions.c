@@ -198,7 +198,7 @@ s32 StartRecording(void) {
         return 1;
     }
 
-    inputRecordingBuffer.totalFrameCount = 0;
+    inputRecordingBuffer.buffer.totalFrameCount = 0;
     toggles[TOGGLE_PLAYBACK] = 0; //turn playback off
     isSaveOrLoadActive = 1;
 
@@ -240,7 +240,7 @@ s32 ImportRecording(void) {
 s32 PlayRecording(void) {
     isMenuActive = 0;
     if (toggles[TOGGLE_PLAYBACK] == 0) {
-        inputRecordingBuffer.framePlaybackIndex = 0;
+        inputRecordingBuffer.buffer.framePlaybackIndex = 0;
     }
     toggles[TOGGLE_PLAYBACK] ^= 1;
     toggles[TOGGLE_RECORDING] = 0; //turn recording off

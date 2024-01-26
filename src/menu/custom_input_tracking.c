@@ -143,29 +143,29 @@ void func_8004E784_Hook(contMain* arg0, s32 arg1, s32* arg2, contMain* arg3) {
             if (gContMain[i].buttons0 == 0x0010) { //R
                 toggles[TOGGLE_PLAYBACK] = 0;
                 toggles[TOGGLE_RECORDING] = 1;
-                inputRecordingBuffer.totalFrameCount = 0;
+                inputRecordingBuffer.buffer.totalFrameCount = 0;
             } else if (gContMain[i].buttons0 == 0x0020) { //L
                 toggles[TOGGLE_RECORDING] = 0;
                 toggles[TOGGLE_PLAYBACK] = 1;
-                inputRecordingBuffer.framePlaybackIndex = 0;
+                inputRecordingBuffer.buffer.framePlaybackIndex = 0;
             } else if (gContMain[i].buttons0 == 0x0800) { //Dpad-Up
                 //append mode
                 append_mode = 1;
                 toggles[TOGGLE_RECORDING] = 0;
                 toggles[TOGGLE_PLAYBACK] = 1;
-                inputRecordingBuffer.framePlaybackIndex = 0;        
+                inputRecordingBuffer.buffer.framePlaybackIndex = 0;        
             }
         }
 
         if (toggles[TOGGLE_PLAYBACK] == 1) {
-            if (inputRecordingBuffer.framePlaybackIndex == inputRecordingBuffer.totalFrameCount) {
+            if (inputRecordingBuffer.buffer.framePlaybackIndex == inputRecordingBuffer.buffer.totalFrameCount) {
                 toggles[TOGGLE_PLAYBACK] = 0;
                 if (append_mode == 1) {
                     toggles[TOGGLE_RECORDING] = 1;
                 }
                 WritegContMain(i);
             } else {
-                gContMain[i] = inputRecordingBuffer.recordingBuffer[inputRecordingBuffer.framePlaybackIndex++];
+                gContMain[i] = inputRecordingBuffer.buffer.recordingBuffer[inputRecordingBuffer.buffer.framePlaybackIndex++];
             }
             //get inputs from array buffer
         } else {
@@ -173,8 +173,8 @@ void func_8004E784_Hook(contMain* arg0, s32 arg1, s32* arg2, contMain* arg3) {
         }
 
         if (toggles[TOGGLE_RECORDING] == 1 && i == 0) {
-            inputRecordingBuffer.recordingBuffer[inputRecordingBuffer.totalFrameCount] = gContMain[0];
-            inputRecordingBuffer.totalFrameCount++;
+            inputRecordingBuffer.buffer.recordingBuffer[inputRecordingBuffer.buffer.totalFrameCount] = gContMain[0];
+            inputRecordingBuffer.buffer.totalFrameCount++;
         }
 
         arg0[i] = gContMain[i];

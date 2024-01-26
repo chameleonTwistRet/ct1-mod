@@ -12,12 +12,6 @@ typedef s32 (*menuProc) (void);
 #define ARRAY_COUNT(arr) (s32)(sizeof(arr) / sizeof(arr[0]))
 #define ARRAY_COUNT_INDEX(arr) ARRAY_COUNT(arr) - 1
 
-typedef struct InputRecording {
-    u32 totalFrameCount;
-    u32 framePlaybackIndex;
-    contMain recordingBuffer[25000]; //13 min of recording
-} InputRecording;
-
 typedef struct menuPage {
     /* 0x00 */ s32 optionCount;
     /* 0x04 */ s32 pageIndex;
@@ -26,6 +20,19 @@ typedef struct menuPage {
     /* 0x48 */ s8 flags[FUNCS_PER_PAGE];
     /* 0x50 */ char*** selectionText;
 } menuPage;
+
+typedef struct InputRecording {
+    u32 totalFrameCount;
+    u32 framePlaybackIndex;
+    contMain recordingBuffer[25000]; //13 min of recording
+} InputRecording;
+
+//we use 'dummy' to get this struct into .data, then only write the first byte. this leaves -
+//the inputRecordingBuffer uninitialized, allowing the data to persist between resets
+typedef struct RecordedInputs {
+    s32 dummy; 
+    InputRecording buffer;
+} RecordedInputs;
 
 extern menuPage page0;
 extern menuPage page1;
@@ -57,7 +64,7 @@ extern s32 currOptionNo;
 extern s32 pageListTotal;
 extern menuPage* pageList[];
 extern s8 toggles[];
-extern InputRecording inputRecordingBuffer;
+extern RecordedInputs inputRecordingBuffer;
 extern u32 recordingInputIndex;
 extern s32 textCyanColor[];
 extern s32 textGreenColor[];
