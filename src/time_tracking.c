@@ -30,13 +30,13 @@ u64 BLZoneExitTimesTAS[] = {
     0x000000000065B500, //pillar 1 exit
     0x000000000063A700, //lava 1 exit
     0x00000000002BA980, //spin room exit
-    0x00000000004F9E80, //room before cannon 1
-    0x000000000062A000, //cannon 1 exit
+    0x00000000004F9E80, //room before CANNON 1
+    0x000000000062A000, //CANNON 1 exit
     0x0000000000A98300, //pillar 2 exit
     0x0000000000621C80, //lava 2 exit
     0x000000000030CC80, //bomb jump exit
     0x000000000052B380, //door clip 1 exit
-    0x00000000005D7D00, //cannon 2
+    0x00000000005D7D00, //CANNON 2
     0x0000000000621C80, //boss door exit
     0x00000000010C2300, //snake death
 };

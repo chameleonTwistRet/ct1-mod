@@ -91,9 +91,9 @@ void ActorTick_CakeBoss_Hook(Actor* actor) {
             CAKE_STATE = CAKE_SPIN;
             CAKE_MOVE_TIMER = 0;
             for (i = 0; i < 6; i++) {
-                Actor_Init(Cake_Boss_Strawberry, actor->pos.x, actor->pos.y + 450.0f, actor->pos.z, 0.0f, -10000.0f, 10000.0f, -10000.0f, 10000.0f, -10000.0f, 10000.0f, ((f32) i * 60.0f) + 30.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, actor->actorIndex, i, actor->unk_12C, 0);
+                Actor_Init(CAKE_BOSS_STRAWBERRY, actor->pos.x, actor->pos.y + 450.0f, actor->pos.z, 0.0f, -10000.0f, 10000.0f, -10000.0f, 10000.0f, -10000.0f, 10000.0f, ((f32) i * 60.0f) + 30.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, actor->actorIndex, i, actor->unk_12C, 0);
             }
-            Actor_Init(Cake_Boss_Strawberry, actor->pos.x, actor->pos.y + 450.0f, actor->pos.z, 0.0f, -10000.0f, 10000.0f, -10000.0f, 10000.0f, -10000.0f, 10000.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, actor->actorIndex, 6, actor->unk_12C, 0);
+            Actor_Init(CAKE_BOSS_STRAWBERRY, actor->pos.x, actor->pos.y + 450.0f, actor->pos.z, 0.0f, -10000.0f, 10000.0f, -10000.0f, 10000.0f, -10000.0f, 10000.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, actor->actorIndex, 6, actor->unk_12C, 0);
         }
     }
 
@@ -113,9 +113,9 @@ void ActorTick_CakeBoss_Hook(Actor* actor) {
         if (actor->globalTimer == 0xD1) {
             actor->globalTimer = 0x128;
             for (i = 0; i < 6; i++) {
-                Actor_Init(Cake_Boss_Strawberry, actor->pos.x, actor->pos.y + 450.0f, actor->pos.z, 0.0f, -10000.0f, 10000.0f, -10000.0f, 10000.0f, -10000.0f, 10000.0f, ((f32) i * 60.0f) + 30.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, actor->actorIndex, i, actor->unk_12C, 0);
+                Actor_Init(CAKE_BOSS_STRAWBERRY, actor->pos.x, actor->pos.y + 450.0f, actor->pos.z, 0.0f, -10000.0f, 10000.0f, -10000.0f, 10000.0f, -10000.0f, 10000.0f, ((f32) i * 60.0f) + 30.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, actor->actorIndex, i, actor->unk_12C, 0);
             }
-            Actor_Init(Cake_Boss_Strawberry, actor->pos.x, actor->pos.y + 450.0f, actor->pos.z, 0.0f, -10000.0f, 10000.0f, -10000.0f, 10000.0f, -10000.0f, 10000.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, actor->actorIndex, 6, actor->unk_12C, 0);
+            Actor_Init(CAKE_BOSS_STRAWBERRY, actor->pos.x, actor->pos.y + 450.0f, actor->pos.z, 0.0f, -10000.0f, 10000.0f, -10000.0f, 10000.0f, -10000.0f, 10000.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, actor->actorIndex, 6, actor->unk_12C, 0);
         }
     }
 
@@ -123,7 +123,7 @@ void ActorTick_CakeBoss_Hook(Actor* actor) {
         if (secondPhase == 1) {
             if (gActorCount < 50) {
                 if (--chocokidSpawnTimer == 0) {
-                    Actor_Init(Choco_Kid, actor->pos.x - 300.0f, actor->pos.y, actor->pos.z, 0 + 180.0f, -10000.0f, 10000.0f, -10000.0f, 10000.0f, -10000.0f, 10000.0f, 0, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0, 0, 0, 0);   
+                    Actor_Init(CHOCO_KID, actor->pos.x - 300.0f, actor->pos.y, actor->pos.z, 0 + 180.0f, -10000.0f, 10000.0f, -10000.0f, 10000.0f, -10000.0f, 10000.0f, 0, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0, 0, 0, 0);   
                     chocokidSpawnTimer = 90;
                 }
             }
@@ -143,7 +143,7 @@ void ActorTick_CakeBoss_Hook(Actor* actor) {
                 for (i = 0; i < 4; i++) {
                     temp_f26 = (f32) i * 90.0f;
                     temp_f12 = (temp_f26 * 2) * PI / 360.0;
-                    Actor_Init(Cake_Boss_Choco_Kid, (__cosf(temp_f12) * 800.0f) + actor->pos.x, actor->pos.y + 1500.0f, (-__sinf(temp_f12) * 800.0f) + actor->pos.z, temp_f26 + 180.0f, -10000.0f, 10000.0f, -10000.0f, 10000.0f, -10000.0f, 10000.0f, temp_f26, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, actor->actorIndex, 0, 0, 0);                    
+                    Actor_Init(CAKE_BOSS_CHOCO_KID, (__cosf(temp_f12) * 800.0f) + actor->pos.x, actor->pos.y + 1500.0f, (-__sinf(temp_f12) * 800.0f) + actor->pos.z, temp_f26 + 180.0f, -10000.0f, 10000.0f, -10000.0f, 10000.0f, -10000.0f, 10000.0f, temp_f26, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, actor->actorIndex, 0, 0, 0);                    
                 }
             }
         }
@@ -153,9 +153,9 @@ void ActorTick_CakeBoss_Hook(Actor* actor) {
         var_f30 = var;
         if (var_f30 == 15.0f) {
             for (i = 0; i < 6; i++) {
-                Actor_Init(Cake_Boss_Strawberry, actor->pos.x, actor->pos.y + 450.0f, actor->pos.z, 0.0f, -10000.0f, 10000.0f, -10000.0f, 10000.0f, -10000.0f, 10000.0f, ((f32) i * 60.0f) + 30.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, actor->actorIndex, i, actor->unk_12C, 0);
+                Actor_Init(CAKE_BOSS_STRAWBERRY, actor->pos.x, actor->pos.y + 450.0f, actor->pos.z, 0.0f, -10000.0f, 10000.0f, -10000.0f, 10000.0f, -10000.0f, 10000.0f, ((f32) i * 60.0f) + 30.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, actor->actorIndex, i, actor->unk_12C, 0);
             }
-            Actor_Init(Cake_Boss_Strawberry, actor->pos.x, actor->pos.y + 450.0f, actor->pos.z, 0.0f, -10000.0f, 10000.0f, -10000.0f, 10000.0f, -10000.0f, 10000.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, actor->actorIndex, 6, actor->unk_12C, 0);
+            Actor_Init(CAKE_BOSS_STRAWBERRY, actor->pos.x, actor->pos.y + 450.0f, actor->pos.z, 0.0f, -10000.0f, 10000.0f, -10000.0f, 10000.0f, -10000.0f, 10000.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, actor->actorIndex, 6, actor->unk_12C, 0);
             playSoundEffect(0x9D, &actor->pos.x, &actor->pos.y, &actor->pos.z, 0, 0);
         }
         if ((actor->globalTimer >= 0xE2U) && ((u32) (actor->globalTimer % 15U) < 6U)) {
@@ -220,9 +220,9 @@ void ActorTick_CakeBoss_Hook(Actor* actor) {
                     CAKE_STATE = CAKE_SPIN;
                     CAKE_MOVE_TIMER = 0;
                     for (i = 0; i < 6; i++) {
-                        Actor_Init(Cake_Boss_Strawberry, actor->pos.x, actor->pos.y + 450.0f, actor->pos.z, 0.0f, -10000.0f, 10000.0f, -10000.0f, 10000.0f, -10000.0f, 10000.0f, ((f32) i * 60.0f) + 30.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, actor->actorIndex, i, actor->unk_12C, 0);
+                        Actor_Init(CAKE_BOSS_STRAWBERRY, actor->pos.x, actor->pos.y + 450.0f, actor->pos.z, 0.0f, -10000.0f, 10000.0f, -10000.0f, 10000.0f, -10000.0f, 10000.0f, ((f32) i * 60.0f) + 30.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, actor->actorIndex, i, actor->unk_12C, 0);
                     }
-                    Actor_Init(Cake_Boss_Strawberry, actor->pos.x, actor->pos.y + 450.0f, actor->pos.z, 0.0f, -10000.0f, 10000.0f, -10000.0f, 10000.0f, -10000.0f, 10000.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, actor->actorIndex, 6, actor->unk_12C, 0);
+                    Actor_Init(CAKE_BOSS_STRAWBERRY, actor->pos.x, actor->pos.y + 450.0f, actor->pos.z, 0.0f, -10000.0f, 10000.0f, -10000.0f, 10000.0f, -10000.0f, 10000.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, actor->actorIndex, 6, actor->unk_12C, 0);
                 } else {
                     CAKE_STATE = CAKE_SHOW_CHOCO_KIDS;
                     CAKE_MOVE_TIMER = 0;
@@ -237,9 +237,9 @@ void ActorTick_CakeBoss_Hook(Actor* actor) {
         temp_f30 = (f32) (actor->unk_128 - CAKE_MOVE_TIMER);
         if (temp_f30 == 15.0f) {
             for (i = 0; i < 6; i++) {
-                Actor_Init(Cake_Boss_Strawberry, actor->pos.x, actor->pos.y + 450.0f, actor->pos.z, 0.0f, -10000.0f, 10000.0f, -10000.0f, 10000.0f, -10000.0f, 10000.0f, ((f32) i * 60.0f) + 30.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, actor->actorIndex, i, actor->unk_12C, 0);
+                Actor_Init(CAKE_BOSS_STRAWBERRY, actor->pos.x, actor->pos.y + 450.0f, actor->pos.z, 0.0f, -10000.0f, 10000.0f, -10000.0f, 10000.0f, -10000.0f, 10000.0f, ((f32) i * 60.0f) + 30.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, actor->actorIndex, i, actor->unk_12C, 0);
             }
-            Actor_Init(Cake_Boss_Strawberry, actor->pos.x, actor->pos.y + 450.0f, actor->pos.z, 0.0f, -10000.0f, 10000.0f, -10000.0f, 10000.0f, -10000.0f, 10000.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, actor->actorIndex, 6, actor->unk_12C, 0);
+            Actor_Init(CAKE_BOSS_STRAWBERRY, actor->pos.x, actor->pos.y + 450.0f, actor->pos.z, 0.0f, -10000.0f, 10000.0f, -10000.0f, 10000.0f, -10000.0f, 10000.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, actor->actorIndex, 6, actor->unk_12C, 0);
             if (hasEnteredPhase3 == 0) {
                 playSoundEffect(0x9D, &actor->pos.x, &actor->pos.y, &actor->pos.z, 0, 0);
             }
@@ -426,24 +426,24 @@ void debugMain_Hook(void) {
                 printNumber(32.0, 64.0f, 0.0f, 1.0f, (f32) gCurrentZone, 2, 0);
                 break;
             }
-            printNumberWR(32.0, 96.0f, 0.0f, 0.5, D_80176B74->pos.x + D_800F070C, 6, 0);
-            printNumberWR(32.0, 112.0f, 0.0f, 0.5, D_80176B74->pos.y + D_800F0710, 6, 0);
-            printNumberWR(32.0, 128.0f, 0.0f, 0.5, D_80176B74->pos.z + D_800F0714, 6, 0);
+            PrintNumberWR(32.0, 96.0f, 0.0f, 0.5, D_80176B74->pos.x + D_800F070C, 6, 0);
+            PrintNumberWR(32.0, 112.0f, 0.0f, 0.5, D_80176B74->pos.y + D_800F0710, 6, 0);
+            PrintNumberWR(32.0, 128.0f, 0.0f, 0.5, D_80176B74->pos.z + D_800F0714, 6, 0);
             temp_f0 = D_801768A0.unk34 - D_801768A0.unk28;
             temp_f2 = D_801768A0.unk38 - D_801768A0.unk2C;
             temp_f14 = D_801768A0.unk3C - D_801768A0.unk30;
-            //printNumberWR(32.0, 160.0f, 0.0f, 0.5, __sqrtf(SQ(temp_f0) + SQ(temp_f2) + SQ(temp_f14)), 6, 0);
+            //PrintNumberWR(32.0, 160.0f, 0.0f, 0.5, __sqrtf(SQ(temp_f0) + SQ(temp_f2) + SQ(temp_f14)), 6, 0);
             
             // for (i = 0, sp64 = 0x20; i < 10; i++) {
             //     temp_f20 = (f32)sp64;
-            //     printNumberWR(200.0f, temp_f20, 0.0f, 0.5, D_80174880->unk_00[i], 4, 1);
-            //     printNumberWR(230.0f, temp_f20, 0.0f, 0.5, D_80174880->unk_28[i], 4, 1);
-            //     printNumberWR(260.0f, temp_f20, 0.0f, 0.5f, D_80174880->unk_50[i], 4, 1);  
+            //     PrintNumberWR(200.0f, temp_f20, 0.0f, 0.5, D_80174880->unk_00[i], 4, 1);
+            //     PrintNumberWR(230.0f, temp_f20, 0.0f, 0.5, D_80174880->UNK_28[i], 4, 1);
+            //     PrintNumberWR(260.0f, temp_f20, 0.0f, 0.5f, D_80174880->unk_50[i], 4, 1);  
             //     sp64 += 0x0c;
             // }
 
-            // printNumberWR(290.0f, 32.0, 0.0f, 0.5, D_80174880->unk_78, 4, 1);
-            // printNumberWR(290.0f, 44.0f, 0.0f, 0.5, D_80174880->unk_7C, 4, 1);
+            // PrintNumberWR(290.0f, 32.0, 0.0f, 0.5, D_80174880->unk_78, 4, 1);
+            // PrintNumberWR(290.0f, 44.0f, 0.0f, 0.5, D_80174880->unk_7C, 4, 1);
             temp_v0 = &gZoneCollisions[gCurrentZone];
             temp_f0_2 = (temp_v0->rect_30.max.x - temp_v0->rect_30.min.x) / 2;
             temp_f16 = (temp_v0->rect_30.max.y - temp_v0->rect_30.min.y) / 2;
@@ -708,7 +708,7 @@ void videoproc_Hook(s32 arg0) {
 extern s32 D_801749AC;
 void AddCarrot(s32);
 void func_80078294(f32, f32, s32, f32, s32);
-s32 isntNegative(s32);
+s32 IsntNegative(s32);
 extern s32 currentStageCrowns;
 extern s32 D_80247904;
 extern s16 D_800FFEBC;
@@ -930,7 +930,7 @@ void Porocess_Mode0_Hook(void) {
             D_80174878 = D_800F06EC;
         }
         
-        D_80174878 = loadStageByIndex(D_80174878);
+        D_80174878 = LoadStageByIndex(D_80174878);
 
         if (gCurrentStage == 8 || toggles[TOGGLE_RTA_TIMER_RESET]) {
             prevCount = osGetCount();
@@ -957,6 +957,13 @@ void Porocess_Mode0_Hook(void) {
             //so we set it to what we want - 4
             *seed = 0x23FB240C;
             *calls = 687;
+        } else if (gCurrentStage == 2 && toggles[TOGGLE_SET_SEED_BL] == 3) { 
+            u32* seed = (u32*)0x80109DC0;
+            u32* calls = (u32*)0x80109DC4;
+            //the game will advance the seed 4 times after we set it
+            //so we set it to what we want - 4
+            *seed = 0x3A97D818;
+            *calls = 683;
         } else if (gCurrentStage == 2 && toggles[TOGGLE_SET_SEED_IL_BL]) { 
             u32* seed = (u32*)0x80109DC0;
             u32* calls = (u32*)0x80109DC4;
@@ -1033,11 +1040,11 @@ void Porocess_Mode0_Hook(void) {
             func_8008FE00();
         }
         if (gCurrentStage == 2) {
-            loadPlayerEyes(4);
-            setPlayerContextEyes(4, 0, 0);
-            freePlayerEyes(4);
+            LoadPlayerEyes(4);
+            SetPlayerContextEyes(4, 0, 0);
+            FreePlayerEyes(4);
         }
-        TaskInit();
+        CTTaskList_Init();
         if ((gCurrentStage == 0xF) || (gCurrentStage == 8)) {
             func_800C1458(0);
         }
@@ -1063,7 +1070,7 @@ void Porocess_Mode0_Hook(void) {
         if (D_800F06EC >= 0) {
             D_80174878 = D_800F06EC;
         }
-        D_80174878 = loadStageByIndex(D_80174878);
+        D_80174878 = LoadStageByIndex(D_80174878);
         func_8002E0CC();
         InitField();
         gPlayerActors->hp = temp_s0;
@@ -1071,7 +1078,7 @@ void Porocess_Mode0_Hook(void) {
         aa1_InitHead();
         func_8005C9B8();
         func_80084788();
-        TaskInit();
+        CTTaskList_Init();
         if (D_800FFEBC != 0) {
             func_800C1458(1);
         } else {
@@ -1083,9 +1090,9 @@ void Porocess_Mode0_Hook(void) {
         D_80247904 = sp24;
         func_8008FE00();
         if (gCurrentStage == 2) {
-            loadPlayerEyes(4);
-            setPlayerContextEyes(4, 0, 0);
-            freePlayerEyes(4);
+            LoadPlayerEyes(4);
+            SetPlayerContextEyes(4, 0, 0);
+            FreePlayerEyes(4);
             return;
         }
     default:
@@ -1116,7 +1123,7 @@ void Porocess_Mode0_Hook(void) {
         } else {
             D_80236978 = 0;
             func_800C1510(gGameState.gCurrentZone, gGameState.unk33);
-            func_800B4574(&gGameState.unk2, &gGameState.unk_22);
+            func_800B4574(&gGameState.unk2, &gGameState.UNK_22);
             func_800C0760(gGameState.gCurrentZone);
         }
         currentStageCrowns = (s32) gGameState.stageCrowns;
@@ -1126,18 +1133,18 @@ void Porocess_Mode0_Hook(void) {
         func_8008F114();
         func_8008FE00();
         if (gCurrentStage == 2) {
-            loadPlayerEyes(4);
-            setPlayerContextEyes(4, 0, 0);
-            freePlayerEyes(4);
+            LoadPlayerEyes(4);
+            SetPlayerContextEyes(4, 0, 0);
+            FreePlayerEyes(4);
         }
         func_8008800C(8);
         return;
     case 5:
-        setProcessType(1);
+        SetProcessType(1);
         func_8008F114();
         return;
     case 6:
-        setProcessType(6);
+        SetProcessType(6);
         return;
     case 7:
         gNoHit = 0;
@@ -1160,7 +1167,7 @@ void Porocess_Mode0_Hook(void) {
         } else {
             D_80236978 = 0;
             func_800C1510(gSaveFile.gCurrentZone, gSaveFile.unk33);
-            func_800B4574(&gSaveFile.flags, &gSaveFile.unk_22);
+            func_800B4574(&gSaveFile.flags, &gSaveFile.UNK_22);
             func_800C0760(gSaveFile.gCurrentZone);
         }
         func_8008FEA8(gCurrentStage, gSaveFile.gCurrentZone);
@@ -1169,9 +1176,9 @@ void Porocess_Mode0_Hook(void) {
         func_8008F114();
         func_8008FE00();
         if (gCurrentStage == 2) {
-            loadPlayerEyes(4);
-            setPlayerContextEyes(4, 0, 0);
-            freePlayerEyes(4);
+            LoadPlayerEyes(4);
+            SetPlayerContextEyes(4, 0, 0);
+            FreePlayerEyes(4);
         }
         break;
     }
@@ -1669,7 +1676,7 @@ block_53:
             arg0->unknownPositionThings[0].unk_10 = 350.0f;
             arg0->tYPos = 350.0f;
             arg0->unk_120 = Random(0, 99999999) % MAX_MOVES;
-            playBGM(0x10);
+            PlayBGM(0x10);
         }
         break;
     case BOOKS_CHOOSE_INITIAL_PHASE2_ANGLE:

@@ -45,7 +45,7 @@ s32 setJLSeed(void) {
 
 s32 setBLSeed(void) {
     toggles[TOGGLE_SET_SEED_BL]++;
-    if (toggles[TOGGLE_SET_SEED_BL] >= 3) {
+    if (toggles[TOGGLE_SET_SEED_BL] >= 4) {
         toggles[TOGGLE_SET_SEED_BL] = 0;
     }
     return 0;

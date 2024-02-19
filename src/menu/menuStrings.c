@@ -48,10 +48,15 @@ char manip2Text[] = {
     "MANIP 2"
 };
 
+char manip3Text[] = {
+    "MANIP 3"
+};
+
 char* manipTexts[] = {
     string_OFF,
     manip1Text,
-    manip2Text
+    manip2Text,
+    manip3Text
 };
 
 char variousStatsText[] = {
