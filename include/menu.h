@@ -14,7 +14,7 @@ typedef s32 (*menuProc) (void);
 
 typedef struct InputRecording {
     u32 totalFrameCount;
-    contMain recordingBuffer[1200];
+    ContMain recordingBuffer[1200];
 } InputRecording;
 
 typedef struct menuPage {
@@ -45,7 +45,7 @@ s32 menuProcFunc(void);
 s32 teleportToStageBoss(void);
 void colorTextWrapper(s32* color);
 void updateCustomInputTracking(void);
-void func_8004E784_Hook(contMain* arg0, s32 arg1, s32* arg2, contMain* arg3);
+void func_8004E784_Hook(ContMain* arg0, s32 arg1, s32* arg2, ContMain* arg3);
 extern s32 recordingMode;
 extern volatile s32 isSaveOrLoadActive;
 extern s32 savestateRecordingSize;

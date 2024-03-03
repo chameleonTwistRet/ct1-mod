@@ -50,9 +50,9 @@ void updateMenuInput(void) {
     }
 }
 
-void func_8004E784_Hook(contMain* arg0, s32 arg1, s32* arg2, contMain* arg3) {
-    contMain* var_s0;
-    contMain* var_s1;
+void func_8004E784_Hook(ContMain* arg0, s32 arg1, s32* arg2, ContMain* arg3) {
+    ContMain* var_s0;
+    ContMain* var_s1;
     s32 i;
 
     osRecvMesg(&gEepromMsgQ, NULL, 1);
@@ -79,24 +79,24 @@ void func_8004E784_Hook(contMain* arg0, s32 arg1, s32* arg2, contMain* arg3) {
                 continue;
             }
             gContMain[i].buttons0 = D_80175650[D_80175668[i]].button;
-            gContMain[i].stickx = D_80175650[D_80175668[i]].stick_x;
-            gContMain[i].sticky = D_80175650[D_80175668[i]].stick_y;
+            gContMain[i].stickX = D_80175650[D_80175668[i]].stick_x;
+            gContMain[i].stickY = D_80175650[D_80175668[i]].stick_y;
         } else {
             gContMain[i].buttons0 = arg3[i].buttons0;
-            gContMain[i].stickx = arg3[i].stickx;
-            gContMain[i].sticky = arg3[i].sticky;
+            gContMain[i].stickX = arg3[i].stickX;
+            gContMain[i].stickY = arg3[i].stickY;
         }
 
-        gContMain[i].stickAngle = CalculateAngleOfVector((f32) gContMain[i].stickx, (f32) gContMain[i].sticky);
+        gContMain[i].stickAngle = CalculateAngleOfVector((f32) gContMain[i].stickX, (f32) gContMain[i].stickY);
         gContMain[i].buttons1 = (gContMain[i].buttons0 ^ D_80175678[i]) & gContMain[i].buttons0;
         gContMain[i].buttons2 = (gContMain[i].buttons0 ^ D_801756C0[i]) & gContMain[i].buttons0;
         D_801756C0[i] = gContMain[i].buttons0;
-        if ((gContMain[i].stickx >= -6) && (gContMain[i].stickx < 7)) {
-            gContMain[i].stickx = 0;
+        if ((gContMain[i].stickX >= -6) && (gContMain[i].stickX < 7)) {
+            gContMain[i].stickX = 0;
         }
         
-        if ((gContMain[i].sticky >= -6) && (gContMain[i].sticky < 7)) {
-            gContMain[i].sticky = 0;
+        if ((gContMain[i].stickY >= -6) && (gContMain[i].stickY < 7)) {
+            gContMain[i].stickY = 0;
         }
 
         if (toggles[TOGGLE_RECORDING] == 1 && i == 0) {

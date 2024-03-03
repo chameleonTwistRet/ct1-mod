@@ -56,7 +56,7 @@ void ActorInit_CakeBoss_Hook(Actor* actor) {
 void incrementCakeHitCounter(void) {
     if (hasEnteredPhase3 == 1) {
         cakePhase3Hits++;
-        playSoundEffect(0xB9, 0, 0, 0, 0, 0x0010); //books phase 2 getting hit by cue ball noise
+        PlaySoundEffect(0xB9, 0, 0, 0, 0, 0x0010); //books phase 2 getting hit by cue ball noise
     }
 }
 
@@ -105,7 +105,7 @@ void ActorTick_CakeBoss_Hook(Actor* actor) {
 
     if (hasEnteredPhase3 == 1 && cakePhase3Hits == 5) {
         CAKE_STATE = CAKE_DEATH;
-        func_80087358(actor->userVariables[3]); //kill sounds
+        StopSoundEffect(actor->userVariables[3]); //kill sounds
         actor->vel.z = 0.0f;
         actor->vel.x = 0.0f;       
     }
@@ -134,7 +134,7 @@ void ActorTick_CakeBoss_Hook(Actor* actor) {
     case CAKE_INIT:
         if (actor->globalTimer >= 0x78U) {
             if (actor->globalTimer == 0xC) {
-                actor->userVariables[3] = playSoundEffect(0x9A, &actor->pos.x, &actor->pos.y, &actor->pos.z, 0, 0);
+                actor->userVariables[3] = PlaySoundEffect(0x9A, &actor->pos.x, &actor->pos.y, &actor->pos.z, 0, 0);
             }
             actor->unk_F0++;
             if (actor->unk_F0 == 0xF) {
@@ -156,7 +156,7 @@ void ActorTick_CakeBoss_Hook(Actor* actor) {
                 Actor_Init(CAKE_BOSS_STRAWBERRY, actor->pos.x, actor->pos.y + 450.0f, actor->pos.z, 0.0f, -10000.0f, 10000.0f, -10000.0f, 10000.0f, -10000.0f, 10000.0f, ((f32) i * 60.0f) + 30.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, actor->actorIndex, i, actor->unk_12C, 0);
             }
             Actor_Init(CAKE_BOSS_STRAWBERRY, actor->pos.x, actor->pos.y + 450.0f, actor->pos.z, 0.0f, -10000.0f, 10000.0f, -10000.0f, 10000.0f, -10000.0f, 10000.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, actor->actorIndex, 6, actor->unk_12C, 0);
-            playSoundEffect(0x9D, &actor->pos.x, &actor->pos.y, &actor->pos.z, 0, 0);
+            PlaySoundEffect(0x9D, &actor->pos.x, &actor->pos.y, &actor->pos.z, 0, 0);
         }
         if ((actor->globalTimer >= 0xE2U) && ((u32) (actor->globalTimer % 15U) < 6U)) {
             actor->unk_134[3] += actor->unk_164;
@@ -167,7 +167,7 @@ void ActorTick_CakeBoss_Hook(Actor* actor) {
             func_800410B4(actor);
             if (var_f30 == 0.0f) {
                 CAKE_STATE = CAKE_SPIN;
-                actor->userVariables[3] = playSoundEffect(0x9A, &actor->pos.x, &actor->pos.y, &actor->pos.z, 0, 0);
+                actor->userVariables[3] = PlaySoundEffect(0x9A, &actor->pos.x, &actor->pos.y, &actor->pos.z, 0, 0);
                 actor->unk_134[4] = (f32) (((Random(0, 0x270F) & 1) * 2) - 1) * actor->position._f32.y;
             }
         }
@@ -188,8 +188,8 @@ void ActorTick_CakeBoss_Hook(Actor* actor) {
             actor->unk_134[1] = (-__sinf((((temp_f6 * 2) * PI) / 360.0)) * (actor->unk_170 * 0.6f)) + actor->unk_16C;
             //yaw
             actor->unk_134[2] = CalcAngleBetween2DPoints(gCurrentActivePlayerPointer->pos.x, gCurrentActivePlayerPointer->pos.z, actor->pos.x, actor->pos.z);
-            func_80087358(actor->userVariables[3]);
-            playSoundEffect(0x9B, &actor->pos.x, &actor->pos.y, &actor->pos.z, 0, 0);
+            StopSoundEffect(actor->userVariables[3]);
+            PlaySoundEffect(0x9B, &actor->pos.x, &actor->pos.y, &actor->pos.z, 0, 0);
         } else {
             if (CAKE_MOVE_TIMER < (actor->unk_124 - 30)) {
                 s32 var = CHOCO_KID_COUNT;
@@ -241,7 +241,7 @@ void ActorTick_CakeBoss_Hook(Actor* actor) {
             }
             Actor_Init(CAKE_BOSS_STRAWBERRY, actor->pos.x, actor->pos.y + 450.0f, actor->pos.z, 0.0f, -10000.0f, 10000.0f, -10000.0f, 10000.0f, -10000.0f, 10000.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, actor->actorIndex, 6, actor->unk_12C, 0);
             if (hasEnteredPhase3 == 0) {
-                playSoundEffect(0x9D, &actor->pos.x, &actor->pos.y, &actor->pos.z, 0, 0);
+                PlaySoundEffect(0x9D, &actor->pos.x, &actor->pos.y, &actor->pos.z, 0, 0);
             }
         }
         if (temp_f30 < 15.0f) {
@@ -251,7 +251,7 @@ void ActorTick_CakeBoss_Hook(Actor* actor) {
                 CAKE_STATE = CAKE_SPIN;
                 CAKE_MOVE_TIMER = 0;
                 //if (hasEnteredPhase3 == 0) {
-                    actor->userVariables[3] = playSoundEffect(0x9A, &actor->pos.x, &actor->pos.y, &actor->pos.z, 0, 0);
+                    actor->userVariables[3] = PlaySoundEffect(0x9A, &actor->pos.x, &actor->pos.y, &actor->pos.z, 0, 0);
                 //}
                 actor->unk_134[4] = (f32) (((Random(0, 9999) & 1) * 2) - 1) * actor->position._f32.y;
             } else {
@@ -260,12 +260,12 @@ void ActorTick_CakeBoss_Hook(Actor* actor) {
         } else {
             if ((u32) actor->unk_F0 < 0xEU) {
                 if (actor->unk_F0 == 0) {
-                    playSoundEffect(0x9D, &actor->pos.x, &actor->pos.y, &actor->pos.z, 0, 0);
+                    PlaySoundEffect(0x9D, &actor->pos.x, &actor->pos.y, &actor->pos.z, 0, 0);
                 }
                 actor->unk_F0++;
                 func_800410B4(actor);
             } else if ((CAKE_MOVE_TIMER % 14) == 0) {
-                playSoundEffect(0x9E, &actor->pos.x, &actor->pos.y, &actor->pos.z, 0, 0);
+                PlaySoundEffect(0x9E, &actor->pos.x, &actor->pos.y, &actor->pos.z, 0, 0);
             }
 block_46:
             if (actor->globalTimer % 15U < 6U) {
@@ -705,7 +705,7 @@ void videoproc_Hook(s32 arg0) {
     }
 }
 
-extern s32 D_801749AC;
+extern s32 Battle_GameType;
 void AddCarrot(s32);
 void func_80078294(f32, f32, s32, f32, s32);
 s32 IsntNegative(s32);
@@ -719,7 +719,7 @@ extern char D_8010DB1C[];
 extern SaveFile gSaveFile; //should be static in matching code, but we dont want to declare this again
 s32 SaveData_ReadFile(SaveFile*);
 void func_8002CE54(void);
-void func_800546F0(void);
+void Battle_Init(void);
 void func_8008800C(s32);
 s32 func_8008BE14(void);
 void func_8008FD68(void);
@@ -753,7 +753,7 @@ void setFreezeTimerC(void) {
     }
 }
 
-void func_800C54F8_Hook(Vec2s* arg0, s32* arg1) {
+void func_800C54F8_Hook(Vec2w* arg0, s32* arg1) {
     arg0->x = 0; //clears value so IGT continues to advance
     arg0->y = 0;
     *arg1 = 0;
@@ -785,7 +785,7 @@ void DisplayTimerWrapper(void) {
     s32 unk;
 
     if (toggles[TOGGLE_DISPLAY_IGT] == 0) {
-        if ((gameModeCurrent == 0 || gameModeCurrent == 15) && (gCurrentStage != 8)) {
+        if ((gGameModeCurrent == 0 || gGameModeCurrent == 15) && (gCurrentStage != 8)) {
             minutes = gCurrentStageTime / 1800; //(30 frames * 60 seconds)
             seconds = (gCurrentStageTime % 1800) / 30;
             func_800610A8();
@@ -819,7 +819,7 @@ void DisplayNormalIGT(void) {
     s32 seconds;
     s32 unk;
 
-    if ((gameModeCurrent == 0 || gameModeCurrent == 15) && (gCurrentStage != 8)) {
+    if ((gGameModeCurrent == 0 || gGameModeCurrent == 15) && (gCurrentStage != 8)) {
         minutes = gCurrentStageTime / 1800; //(30 frames * 60 seconds)
         seconds = (gCurrentStageTime % 1800) / 30;
         func_800610A8();
@@ -854,7 +854,7 @@ void DisplayTimerWithMilliseconds(void) { //display IGT with milliseconds
     char timeString[16]; // Assuming a maximum of 99:59.999
     char convertedBuffer[32];  
 
-    if ((gameModeCurrent == 0 || gameModeCurrent == 15) && (gCurrentStage != 8)) {
+    if ((gGameModeCurrent == 0 || gGameModeCurrent == 15) && (gCurrentStage != 8)) {
         s32 totalFrames;
         totalFrames = gCurrentStageTime;
         if (freezeTimer != 0) {
@@ -887,7 +887,7 @@ void DisplayTimerWithFrames(void) {
     char timeString[16]; // Assuming a maximum of 99:59.999
     char convertedBuffer[32];
 
-    if ((gameModeCurrent == 0 || gameModeCurrent == 15) && (gCurrentStage != 8)) {
+    if ((gGameModeCurrent == 0 || gGameModeCurrent == 15) && (gCurrentStage != 8)) {
         s32 totalFrames;
         if (freezeTimer != 0) {
             colorTextWrapper(textCyanColor);
@@ -1005,9 +1005,9 @@ void Porocess_Mode0_Hook(void) {
 
         if (gCurrentStage == 7) {
             D_80168DA0 = (u32) gControllerNo;
-            D_801749AC = 2;
+            Battle_GameType = 2;
         } else {
-            D_801749AC = 0;
+            Battle_GameType = 0;
             D_80168DA0 = 1;
         }
 
@@ -1035,7 +1035,7 @@ void Porocess_Mode0_Hook(void) {
         
         D_80174980 = 0;
         if (gCurrentStage == 7) {
-            func_800546F0();
+            Battle_Init();
         } else {
             func_8008FE00();
         }
@@ -1061,7 +1061,7 @@ void Porocess_Mode0_Hook(void) {
         gGameModeState = 1;
         return;
     case 3:
-        D_801749AC = 0;
+        Battle_GameType = 0;
         temp_s0 = gPlayerActors->hp;
         sp28 = currentStageCrowns;
         sp24 = D_80247904;
@@ -1110,7 +1110,7 @@ void Porocess_Mode0_Hook(void) {
         gNoHit = 0;
         gOneRun = 0;
         D_80200B38 = 0;
-        D_801749AC = 0;
+        Battle_GameType = 0;
         SaveData_ReadFile(&gGameState);
         D_80174878 = gCurrentStage - 1;
         func_8008FD68();
@@ -1151,7 +1151,7 @@ void Porocess_Mode0_Hook(void) {
         gOneRun = 0;
         D_80200B38 = 0;
         D_80168DA0 = 1;
-        D_801749AC = 0;
+        Battle_GameType = 0;
         SaveData_ReadFile(&gSaveFile);
         D_80174878 = gCurrentStage - 1;
         for (i = 0; i < 4; i++) {
@@ -1315,7 +1315,7 @@ void ActorTick_GhostBoss_Hook(Actor* arg0) {
         }
         func_800312B0(arg0->actorIndex);
         if (((u32) arg0->globalTimer % 20U) == 0) {
-            playSoundEffect(0xBA, NULL, NULL, NULL, 0, 0x10);
+            PlaySoundEffect(0xBA, NULL, NULL, NULL, 0, 0x10);
         }
     }
     //the jump table locations are correct even though rodata is off by 0x04
@@ -1325,7 +1325,7 @@ void ActorTick_GhostBoss_Hook(Actor* arg0) {
             arg0->pos.y += 20.0f;
             if (arg0->globalTimer == 0x96) {
                 arg0->userVariables[2] = BOOKS_ASSEMBLE_PHASE1;
-                playSoundEffect(0xB2, NULL, NULL, NULL, 0, 0x10);
+                PlaySoundEffect(0xB2, NULL, NULL, NULL, 0, 0x10);
             }
         }
         break;
@@ -1333,9 +1333,9 @@ void ActorTick_GhostBoss_Hook(Actor* arg0) {
         arg0->pos.y -= D_8010BFF8;
         arg0->pos.z += -4.0f;
         if (arg0->unk_F0 == 0x3C) {
-            playSoundEffect(0xB2, NULL, NULL, NULL, 0, 0x10);
+            PlaySoundEffect(0xB2, NULL, NULL, NULL, 0, 0x10);
         } else if (arg0->unk_F0 == 0xA0) {
-            playSoundEffect(0xB3, NULL, NULL, NULL, 0, 0x10);
+            PlaySoundEffect(0xB3, NULL, NULL, NULL, 0, 0x10);
         }
         
         arg0->unk_F0++;
@@ -1361,7 +1361,7 @@ void ActorTick_GhostBoss_Hook(Actor* arg0) {
         func_80044C30(arg0, 2);
         func_800448C0(arg0);
         arg0->userVariables[2] = BOOKS_SEND_OUT_ARMS;
-        playSoundEffect(0xB4, &arg0->pos.x, &arg0->pos.y, &arg0->pos.z, 0, 0);
+        PlaySoundEffect(0xB4, &arg0->pos.x, &arg0->pos.y, &arg0->pos.z, 0, 0);
         break;
     case BOOKS_SEND_OUT_ARMS:
         temp_s0 = &gActors[D_801749D8.armActorIDs[0][0]];
@@ -1383,7 +1383,7 @@ void ActorTick_GhostBoss_Hook(Actor* arg0) {
             } else {
                 arg0->unk_134[7] = 1.0f;
             }
-            playSoundEffect(0xB4, &arg0->pos.x, &arg0->pos.y, &arg0->pos.z, 0, 0);
+            PlaySoundEffect(0xB4, &arg0->pos.x, &arg0->pos.y, &arg0->pos.z, 0, 0);
         }
         break;
     case BOOKS_ARM_ATTACK:
@@ -1407,7 +1407,7 @@ void ActorTick_GhostBoss_Hook(Actor* arg0) {
                     } else {
                         arg0->unk_134[7] = 1.0f;
                     }
-                    playSoundEffect(0xB4, &arg0->pos.x, &arg0->pos.y, &arg0->pos.z, 0, 0);
+                    PlaySoundEffect(0xB4, &arg0->pos.x, &arg0->pos.y, &arg0->pos.z, 0, 0);
                 } else {
                     arg0->userVariables[2] = BOOKS_ARM_ATTACK;
                     arg0->userVariables[4]++;
@@ -1416,7 +1416,7 @@ void ActorTick_GhostBoss_Hook(Actor* arg0) {
                     } else {
                         arg0->unk_134[7] = 1.0f;
                     }
-                    playSoundEffect(0xB4, &arg0->pos.x, &arg0->pos.y, &arg0->pos.z, 0, 0);
+                    PlaySoundEffect(0xB4, &arg0->pos.x, &arg0->pos.y, &arg0->pos.z, 0, 0);
                 }
             } else {
                 goto block_53;
@@ -1457,8 +1457,8 @@ loop_48:
             }
 block_53:
             func_800448C0(arg0);
-            if ((D_8017499C % 24) == 0) {
-                playSoundEffect(0xB4, &arg0->pos.x, &arg0->pos.y, &arg0->pos.z, 0, 0);
+            if ((gTimer % 24) == 0) {
+                PlaySoundEffect(0xB4, &arg0->pos.x, &arg0->pos.y, &arg0->pos.z, 0, 0);
             }
         }
         break;
@@ -1485,10 +1485,10 @@ block_53:
                 arg0->unk_F0 = 0;
             } else if (((SQ(temp_f20_4)) + (SQ(temp_f22_4))) < arg0->position._f32.x) {
                 arg0->userVariables[2] = BOOKS_SEND_OUT_ARMS;
-                playSoundEffect(0xB4, &arg0->pos.x, &arg0->pos.y, &arg0->pos.z, 0, 0);
+                PlaySoundEffect(0xB4, &arg0->pos.x, &arg0->pos.y, &arg0->pos.z, 0, 0);
             }
-        } else if (((s32) D_8017499C % 24) == 0) { //every 24 frames play books regen noise if regenerating health
-            playSoundEffect(0xB4, &arg0->pos.x, &arg0->pos.y, &arg0->pos.z, 0, 0);
+        } else if (((s32) gTimer % 24) == 0) { //every 24 frames play books regen noise if regenerating health
+            PlaySoundEffect(0xB4, &arg0->pos.x, &arg0->pos.y, &arg0->pos.z, 0, 0);
         }
         break;
     case BOOKS_PHASE1_WALK_BEFORE_ARM_PLANT:
@@ -1555,7 +1555,7 @@ block_53:
             arg0->userVariables[2] = BOOKS_ARM_SPIN;
             arg0->userVariables[4] = 0;
             arg0->unk_134[0] = 0.0f;
-            playSoundEffect(0xB5, &arg0->pos.x, &arg0->pos.y, &arg0->pos.z, 0, 0);
+            PlaySoundEffect(0xB5, &arg0->pos.x, &arg0->pos.y, &arg0->pos.z, 0, 0);
         }
         break;
     case BOOKS_ARM_SPIN:
@@ -1564,7 +1564,7 @@ block_53:
         if (arg0->userVariables[4] < 8) {
             var_f20 *= (f32) ((s32) (arg0->userVariables[4] + 1) / 8);
         } else if (arg0->userVariables[4] == 8) {
-            playSoundEffect(0xB5, &arg0->pos.x, &arg0->pos.y, &arg0->pos.z, 0, 0);
+            PlaySoundEffect(0xB5, &arg0->pos.x, &arg0->pos.y, &arg0->pos.z, 0, 0);
         }
         
         var_f2_3 = arg0->unk_134[0] + var_f20;
@@ -1625,7 +1625,7 @@ block_53:
                 arg0->userVariables[2] = BOOKS_KILL_ARMS;
             } else {
                 arg0->userVariables[2] = BOOKS_SEND_OUT_ARMS;
-                playSoundEffect(0xB4, &arg0->pos.x, &arg0->pos.y, &arg0->pos.z, 0, 0);
+                PlaySoundEffect(0xB4, &arg0->pos.x, &arg0->pos.y, &arg0->pos.z, 0, 0);
                 arg0->userVariables[4] = 0;
                 arg0->userVariables[arg0->unk_120] = -1;
                 func_80044C30(arg0, arg0->unk_120);
@@ -1659,14 +1659,14 @@ block_53:
             arg0->userVariables[0] = 0;
             arg0->unk_EC = 1;
             arg0->unk_F0 = 0;
-            playSoundEffect(0xB2, NULL, NULL, NULL, 0, 0x10);
+            PlaySoundEffect(0xB2, NULL, NULL, NULL, 0, 0x10);
         }
         break;
     case BOOKS_TRANSFORM_PHASE2:
         if (arg0->unk_F0 == 0x42) {
-            playSoundEffect(0xB2, NULL, NULL, NULL, 0, 0x10);
+            PlaySoundEffect(0xB2, NULL, NULL, NULL, 0, 0x10);
         } else if (arg0->unk_F0 == 0xB4) {
-            playSoundEffect(0xB3, NULL, NULL, NULL, 0, 0x10);
+            PlaySoundEffect(0xB3, NULL, NULL, NULL, 0, 0x10);
         }
         
         arg0->unk_F0++;
@@ -1741,7 +1741,7 @@ block_53:
         }
         if (!(arg0->globalTimer & 3)) {
             if (Actor_Init(0x40, (__cosf(arg0->unk_90 * 2.0f * PI / 360.0) * 280.0f) + arg0->pos.x, arg0->pos.y + 100.0f, arg0->pos.z - (__sinf(arg0->unk_90 * 2.0f * PI / 360.0) * 280.0f), arg0->unk_90, arg0->unk_F4, arg0->unk_F8, arg0->unk_FC, arg0->unk_100, arg0->unk_104, arg0->unk_108, 80.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0, 0, 0, 0) != -1) {
-                playSoundEffect(0xBB, NULL, NULL, NULL, 0, 0x10);
+                PlaySoundEffect(0xBB, NULL, NULL, NULL, 0, 0x10);
                 arg0->userVariables[4] -= 1;
             }
         }
@@ -1755,7 +1755,7 @@ block_53:
         spA0 = arg0->pos.z - gCurrentActivePlayerPointer->pos.z;
         if (!(arg0->globalTimer & 3)) {
             if (Actor_Init(0x40, (__cosf(arg0->unk_90 * 2.0f * PI / 360.0) * 280.0f) + arg0->pos.x, arg0->pos.y + 100.0f, arg0->pos.z - (__sinf(arg0->unk_90 * 2.0f * PI / 360.0) * 280.0f), arg0->unk_90, arg0->unk_F4, arg0->unk_F8, arg0->unk_FC, arg0->unk_100, arg0->unk_104, arg0->unk_108, 80.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0, 0, 0, 0) != -1) {
-                playSoundEffect(0xBB, NULL, NULL, NULL, 0, 0x10);
+                PlaySoundEffect(0xBB, NULL, NULL, NULL, 0, 0x10);
             }
         }
         arg0->unk_90 += 0.803571f;

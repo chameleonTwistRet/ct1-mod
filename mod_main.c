@@ -13,7 +13,7 @@ s32 secondarySeedCallsTotalStateUncompressed = 0;
 char pracTwistVersionString[] = "Practwist v1.2.0";
 char textBuffer[0x100] = {'\0'};    // Text buffer set to empty string
 
-void func_8004E784_Hook(contMain* arg0, s32 arg1, s32* arg2, contMain* arg3);
+void func_8004E784_Hook(ContMain* arg0, s32 arg1, s32* arg2, ContMain* arg3);
 void gVideoThreadProcessHook(void);
 void videoproc_Hook(s32);
 u32 xSeed2 = 174823885;
@@ -387,7 +387,7 @@ s32 caveSkipPractice(void) {
     char messageBuffer[20];
     char convertedMessageBuffer[sizeof(messageBuffer) * 2];
 
-    if ((gameModeCurrent == GAME_MODE_OVERWORLD) && (gCurrentStage == 0) && (gNextZone == 0) && (toggles[TOGGLE_CAVE_SKIP_PRACTICE] == 1)) {
+    if ((gGameModeCurrent == GAME_MODE_OVERWORLD) && (gCurrentStage == 0) && (gNextZone == 0) && (toggles[TOGGLE_CAVE_SKIP_PRACTICE] == 1)) {
         // Printout Location
         f32 xPos = 20.0f;
         f32 yPos = 35.0f;
@@ -482,7 +482,7 @@ void mod_main_per_frame(void) {
         printCustomDebugText();
     }
 
-    if (gameModeCurrent == GAME_MODE_SUPPLY_SYSTEM_LOGO) {
+    if (gGameModeCurrent == GAME_MODE_SUPPLY_SYSTEM_LOGO) {
         colorTextWrapper(textGreenMatColor);
         convertAsciiToText(&convertedVersionBuffer, (char*)&pracTwistVersionString);
         textPrint(15.0f, 220.0f, 0.5f, &convertedVersionBuffer, 3);
@@ -545,11 +545,11 @@ s32 inFrameAdvance = 0;
 void mod_main_func(void) {
     s32 var;
     s32 i;
-    contMain sp28[4];
+    ContMain sp28[4];
     // func_8002D080(); //is already ran in MainLoop.s patch
     
     if (sGameModeStart != -1) {
-        gameModeCurrent = sGameModeStart;
+        gGameModeCurrent = sGameModeStart;
     }
     
     gGameModeState = 0;
@@ -567,7 +567,7 @@ void mod_main_func(void) {
     loop:
     mod_main_per_frame();
     secondarySeedCallsThisFrame = 0;
-    switch(gameModeCurrent) {
+    switch(gGameModeCurrent) {
         case GAME_MODE_OVERWORLD:
             if (stateCooldown == 5) {
                 Porocess_Mode0();
