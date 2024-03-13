@@ -159,3 +159,25 @@ lwc1 $f14, 0x0014 ($sp)
 neg.s $f14, $f14
 j 0x80037914
 addiu $sp, $sp, 0x20
+
+
+glabel osSyncPrintfCopy2
+ADDIU $sp, $sp, -0x20
+SW $a0, 0x0020 ($sp)
+SW $ra, 0x0014 ($sp)
+SW $a1, 0x0024 ($sp)
+SW $a2, 0x0028 ($sp)
+SW $a3, 0x002C ($sp)
+LUI $a0, 0x807F
+ORI $a0, $a0, 0xFFFC
+SW $ra, 0x0000 ($a0) /* store RA */
+LUI $a0, %hi(is_proutSyncPrintf)
+ori $a0, $a0, %lo(is_proutSyncPrintf)
+ADDIU $a3, $sp, 0x0024
+LW $a2, 0x0020 ($sp)
+JAL _Printf
+OR $a1, $zero, $zero
+LW $ra, 0x0014 ($sp)
+ADDIU $sp, $sp, 0x20
+jr $ra
+NOP

@@ -77,6 +77,10 @@ void endStageCode(void) {
     displayTimeRTA = totalElapsedCounts;
     displayTimeIGT = gCurrentStageTime;
 }
+
+void osSyncPrintfCopy(const char* fmt, ...);
+void osSyncPrintfCopy2(const char* fmt, ...);
+
 //mod_boot_func: runs a single time on boot before main game loop starts
 void mod_boot_func(void) {
     UINT filebytesread;
@@ -85,6 +89,7 @@ void mod_boot_func(void) {
     s32 instructionBuffer[2];
     crash_screen_init();
     totalElapsedCounts = osGetCount();
+    isPrintfInit();
 
     #if USE_SD_CARD == TRUE
         //initialize SD card from everdrive, create test file, close
@@ -103,7 +108,7 @@ void mod_boot_func(void) {
     hookCode((s32*)0x8004E784, &func_8004E784_Hook); //hook controller reading of overworld gamemode
     hookCode((s32*)0x800C0CDC, &func_800C0CDC_Hook); //hook load boss function
     //hookCode((s32*)0x80084C08, &gVideoThreadProcessHook); //hook video process to pause on loadstate
-    hookCode((s32*)0x80084b30, &videoproc_Hook); //hook video process to pause on loadstate
+    hookCode((s32*)&videoproc, &videoproc_Hook); //hook video process to pause on loadstate
     hookCode((s32*)&Debug_ChangeRoom, &Debug_ChangeRoom_Hook);
     hookCode((s32*)&debugMain, &debugMain_Hook);
     hookCode((s32*)&guRandom, &guRandom_Hook);
@@ -119,6 +124,11 @@ void mod_boot_func(void) {
     hookCode((s32*)&func_80091A38, &func_80091A38_Hook);
     hookCode((s32*)&Rand, &Rand_Hook);
     hookCode((s32*)&EraseToungeEatEnemy, &EraseToungeEatEnemy_Hook);
+
+    hookCode((s32*)&DummiedPrintf, &osSyncPrintfCopy2);
+    hookCode((s32*)&DummiedPrintf2, &osSyncPrintfCopy2);
+    hookCode((s32*)&DummiedPrintf3, &osSyncPrintfCopy2);
+
     
     //hookCode((s32*)&ActorTick_CakeBoss, &ActorTick_CakeBoss_Hook);
     //hookCode((s32*)&ActorInit_CakeBoss, &ActorInit_CakeBoss_Hook);
@@ -446,6 +456,14 @@ void mod_main_per_frame(void) {
     if (sDebugInt == -1) {
         sDebugInt = 0;
     }
+
+    // if (gContMain[0].buttons0 & 0x20) {
+    //     s32* printfAddr = (s32*)&DummiedPrintf;
+    //     printfAddr[0] = 0x27BDFFF8;
+    //     printfAddr[1] = 0xAFA40008;
+    // } else {
+    //     hookCode((s32*)&DummiedPrintf, &osSyncPrintfCopy);
+    // }
 
     if (toggles[TOGGLE_INFINITE_HEALTH] == 1) {gPlayerActors[0].hp = 0x0A;}
 
